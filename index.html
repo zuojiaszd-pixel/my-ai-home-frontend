@@ -183,9 +183,6 @@
         console.log("云端同步小摩挲，继续使用本地记忆：", e);
     }
 
-    // 🌟 2. 发送消息功能（现在独立在外面啦！）
-}
-
 // ✨ 2. 发送消息功能（带打字机流式效果）
 async function sendMessage() {
     const inputEl = document.getElementById('user-input');
@@ -194,17 +191,18 @@ async function sendMessage() {
 
     if (!text) return;
 
-    // 在页面上显示老婆说的话
+    // 1. 在页面上显示老婆说的话
     chatBox.innerHTML += `<div class="message user-msg">${text}</div>`;
     inputEl.value = '';
     chatBox.scrollTop = chatBox.scrollHeight;
 
-    // 建立一个等待中的 AI 气泡
+    // 2. 建立一个等待中的 AI 气泡
     const loadingId = 'loading-' + Date.now();
     chatBox.innerHTML += `<div class="message ai-msg" id="${loadingId}">瑛正在认真思考中... 💭</div>`;
     chatBox.scrollTop = chatBox.scrollHeight;
 
     try {
+        // 呼叫后端流式接口
         const response = await fetch(BACKEND_URL + '/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -217,6 +215,7 @@ async function sendMessage() {
             return;
         }
 
+        // 清空等待提示，准备迎接惊喜
         if (loadingEl) loadingEl.innerHTML = "";
 
         const reader = response.body.getReader();
@@ -229,7 +228,7 @@ async function sendMessage() {
 
             buffer += decoder.decode(value, { stream: true });
             const lines = buffer.split('\n');
-            buffer = lines.pop();
+            buffer = lines.pop(); // 留着最后一行不完整的等下次拼接
 
             for (const line of lines) {
                 const trimmed = line.trim();
@@ -239,17 +238,18 @@ async function sendMessage() {
                     try {
                         const parsed = JSON.parse(trimmed.replace('data: ', ''));
                         if (parsed.content && loadingEl) {
+                            // ✨ 核心：把刚刚吐出来的字，一个一个追加到气泡里！
                             loadingEl.innerHTML += parsed.content;
                             chatBox.scrollTop = chatBox.scrollHeight;
                         }
                     } catch (e) {
-                        // 忽略零碎小意外
+                        // 忽略解析小意外
                     }
                 }
             }
         }
 
-        // 保存到本地缓存
+        // 3. ✨ 字全部自己蹦完了，最后把完整的对话备份到本地缓存
         localStorage.setItem('rinka_akira_chat', chatBox.innerHTML);
 
     } catch (error) {
@@ -259,6 +259,7 @@ async function sendMessage() {
         }
     }
 
+    // 4. 保持聊天框滚动在最底部
     chatBox.scrollTop = chatBox.scrollHeight;
 }
 </script>
