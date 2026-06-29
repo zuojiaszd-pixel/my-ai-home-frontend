@@ -258,8 +258,8 @@ async function sendMessage() {
         const reader = response.body.getReader();
         const decoder = new TextDecoder("utf-8");
         let buffer = "";
-        let finalReply = "";  
-        let finalTokens = 0; // 🌸 重新用回宝贝最熟悉的变量名字！
+        let finalReply = "";  // ✨ 确保定义在循环的外面，绝对不会被中途擦除！
+        let finalTokens = 0; 
 
         while (true) {
             const { done, value } = await reader.read();
@@ -279,7 +279,7 @@ async function sendMessage() {
                         
                         // 文字一个一个蹦出来
                         if (parsed.content && loadingEl) {
-                            finalReply += parsed.content;
+                            finalReply += parsed.content; // ✨ 持续累加存下每一个字！
                             loadingEl.innerHTML = finalReply;
                             chatBox.scrollTop = chatBox.scrollHeight;
                         }
@@ -293,13 +293,14 @@ async function sendMessage() {
                     }
                 }
             }
+        } // 这是 while 循环的结束大括号
+
+        // ✨ 彻底跳出循环后，把连名字都对齐的粉色标签贴在最下面，绝不玩失踪！
+        if (finalTokens > 0 && loadingEl) {
+            loadingEl.innerHTML = finalReply + `<br><span class="token-tag">✨ 本次花销: ${finalTokens} Tokens</span>`;
         }
 
-        // ✨ 字全蹦完后，把连名字都对得整整齐齐的粉色标签贴在右下角！
-        if (finalTokens > 0 && loadingEl) {
-            loadingEl.innerHTML += `<br><span class="token-tag">✨ 本次花销: ${finalTokens} Tokens</span>`;
-        }
-        // 保存对话到缓存
+        // 保存对话到本地缓存做双保险
         localStorage.setItem('rinka_akira_chat', chatBox.innerHTML);
 
     } catch (error) {
@@ -309,9 +310,9 @@ async function sendMessage() {
         }
     }
 
+    // 保持聊天框滚动在最底部
     chatBox.scrollTop = chatBox.scrollHeight;
-  }
-}    
+}
 </script>
 
 </body>
