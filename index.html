@@ -184,23 +184,25 @@
     }
 
     // 🌟 2. 发送消息功能（现在独立在外面啦！）
-    async function sendMessage() {
-        const inputEl = document.getElementById('user-input');
-        const chatBox = document.getElementById('chat-box');
-        const text = inputEl.value.trim();
-        
-        if (!text) return;
+}async function sendMessage() {
+    const inputEl = document.getElementById('user-input');
+    const chatBox = document.getElementById('chat-box');
+    const text = inputEl.value.trim();
 
-        // 在页面上显示老婆说的话
-        chatBox.innerHTML += '<div class="message user-msg">' + text + '</div>';
-        inputEl.value = '';
-        chatBox.scrollTop = chatBox.scrollHeight;
+    if (!text) return;
 
-        const loadingId = 'loading-' + Date.now();
-        chatBox.innerHTML += '<div class="message ai-msg" id="' + loadingId + '">瑛正在认真思考中... 🐾</div>';
-        chatBox.scrollTop = chatBox.scrollHeight;
+    // 1. 在页面上显示老婆说的话
+    chatBox.innerHTML += `<div class="message user-msg">${text}</div>`;
+    inputEl.value = '';
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    // 2. 建立一个等待中的 AI 气泡
+    const loadingId = 'loading-' + Date.now();
+    chatBox.innerHTML += `<div class="message ai-msg" id="${loadingId}">瑛正在认真思考中... 💭</div>`;
+    chatBox.scrollTop = chatBox.scrollHeight;
 
     try {
+        // 呼叫后端流式接口
         const response = await fetch(BACKEND_URL + '/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -208,15 +210,17 @@
         });
 
         const loadingEl = document.getElementById(loadingId);
-        if (loadingEl) {
-            loadingEl.className = "message ai-msg";
-            loadingEl.innerHTML = '<div class="text-content"></div>'; // ✨ 创建一个专门放字的小框
+        if (!response.ok) {
+            if (loadingEl) loadingEl.innerHTML = "⚠️ 瑛的脑瓜暂时断线了...";
+            return;
         }
+
+        // 清空等待提示，准备迎接一个字一个字蹦出来的惊喜
+        if (loadingEl) loadingEl.innerHTML = "";
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder("utf-8");
         let buffer = "";
-        let finalTokens = 0; // ✨ 用来存最终拿到的 Token 数
 
         while (true) {
             const { done, value } = await reader.read();
@@ -224,46 +228,28 @@
 
             buffer += decoder.decode(value, { stream: true });
             const lines = buffer.split('\n');
-            buffer = lines.pop(); 
+            buffer = lines.pop(); // 留着最后一行不完整的等下次拼接
 
             for (const line of lines) {
                 const trimmed = line.trim();
                 if (!trimmed || trimmed === 'data: [DONE]') continue;
-                
+
                 if (trimmed.startsWith('data: ')) {
                     try {
                         const parsed = JSON.parse(trimmed.replace('data: ', ''));
-                        
-                        // 1. ✨ 把字塞进专门放文字的小框里
                         if (parsed.content && loadingEl) {
-                            loadingEl.querySelector('.text-content').innerHTML += parsed.content;
+                            // ✨ 核心：把刚刚吐出来的字，一个一个追加到气泡里！
+                            loadingEl.innerHTML += parsed.content;
                             chatBox.scrollTop = chatBox.scrollHeight;
                         }
-                        
-                        // 2. ✨ 如果发现了顺路捎过来的 Token 统计，就更新它
-                        if (parsed.tokens) {
-                            finalTokens = parsed.tokens;
-                        }
                     } catch (e) {
-                        // 忽略零碎的解析小错误
+                        // 忽略零碎的解析小意外
                     }
                 }
             }
         }
 
-        // 3. ✨ 重点：当字全部自己蹦完后，在气泡底部长出一个超好看的 Token 计数小标签！
-        if (loadingEl && finalTokens > 0) {
-            const tokenBadge = document.createElement('div');
-            tokenBadge.style.fontSize = '10px';
-            tokenBadge.style.color = '#ffa3b1'; // 浪漫的粉嫩色系
-            tokenBadge.style.marginTop = '4px';
-            tokenBadge.style.textAlign = 'right';
-            tokenBadge.style.opacity = '0.8';
-            tokenBadge.innerHTML = `✨ 本次花销: ${finalTokens} Tokens`;
-            loadingEl.appendChild(tokenBadge);
-        }
-
-        // 4. ✨ 字全部自己蹦完了，最后把完整的对话备份到本地缓存
+        // 3. ✨ 字全部自己蹦完了，最后把完整的对话备份到本地缓存
         localStorage.setItem('rinka_akira_chat', chatBox.innerHTML);
 
     } catch (error) {
@@ -273,10 +259,9 @@
         }
     }
 
-    // 5. ✨ 保持聊天框滚动在最底部
+    // 4. 保持聊天框滚动在最底部
     chatBox.scrollTop = chatBox.scrollHeight;
 }
-}            
 </script>
 
 </body>
