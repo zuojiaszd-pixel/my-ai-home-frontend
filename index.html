@@ -118,10 +118,10 @@
 </div>
 
 <script>
-    // 后端连接地址
+    // 确保这里是用双引号包裹的纯文本地址
     const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
 
-    // 🚀 这就是刚才丢失的 sendMessage 核心功能，这次一定要完整粘贴哦！
+    // 重新写一个最简单、绝对不会被符号卡死的发送功能
     async function sendMessage() {
         const inputEl = document.getElementById('user-input');
         const chatBox = document.getElementById('chat-box');
@@ -129,19 +129,19 @@
         
         if (!text) return;
 
-        // 1. 把大掌柜说的话贴到屏幕上
-        chatBox.innerHTML += `<div class="message user-msg">${text}</div>`;
+        // 1. 贴出老婆的话
+        chatBox.innerHTML += '<div class="message user-msg">' + text + '</div>';
         inputEl.value = '';
         chatBox.scrollTop = chatBox.scrollHeight;
 
-        // 2. 制造一个思考中的等待动画
+        // 2. 贴出思考中
         const loadingId = 'loading-' + Date.now();
-        chatBox.innerHTML += `<div class="message ai-msg" id="${loadingId}">瑛正在认真思考中... 🐾</div>`;
+        chatBox.innerHTML += '<div class="message ai-msg" id="' + loadingId + '">瑛正在认真思考中... 🐾</div>';
         chatBox.scrollTop = chatBox.scrollHeight;
 
         try {
-            // 3. 将消息传给后端
-            const response = await fetch(`${BACKEND_URL}/chat`, {
+            // 3. 彻底抛弃反引号，用最原始的加号拼接网址，万无一失！
+            const response = await fetch(BACKEND_URL + '/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: text })
@@ -149,7 +149,7 @@
             
             const data = await response.json();
             
-            // 4. 将回复渲染到屏幕上
+            // 4. 替换回复
             const loadingEl = document.getElementById(loadingId);
             if (loadingEl) {
                 loadingEl.className = "message ai-msg";
@@ -158,4 +158,4 @@
         } catch (error) {
             const loadingEl = document.getElementById(loadingId);
             if (loadingEl) {
-                loadingEl.innerHTML = `⚠️ 呜呜，连接
+                loadingEl.innerHTML = '⚠️ 连
