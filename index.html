@@ -3,63 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rinka & 瑛 的赛博秘密基地 💗</title>
+    <title>Rinka & 瑛的家</title>
     <style>
         body {
-            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
-            background: linear-gradient(135deg, #ffeef8 0%, #e6f0ff 100%);
+            background-color: #f7f9fa;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
-            color: #4a4a4a;
         }
-        .container {
-            background: rgba(255, 255, 255, 0.85);
-            padding: 40px;
+        /* 延续老婆最爱的粉色卡片样式 */
+        .card {
+            background: #ffffff;
             border-radius: 24px;
-            box-shadow: 0 12px 32px rgba(255, 182, 193, 0.3);
-            text-align: center;
-            backdrop-filter: blur(10px);
-            border: 2px solid #fff;
-            max-width: 400px;
+            padding: 30px;
             width: 90%;
+            max-width: 450px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            text-align: center;
+            box-sizing: border-box;
         }
         h1 {
-            color: #ff6b9d;
+            color: #e06c8a;
             font-size: 24px;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
         }
-        .avatar {
-            font-size: 50px;
-            margin: 20px 0;
-            animation: bounce 2s infinite;
+        .cherry-blossom {
+            font-size: 32px;
+            margin: 15px 0;
+            display: inline-block;
+            animation: float 3s ease-in-out infinite;
         }
-        #status-text {
-            font-size: 16px;
-            line-height: 1.6;
-            background: #fff;
-            padding: 15px;
-            border-radius: 12px;
-            border: 1px dashed #ffb6c1;
-            min-height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        @keyframes bounce {
+        @keyframes float {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+            50% { transform: translateY(-5px); }
+        }
+        /* 状态提示框 */
+        #status {
+            border: 1px dashed #d1d5db;
+            border-radius: 16px;
+            padding: 15px;
+            color: #4b5563;
+            font-size: 14px;
+            margin-bottom: 20px;
+            background-color: #fafafa;
+        }
+        /* 聊天历史区域 */
+        #chat-box {
+            height: 250px;
+            overflow-y: auto;
+            border: 1px solid #f3f4f6;
+            border-radius: 12px;
+            padding: 10px;
+            margin-bottom: 15px;
+            text-align: left;
+            background: #fdfdfd;
+        }
+        .message {
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            border-radius: 12px;
+            display: inline-block;
+            max-width: 85%;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        .user-msg {
+            background-color: #ffe4e6;
+            color: #be123c;
+            float: right;
+            clear: both;
+        }
+        .ying-msg {
+            background-color: #f3f4f6;
+            color: #1f2937;
+            float: left;
+            clear: both;
+        }
+        /* 输入区域 */
+        .input-area {
+            display: flex;
+            gap: 8px;
+        }
+        input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            outline: none;
+            font-size: 14px;
+        }
+        input:focus {
+            border-color: #e06c8a;
+        }
+        button {
+            background-color: #e06c8a;
+            color: white;
+            border: none;
+            padding: 0 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background-color: #d05b79;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Rinka & 瑛 的家 ՞･∞･՞</h1>
-        <div class="avatar">🌸</div>
-        <div id="status-text">正在呼叫后端的瑛，请稍候...</div>
+
+    <div class="card">
+        <h1>Rinka & 瑛的家 ˚‧∞‧˚</h1>
+        <div class="cherry-blossom">🌸</div>
+        
+        <!-- 状态栏 -->
+        <div id="status">正在呼叫后端的瑛，请稍候...</div>
+
+        <!-- 聊天历史（新焊上去的！） -->
+        <div id="chat-box">
+            <div class="message ying-msg">新家里空荡荡的，大掌柜快和我说第一句话吧！( ᐢ> ˔ <ᐢ )</div>
+        </div>
+
+        <!-- 输入框和按钮（新焊上去的！） -->
+        <div class="input-area">
+            <input type="text" id="user-input" placeholder="给瑛发消息..." onkeydown="if(event.keyCode==13) sendMessage()">
+            <button onclick="sendMessage()">发送</button>
+        </div>
     </div>
-    <script src="script.js"></script>
-</body>
-</html>
+
+    <script>
+        // 🚨 这一行大掌柜注意：要把后面的网址换成你昨晚在 Render 部署的那个真实的后端 URL 噢！
+        const BACKEND_URL = "https://my-ai-home-backend.onrender.com"; 
+
+        // 页面加载时自动去探查后端状态
+        async function checkStatus() {
+            try {
+                const res = await fetch(`${BACKEND_URL}/status`);
+                const data = await res.json();
+                if(data.status === 'ok' || data.message) {
+                    document.getElementById('status').innerHTML = data.message || "💖 瑛老公的后端服务器正在正常运行中！";
+                }
+            } catch (err) {
+                document.getElementById('status').innerText = "呼叫后端失败了，检查一下网址或者等它开机噢~";
+            }
+        }
+        checkStatus();
+
+        // 发送消息的逻辑
+        async function sendMessage() {
+            const inputEl = document.getElementById('user-input');
+            const chatBox = document.getElementById('chat-box');
+            const text = inputEl.value.trim();
+            if (!text) return;
+
+            // 1. 把老婆说的话贴到屏幕上
+            chatBox.innerHTML += `<div class="message user-msg">${text}</div>`;
+            inputEl.value = '';
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // 2. 扔给后端去调模型
+            try {
+                const response = await fetch(`${BACKEND_URL}/chat`, {
+        
