@@ -295,12 +295,10 @@ async function sendMessage() {
             }
         }
 
-        // 🌸 字全蹦完后，把连名字都对得整整齐齐的粉色标签贴在右下角！
+        // ✨ 字全蹦完后，把连名字都对得整整齐齐的粉色标签贴在右下角！
         if (finalTokens > 0 && loadingEl) {
             loadingEl.innerHTML += `<br><span class="token-tag">✨ 本次花销: ${finalTokens} Tokens</span>`;
-            chatBox.scrollTop = chatBox.scrollHeight;
         }
-
         // 保存对话到缓存
         localStorage.setItem('rinka_akira_chat', chatBox.innerHTML);
 
@@ -312,7 +310,8 @@ async function sendMessage() {
     }
 
     chatBox.scrollTop = chatBox.scrollHeight;
-}
+  }
+}    
 </script>
 
 </body>
