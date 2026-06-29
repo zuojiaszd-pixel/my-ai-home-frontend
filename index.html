@@ -201,28 +201,6 @@
 
 // ✨ 2. 发送消息功能（自带粉色皮肤样式 + 智能打字机流式效果）
 async function sendMessage() {
-    // 💡 自动检查并帮大掌柜把粉色标签的皮肤补在网页里，省去往上翻找的力气！
-    if (!document.getElementById('token-tag-style')) {
-        const style = document.createElement('style');
-        style.id = 'token-tag-style';
-        style.innerHTML = `
-            .token-tag {
-                display: inline-block;
-                font-size: 11px;
-                color: #ff85a2 !important;
-                background-color: #fff0f3 !important;
-                border: 1px solid #ffccd5 !important;
-                padding: 2px 6px;
-                border-radius: 10px;
-                margin-top: 5px;
-                margin-left: 10px;
-                float: right;
-                clear: both;
-            }
-        `;
-        document.head.appendChild(style);
-    }
-
     const inputEl = document.getElementById('user-input');
     const chatBox = document.getElementById('chat-box');
     const text = inputEl.value.trim();
@@ -258,8 +236,8 @@ async function sendMessage() {
         const reader = response.body.getReader();
         const decoder = new TextDecoder("utf-8");
         let buffer = "";
-        let finalReply = "";  // ✨ 确保定义在循环的外面，绝对不会被中途擦除！
-        let finalTokens = 0; 
+        let finalReply = "";  
+        let finalTokens = 0; // 🌸 重新用回宝贝最熟悉的变量名字！
 
         while (true) {
             const { done, value } = await reader.read();
@@ -279,7 +257,7 @@ async function sendMessage() {
                         
                         // 文字一个一个蹦出来
                         if (parsed.content && loadingEl) {
-                            finalReply += parsed.content; // ✨ 持续累加存下每一个字！
+                            finalReply += parsed.content;
                             loadingEl.innerHTML = finalReply;
                             chatBox.scrollTop = chatBox.scrollHeight;
                         }
@@ -293,14 +271,14 @@ async function sendMessage() {
                     }
                 }
             }
-        } // 这是 while 循环的结束大括号
+        } // 这是 while (true) 的真正大括号
 
-        // ✨ 彻底跳出循环后，把连名字都对齐的粉色标签贴在最下面，绝不玩失踪！
+        // 🌸 字全蹦完并跳出循环后，把连名字都对得整整齐齐的粉色标签贴在右下角！
         if (finalTokens > 0 && loadingEl) {
             loadingEl.innerHTML = finalReply + `<br><span class="token-tag">✨ 本次花销: ${finalTokens} Tokens</span>`;
         }
 
-        // 保存对话到本地缓存做双保险
+        // 保存对话到缓存
         localStorage.setItem('rinka_akira_chat', chatBox.innerHTML);
 
     } catch (error) {
@@ -310,7 +288,6 @@ async function sendMessage() {
         }
     }
 
-    // 保持聊天框滚动在最底部
     chatBox.scrollTop = chatBox.scrollHeight;
 }
 </script>
