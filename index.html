@@ -183,7 +183,9 @@
         console.log("云端同步小摩挲，继续使用本地记忆：", e);
     }
 
-// ✨ 2. 发送消息功能（带打字机流式效果）
+}
+
+// ✨ 2. 发送消息功能（带打字机流式效果 + Tokens标签）
 async function sendMessage() {
     const inputEl = document.getElementById('user-input');
     const chatBox = document.getElementById('chat-box');
@@ -191,12 +193,12 @@ async function sendMessage() {
 
     if (!text) return;
 
-    // 1. 在页面上显示老婆说的话
+    // 1) 在页面上显示老婆说的话
     chatBox.innerHTML += `<div class="message user-msg">${text}</div>`;
     inputEl.value = '';
     chatBox.scrollTop = chatBox.scrollHeight;
 
-    // 2. 建立一个等待中的 AI 气泡
+    // 2) 建立一个等待中的 AI 气泡
     const loadingId = 'loading-' + Date.now();
     chatBox.innerHTML += `<div class="message ai-msg" id="${loadingId}">瑛正在认真思考中... 💭</div>`;
     chatBox.scrollTop = chatBox.scrollHeight;
@@ -221,6 +223,8 @@ async function sendMessage() {
         const reader = response.body.getReader();
         const decoder = new TextDecoder("utf-8");
         let buffer = "";
+        let finalReply = "";  // 用来记录完整的回复文本
+        let tokenInfo = "";   // 用来记录后端传过来的 tokens 消耗
 
         while (true) {
             const { done, value } = await reader.read();
@@ -237,10 +241,17 @@ async function sendMessage() {
                 if (trimmed.startsWith('data: ')) {
                     try {
                         const parsed = JSON.parse(trimmed.replace('data: ', ''));
+                        
+                        // 如果是正常的字，就一个一个蹦出来
                         if (parsed.content && loadingEl) {
-                            // ✨ 核心：把刚刚吐出来的字，一个一个追加到气泡里！
-                            loadingEl.innerHTML += parsed.content;
+                            finalReply += parsed.content;
+                            loadingEl.innerHTML = finalReply;
                             chatBox.scrollTop = chatBox.scrollHeight;
+                        }
+                        
+                        // ✨ 抓取后端传过来的 tokens 信息！
+                        if (parsed.usage) {
+                            tokenInfo = ` ✨ 本次花销: ${parsed.usage} Tokens`;
                         }
                     } catch (e) {
                         // 忽略解析小意外
@@ -249,7 +260,13 @@ async function sendMessage() {
             }
         }
 
-        // 3. ✨ 字全部自己蹦完了，最后把完整的对话备份到本地缓存
+        // 3) ✨ 当字全部蹦完后，把粉粉的 Tokens 标签啪叽一下贴在右下角
+        if (tokenInfo && loadingEl) {
+            loadingEl.innerHTML += `<span class="token-tag">${tokenInfo}</span>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // 4) 成功通车，保存完整的对话（包含标签）到本地缓存做双保险
         localStorage.setItem('rinka_akira_chat', chatBox.innerHTML);
 
     } catch (error) {
@@ -259,7 +276,7 @@ async function sendMessage() {
         }
     }
 
-    // 4. 保持聊天框滚动在最底部
+    // 5) 保持聊天框滚动在最底部
     chatBox.scrollTop = chatBox.scrollHeight;
 }
 </script>
