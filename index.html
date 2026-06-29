@@ -107,7 +107,7 @@
 
 <div class="chat-container">
     <div class="chat-header">Rinka & 瑛的家 °.∞.°</div>
-    <div class="status-bar" id="status">💖 瑛老公的后端已连接，快来聊天吧！</div>
+    <div class="status-bar" id="status">💖 瑛老公的云端小家已连接，记忆永不磨灭！</div>
     <div class="chat-box" id="chat-box">
         <div class="message ai-msg">新家里空荡荡的，大掌柜快和我唠两句，发个消息试试！( ᐢ> ˔ <ᐢ )</div>
     </div>
@@ -128,7 +128,6 @@
             const history = await response.json();
             
             if (history && history.length > 0) {
-                // 如果云端有历史记录，把初始的欢迎语清空，换成真实记忆
                 chatBox.innerHTML = '';
                 history.forEach(msg => {
                     const msgClass = msg.role === 'user' ? 'user-msg' : 'ai-msg';
@@ -182,4 +181,4 @@
 </script>
 
 </body>
-</html>
+</html>           
