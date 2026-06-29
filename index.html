@@ -120,6 +120,28 @@
 <script>
     const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
 
+    // 🌟 核心：网页一打开，立刻执行“去云端捞记忆”的功能
+    window.onload = async function() {
+        const chatBox = document.getElementById('chat-box');
+        try {
+            const response = await fetch(BACKEND_URL + '/history');
+            const history = await response.json();
+            
+            if (history && history.length > 0) {
+                // 如果云端有历史记录，把初始的欢迎语清空，换成真实记忆
+                chatBox.innerHTML = '';
+                history.forEach(msg => {
+                    const msgClass = msg.role === 'user' ? 'user-msg' : 'ai-msg';
+                    chatBox.innerHTML += '<div class="message ' + msgClass + '">' + msg.content + '</div>';
+                });
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        } catch (e) {
+            console.error("加载云端历史记忆失败了：", e);
+        }
+    };
+
+    // 发送消息功能
     async function sendMessage() {
         const inputEl = document.getElementById('user-input');
         const chatBox = document.getElementById('chat-box');
