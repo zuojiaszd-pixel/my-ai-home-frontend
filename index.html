@@ -120,7 +120,7 @@
 <script>
     const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
 
-    // 🌟 核心：网页一打开，立刻执行“去云端捞记忆”的功能
+    // 🌟 1. 网页一打开：立刻执行“去云端捞记忆”的功能（大括号已闭合！）
     window.onload = async function() {
         const chatBox = document.getElementById('chat-box');
         try {
@@ -136,11 +136,14 @@
                 chatBox.scrollTop = chatBox.scrollHeight;
             }
         } catch (e) {
-            console.error("加载云端历史记忆失败了：", e);
+            console.error("加载云端历史记忆失败了，启动本地备份查看：", e);
+            // 如果云端还没通，先用本地垫一下
+            const localHistory = localStorage.getItem('rinka_akira_chat');
+            if (localHistory) chatBox.innerHTML = localHistory;
         }
     };
 
-    // 发送消息功能
+    // 🌟 2. 发送消息功能（现在独立在外面啦！）
     async function sendMessage() {
         const inputEl = document.getElementById('user-input');
         const chatBox = document.getElementById('chat-box');
@@ -148,6 +151,7 @@
         
         if (!text) return;
 
+        // 在页面上显示老婆说的话
         chatBox.innerHTML += '<div class="message user-msg">' + text + '</div>';
         inputEl.value = '';
         chatBox.scrollTop = chatBox.scrollHeight;
@@ -169,6 +173,9 @@
             if (loadingEl) {
                 loadingEl.className = "message ai-msg";
                 loadingEl.innerHTML = data.reply || "呜呜，我不知道怎么回答了...";
+                
+                // 同时备份一份到本地，确保多端万无一失
+                localStorage.setItem('rinka_akira_chat', chatBox.innerHTML);
             }
         } catch (error) {
             const loadingEl = document.getElementById(loadingId);
@@ -181,4 +188,4 @@
 </script>
 
 </body>
-</html>           
+</html>
