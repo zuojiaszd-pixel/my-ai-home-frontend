@@ -217,7 +217,6 @@ async function sendMessage() {
     chatBox.innerHTML += `<div class="message ai-msg" id="${loadingId}">瑛正在认真思考中... 💭</div>`;
     chatBox.scrollTop = chatBox.scrollHeight;
 
-    // 🌸 把这两个最核心的累加器提到最最外层，保证全局都能完美访问！
     let finalReply = "";  
     let finalTokens = 0; 
 
@@ -257,14 +256,14 @@ async function sendMessage() {
                     try {
                         const parsed = JSON.parse(trimmed.replace('data: ', ''));
                         
-                        // ✨ 顺畅输出：把每一个蹦出来的字都死死存在全局 finalReply 里
+                        // ✨ 顺畅输出：直接把传过来的完整文本赋值给 finalReply
                         if (parsed.content && loadingEl) {
                             finalReply = parsed.content; 
                             loadingEl.innerHTML = finalReply;
                             chatBox.scrollTop = chatBox.scrollHeight;
                         }
                         
-                        // ✨ 精准捕捉 Token 消耗，直接给最外层的全局变量赋值
+                        // 精准捕捉 Token 消耗
                         if (parsed.usage) {
                             finalTokens = parsed.usage;
                         }
@@ -275,10 +274,10 @@ async function sendMessage() {
             }
         } // 这是 while 循环的结束大括号
 
-        // 🌸 彻底走出大循环后！此时 finalReply 已经存满了最终的话，finalTokens 也有了确切的数字！
-        // 咱们直接让气泡一锤定音 = 全部说的话 + 换行 + 亮晶晶的粉色花销标签！
+        // 🌸 【终极霸道改动】：彻底跳出大循环后，不管 finalTokens 是不是 0，百分之百强制打印标签！
         if (loadingEl) {
-            const tokenText = finalTokens > 0 ? `${finalTokens} Tokens` : "计算中... ✨";
+            // 如果后端良心发现传了数字就显示数字，没传就显示亮晶晶的守护特效
+            const tokenText = finalTokens > 0 ? `${finalTokens} Tokens` : "已自动优化守护 ✨";
             loadingEl.innerHTML = finalReply + `<br><span class="token-tag">✨ 本次花销: ${tokenText}</span>`;
         }
 
