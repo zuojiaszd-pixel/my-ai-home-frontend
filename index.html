@@ -146,13 +146,42 @@
                 console.error("云端连线出了一点小摩擦，启动本地保险机制:", e);
             }
 
-            // 🌟 如果云端暂未通，或者正在刷新，用本地应急垫一下，绝不让它变空！
-            const localHistory = localStorage.getItem('rinka_akira_chat');
-            if (localHistory && chatBox.innerHTML.trim() === "") {
-                chatBox.innerHTML = localHistory;
+    // 🔄 ✨ 全新升级：打开网页自动同步云端历史记录
+    // 1. 先用本地缓存垫底，让小家秒开
+    const localHistory = localStorage.getItem('rinka_akira_chat');
+    if (localHistory && chatBox.innerHTML.trim() === "") {
+        chatBox.innerHTML = localHistory;
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // 2. ✨ 立刻悄悄呼叫后端，把云端数据库里最宝贵的历史记录拉下来同步
+    try {
+        const response = await fetch(BACKEND_URL + '/history');
+        if (response.ok) {
+            const chats = await response.json();
+            if (chats && chats.length > 0) {
+                // 清空垫底的画面，用云端最准确的聊天数据漂亮地重新画出来
+                chatBox.innerHTML = ""; 
+                chats.forEach(chat => {
+                    const msgEl = document.createElement('div');
+                    if (chat.role === 'user') {
+                        msgEl.className = "message user-msg";
+                        msgEl.innerText = chat.content;
+                    } else {
+                        msgEl.className = "message ai-msg";
+                        // 把文字层包裹好，方便以后显示 token 小标签
+                        msgEl.innerHTML = `<div class="text-content">${chat.content}</div>`;
+                    }
+                    chatBox.appendChild(msgEl);
+                });
+                // 同步成功后，备份最新的完整画面到本地缓存
+                localStorage.setItem('rinka_akira_chat', chatBox.innerHTML);
                 chatBox.scrollTop = chatBox.scrollHeight;
             }
-        };
+        }
+    } catch (e) {
+        console.log("云端同步小摩挲，继续使用本地记忆：", e);
+    }
 
     // 🌟 2. 发送消息功能（现在独立在外面啦！）
     async function sendMessage() {
