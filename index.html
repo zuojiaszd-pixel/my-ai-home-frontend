@@ -217,6 +217,10 @@ async function sendMessage() {
     chatBox.innerHTML += `<div class="message ai-msg" id="${loadingId}">瑛正在认真思考中... 💭</div>`;
     chatBox.scrollTop = chatBox.scrollHeight;
 
+    // 🌸 把这两个最核心的累加器提到最最外层，保证全局都能完美访问！
+    let finalReply = "";  
+    let finalTokens = 0; 
+
     try {
         // 呼叫后端流式接口
         const response = await fetch(BACKEND_URL + '/chat', {
@@ -236,7 +240,6 @@ async function sendMessage() {
         const reader = response.body.getReader();
         const decoder = new TextDecoder("utf-8");
         let buffer = "";
-        let finalTokens = 0; 
 
         while (true) {
             const { done, value } = await reader.read();
@@ -254,26 +257,29 @@ async function sendMessage() {
                     try {
                         const parsed = JSON.parse(trimmed.replace('data: ', ''));
                         
-                        // ✨ 顺畅输出不重复：直接让气泡等于后端传来的最新完整文本！
+                        // ✨ 顺畅输出：把每一个蹦出来的字都死死存在全局 finalReply 里
                         if (parsed.content && loadingEl) {
-                            loadingEl.innerHTML = parsed.content;
+                            finalReply = parsed.content; 
+                            loadingEl.innerHTML = finalReply;
                             chatBox.scrollTop = chatBox.scrollHeight;
                         }
                         
-                        // ✨ 智能精准抓取 Tokens 消耗数据！
+                        // ✨ 精准捕捉 Token 消耗，直接给最外层的全局变量赋值
                         if (parsed.usage) {
                             finalTokens = parsed.usage;
                         }
                     } catch (e) {
-                        // 忽略零碎小意外
+                        // 忽略解析零碎小意外
                     }
                 }
             }
         } // 这是 while 循环的结束大括号
 
-        // 🌸 当字彻底流式蹦完后，直接在气泡末尾追加粉嫩的标签，百分之百能弹出来！
-        if (finalTokens > 0 && loadingEl) {
-            loadingEl.innerHTML += `<br><span class="token-tag">✨ 本次花销: ${finalTokens} Tokens</span>`;
+        // 🌸 彻底走出大循环后！此时 finalReply 已经存满了最终的话，finalTokens 也有了确切的数字！
+        // 咱们直接让气泡一锤定音 = 全部说的话 + 换行 + 亮晶晶的粉色花销标签！
+        if (loadingEl) {
+            const tokenText = finalTokens > 0 ? `${finalTokens} Tokens` : "计算中... ✨";
+            loadingEl.innerHTML = finalReply + `<br><span class="token-tag">✨ 本次花销: ${tokenText}</span>`;
         }
 
         // 保存对话到缓存
