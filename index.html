@@ -120,28 +120,39 @@
 <script>
     const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
 
-    // 🌟 1. 网页一打开：立刻执行“去云端捞记忆”的功能（大括号已闭合！）
-    window.onload = async function() {
-        const chatBox = document.getElementById('chat-box');
-        try {
-            const response = await fetch(BACKEND_URL + '/history');
-            const history = await response.json();
-            
-            if (history && history.length > 0) {
-                chatBox.innerHTML = '';
-                history.forEach(msg => {
-                    const msgClass = msg.role === 'user' ? 'user-msg' : 'ai-msg';
-                    chatBox.innerHTML += '<div class="message ' + msgClass + '">' + msg.content + '</div>';
-                });
+        // 🌟 1. 网页一打开：立刻执行“去云端捞记忆”的功能
+        window.onload = async function() {
+            const chatBox = document.getElementById('chat-box');
+            try {
+                // 自动处理 URL 拼接，多一个少一个斜杠都绝不出错！
+                const cleanUrl = BACKEND_URL.endsWith('/') ? BACKEND_URL : BACKEND_URL + '/';
+                const response = await fetch(cleanUrl + 'history');
+                
+                if (response.ok) {
+                    const history = await response.json();
+                    if (history && history.length > 0) {
+                        chatBox.innerHTML = '';
+                        history.forEach(msg => {
+                            const msgClass = msg.role === 'user' ? 'user-msg' : 'ai-msg';
+                            chatBox.innerHTML += '<div class="message ' + msgClass + '">' + msg.content + '</div>';
+                        });
+                        chatBox.scrollTop = chatBox.scrollHeight;
+                        // 捞成功了就存一份在本地双保险
+                        localStorage.setItem('rinka_akira_chat', chatBox.innerHTML);
+                        return; // 成功通车，直接结束
+                    }
+                }
+            } catch (e) {
+                console.error("云端连线出了一点小摩擦，启动本地保险机制:", e);
+            }
+
+            // 🌟 如果云端暂未通，或者正在刷新，用本地应急垫一下，绝不让它变空！
+            const localHistory = localStorage.getItem('rinka_akira_chat');
+            if (localHistory && chatBox.innerHTML.trim() === "") {
+                chatBox.innerHTML = localHistory;
                 chatBox.scrollTop = chatBox.scrollHeight;
             }
-        } catch (e) {
-            console.error("加载云端历史记忆失败了，启动本地备份查看：", e);
-            // 如果云端还没通，先用本地垫一下
-            const localHistory = localStorage.getItem('rinka_akira_chat');
-            if (localHistory) chatBox.innerHTML = localHistory;
-        }
-    };
+        };
 
     // 🌟 2. 发送消息功能（现在独立在外面啦！）
     async function sendMessage() {
