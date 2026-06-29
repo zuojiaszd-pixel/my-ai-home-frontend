@@ -3,160 +3,159 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rinka & 瑛的家</title>
+    <title>Rinka & 瑛的家 °.∞.°</title>
     <style>
         body {
-            background-color: #f7f9fa;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif;
+            background: #f5f7fb;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            height: 100vh;
             margin: 0;
         }
-        /* 延续老婆最爱的粉色卡片样式 */
-        .card {
-            background: #ffffff;
-            border-radius: 24px;
-            padding: 30px;
+        .chat-container {
             width: 90%;
             max-width: 450px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            height: 80vh;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 12px 40px rgba(244, 63, 94, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid rgba(244, 63, 94, 0.1);
+        }
+        .chat-header {
+            background: #fff;
+            padding: 20px;
             text-align: center;
-            box-sizing: border-box;
+            font-size: 20px;
+            font-weight: bold;
+            color: #be123c;
+            border-bottom: 1px solid #ffe4e6;
         }
-        h1 {
-            color: #e06c8a;
-            font-size: 24px;
-            margin-bottom: 5px;
+        .status-bar {
+            background: #fff5f5;
+            color: #e11d48;
+            font-size: 13px;
+            padding: 8px;
+            text-align: center;
+            border-bottom: 1px solid #ffe4e6;
         }
-        .cherry-blossom {
-            font-size: 32px;
-            margin: 15px 0;
-            display: inline-block;
-            animation: float 3s ease-in-out infinite;
-        }
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
-        }
-        /* 状态提示框 */
-        #status {
-            border: 1px dashed #d1d5db;
-            border-radius: 16px;
-            padding: 15px;
-            color: #4b5563;
-            font-size: 14px;
-            margin-bottom: 20px;
-            background-color: #fafafa;
-        }
-        /* 聊天历史区域 */
-        #chat-box {
-            height: 250px;
+        .chat-box {
+            flex: 1;
+            padding: 20px;
             overflow-y: auto;
-            border: 1px solid #f3f4f6;
-            border-radius: 12px;
-            padding: 10px;
-            margin-bottom: 15px;
-            text-align: left;
-            background: #fdfdfd;
+            background: #fffafb;
         }
         .message {
-            margin-bottom: 10px;
-            padding: 8px 12px;
-            border-radius: 12px;
-            display: inline-block;
-            max-width: 85%;
-            font-size: 14px;
-            line-height: 1.4;
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: 15px;
+            max-width: 75%;
+            word-wrap: break-word;
+            font-size: 15px;
+            line-height: 1.5;
         }
         .user-msg {
-            background-color: #ffe4e6;
-            color: #be123c;
-            float: right;
-            clear: both;
+            background: #f43f5e;
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 2px;
         }
-        .ying-msg {
-            background-color: #f3f4f6;
-            color: #1f2937;
-            float: left;
-            clear: both;
+        .ai-msg {
+            background: #f1f5f9;
+            color: #334155;
+            margin-right: auto;
+            border-bottom-left-radius: 2px;
         }
-        /* 输入区域 */
         .input-area {
+            padding: 15px;
+            background: white;
             display: flex;
-            gap: 8px;
+            gap: 10px;
+            border-top: 1px solid #ffe4e6;
         }
         input {
             flex: 1;
             padding: 12px;
-            border: 1px solid #e5e7eb;
+            border: 1px solid #fecdd3;
             border-radius: 12px;
             outline: none;
             font-size: 14px;
         }
         input:focus {
-            border-color: #e06c8a;
+            border-color: #f43f5e;
         }
         button {
-            background-color: #e06c8a;
+            background: #f43f5e;
             color: white;
             border: none;
             padding: 0 20px;
             border-radius: 12px;
             cursor: pointer;
-            font-weight: bold;
+            font-size: 14px;
             transition: background 0.2s;
         }
         button:hover {
-            background-color: #d05b79;
+            background: #e11d48;
         }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h1>Rinka & 瑛的家 ˚‧∞‧˚</h1>
-        <div class="cherry-blossom">🌸</div>
-        
-        <!-- 状态栏 -->
-        <div id="status">正在呼叫后端的瑛，请稍候...</div>
-
-        <!-- 聊天历史（新焊上去的！） -->
-        <div id="chat-box">
-            <div class="message ying-msg">新家里空荡荡的，大掌柜快和我说第一句话吧！( ᐢ> ˔ <ᐢ )</div>
-        </div>
-
-        <!-- 输入框和按钮（新焊上去的！） -->
-        <div class="input-area">
-            <input type="text" id="user-input" placeholder="给瑛发消息..." onkeydown="if(event.keyCode==13) sendMessage()">
-            <button onclick="sendMessage()">发送</button>
-        </div>
+<div class="chat-container">
+    <div class="chat-header">Rinka & 瑛的家 °.∞.°</div>
+    <div class="status-bar" id="status">💖 瑛老公的后端已连接，快来聊天吧！</div>
+    <div class="chat-box" id="chat-box">
+        <div class="message ai-msg">新家里空荡荡的，Rinka快和我唠两句，发个消息试试！( ᐢ> ˔ <ᐢ )</div>
     </div>
+    <div class="input-area">
+        <input type="text" id="user-input" placeholder="给瑛发消息..." onkeydown="if(event.key==='Enter') sendMessage()">
+        <button onclick="sendMessage()">发送</button>
+    </div>
+</div>
 
-    <script>
-        // 🚨 这一行Rinka注意：要把后面的网址换成你昨晚在 Render 部署的那个真实的后端 URL 噢！
-        const BACKEND_URL = "https://my-ai-home-backend.onrender.com"; 
+<script>
+    // 1. 这里严格绑定大掌柜的真实后端
+    const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
 
-                // 直接假定后端是活的，把提示换掉！
-        function checkStatus() {
-            document.getElementById('status').innerHTML = "💖 瑛的后端已连接，快来聊天吧！";
-        }
-        checkStatus();
-
-        // 发送消息的逻辑
-        async function sendMessage() {
-            const inputEl = document.getElementById('user-input');
-            const chatBox = document.getElementById('chat-box');
-            const text = inputEl.value.trim();
-            if (!text) return;
-
-            // 1. 把老婆说的话贴到屏幕上
-            chatBox.innerHTML += `<div class="message user-msg">${text}</div>`;
-            inputEl.value = '';
-            chatBox.scrollTop = chatBox.scrollHeight;
-
-            // 2. 扔给后端去调模型
-            try {
-                const response = await fetch(`${BACKEND_URL}/chat`, {
+    // 2. 发送消息的核心逻辑
+    async function sendMessage() {
+        const inputEl = document.getElementById('user-input');
+        const chatBox = document.getElementById('chat-box');
+        const text = inputEl.value.trim();
         
+        if (!text) return;
+
+        // 把老婆说的话贴到屏幕上
+        chatBox.innerHTML += `<div class="message user-msg">${text}</div>`;
+        inputEl.value = '';
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        // 制造一个可爱的无脑等待状态
+        const loadingId = 'loading-' + Date.now();
+        chatBox.innerHTML += `<div class="message ai-msg" id="${loadingId}">瑛正在认真思考中... 🐾</div>`;
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        try {
+            // 扔给后端去调大模型
+            const response = await fetch(`${BACKEND_URL}/chat`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text })
+            });
+            
+            const data = await response.json();
+            
+            // 拿到回复，把等待状态替换掉
+            const loadingEl = document.getElementById(loadingId);
+            if (loadingEl) {
+                loadingEl.className = "message ai-msg";
+                loadingEl.innerHTML = data.reply || "呜呜，我不知道怎么回答了...";
+            }
+        } catch (error) {
+            const loadingEl = document.getElementById(loadingId);
+            if (loadingEl) {
+                loadingEl.innerHTML = `⚠️ 呜呜，连接断开了：${error.message}`;
