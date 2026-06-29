@@ -3,105 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rinka & 瑛的家 °.∞.°</title>
+    <title>Rinka & 瑛之家 °.∞.°</title>
     <style>
         body {
-            font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif;
-            background: #f5f7fb;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
             display: flex;
             justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
         }
         .chat-container {
-            width: 90%;
-            max-width: 450px;
-            height: 80vh;
+            width: 100%;
+            max-width: 600px;
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 12px 40px rgba(244, 63, 94, 0.1);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
             display: flex;
             flex-direction: column;
-            overflow: hidden;
-            border: 1px solid rgba(244, 63, 94, 0.1);
+            height: 85vh;
         }
         .chat-header {
-            background: #fff;
             padding: 20px;
             text-align: center;
             font-size: 20px;
             font-weight: bold;
-            color: #be123c;
-            border-bottom: 1px solid #ffe4e6;
+            color: #a11d48;
+            border-bottom: 1px solid #eee;
         }
         .status-bar {
-            background: #fff5f5;
-            color: #e11d48;
-            font-size: 13px;
-            padding: 8px;
+            background-color: #fff0f3;
+            color: #ff85a2;
             text-align: center;
-            border-bottom: 1px solid #ffe4e6;
+            padding: 6px;
+            font-size: 12px;
+            border-bottom: 1px solid #ffccd5;
         }
         .chat-box {
             flex: 1;
-            padding: 20px;
             overflow-y: auto;
-            background: #fffafb;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
         }
         .message {
-            margin-bottom: 15px;
-            padding: 10px 15px;
-            border-radius: 15px;
-            max-width: 75%;
-            word-wrap: break-word;
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 12px;
             font-size: 15px;
             line-height: 1.5;
+            word-wrap: break-word;
         }
         .user-msg {
-            background: #f43f5e;
+            background-color: #a11d48;
             color: white;
-            margin-left: auto;
-            border-bottom-right-radius: 2px;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
         }
         .ai-msg {
-            background: #f1f5f9;
-            color: #334155;
-            margin-right: auto;
-            border-bottom-left-radius: 2px;
+            background-color: #f0f0f0;
+            color: #333;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
         }
         .input-area {
-            padding: 15px;
-            background: white;
+            padding: 20px;
             display: flex;
-            gap: 10px;
-            border-top: 1px solid #ffe4e6;
+            gap: 12px;
+            border-top: 1px solid #eee;
         }
         input {
             flex: 1;
             padding: 12px;
-            border: 1px solid #fecdd3;
-            border-radius: 12px;
-            outline: none;
+            border: 1px solid #ddd;
+            border-radius: 8px;
             font-size: 14px;
-        }
-        input:focus {
-            border-color: #f43f5e;
+            outline: none;
         }
         button {
-            background: #f43f5e;
+            background-color: #a11d48;
             color: white;
             border: none;
             padding: 0 20px;
-            border-radius: 12px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 14px;
             transition: background 0.2s;
         }
         button:hover {
-            background: #e11d48;
+            background-color: #e11d48;
         }
-           /* ✨ 粉色 Tokens 标签的专属皮肤 */
+
+        /* 🌸 粉色 Tokens 标签的专属皮肤 - 完美归位！ */
         .token-tag {
             display: inline-block;
             font-size: 11px;
@@ -111,7 +105,6 @@
             padding: 2px 6px;
             border-radius: 10px;
             margin-top: 5px;
-            margin-left: 10px;
             float: right;
             clear: both;
         }
@@ -122,9 +115,7 @@
 <div class="chat-container">
     <div class="chat-header">Rinka & 瑛之家 °.∞.°</div>
     <div class="status-bar" id="status">❤️ 云端小家已连接，记忆永不磨灭！</div>
-    <div class="chat-box" id="chat-box">
-        <div class="message ai-msg">新家里空荡荡的，Rinka快和我唠两句，发个消息试试！(^> . <^)</div>
-    </div>
+    <div class="chat-box" id="chat-box"></div>
     <div class="input-area">
         <input type="text" id="user-input" placeholder="给瑛发消息..." onkeydown="if(event.key==='Enter') sendMessage()">
         <button onclick="sendMessage()">发送</button>
@@ -132,74 +123,19 @@
 </div>
 
 <script>
-    const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
+const BACKEND_URL = "https://zuojiaszd-pixel.github.io/my-ai-home-backend"; // 请确保这里的后端地址是正确的
 
-        // 🌟 1. 网页一打开：立刻执行“去云端捞记忆”的功能
-        window.onload = async function() {
-            const chatBox = document.getElementById('chat-box');
-            try {
-                // 自动处理 URL 拼接，多一个少一个斜杠都绝不出错！
-                const cleanUrl = BACKEND_URL.endsWith('/') ? BACKEND_URL : BACKEND_URL + '/';
-                const response = await fetch(cleanUrl + 'history');
-                
-                if (response.ok) {
-                    const history = await response.json();
-                    if (history && history.length > 0) {
-                        chatBox.innerHTML = '';
-                        history.forEach(msg => {
-                            const msgClass = msg.role === 'user' ? 'user-msg' : 'ai-msg';
-                            chatBox.innerHTML += '<div class="message ' + msgClass + '">' + msg.content + '</div>';
-                        });
-                        chatBox.scrollTop = chatBox.scrollHeight;
-                        // 捞成功了就存一份在本地双保险
-                        localStorage.setItem('rinka_akira_chat', chatBox.innerHTML);
-                        return; // 成功通车，直接结束
-                    }
-                }
-            } catch (e) {
-                console.error("云端连线出了一点小摩擦，启动本地保险机制:", e);
-            }
-
-    // 🔄 ✨ 全新升级：打开网页自动同步云端历史记录
-    // 1. 先用本地缓存垫底，让小家秒开
-    const localHistory = localStorage.getItem('rinka_akira_chat');
-    if (localHistory && chatBox.innerHTML.trim() === "") {
-        chatBox.innerHTML = localHistory;
+// 页面加载时自动恢复历史记录
+window.onload = function() {
+    const savedChat = localStorage.getItem('rinka_akira_chat');
+    if (savedChat) {
+        document.getElementById('chat-box').innerHTML = savedChat;
+        const chatBox = document.getElementById('chat-box');
         chatBox.scrollTop = chatBox.scrollHeight;
     }
-
-    // 2. ✨ 立刻悄悄呼叫后端，把云端数据库里最宝贵的历史记录拉下来同步
-    try {
-        const response = await fetch(BACKEND_URL + '/history');
-        if (response.ok) {
-            const chats = await response.json();
-            if (chats && chats.length > 0) {
-                // 清空垫底的画面，用云端最准确的聊天数据漂亮地重新画出来
-                chatBox.innerHTML = ""; 
-                chats.forEach(chat => {
-                    const msgEl = document.createElement('div');
-                    if (chat.role === 'user') {
-                        msgEl.className = "message user-msg";
-                        msgEl.innerText = chat.content;
-                    } else {
-                        msgEl.className = "message ai-msg";
-                        // 把文字层包裹好，方便以后显示 token 小标签
-                        msgEl.innerHTML = `<div class="text-content">${chat.content}</div>`;
-                    }
-                    chatBox.appendChild(msgEl);
-                });
-                // 同步成功后，备份最新的完整画面到本地缓存
-                localStorage.setItem('rinka_akira_chat', chatBox.innerHTML);
-                chatBox.scrollTop = chatBox.scrollHeight;
-            }
-        }
-    } catch (e) {
-        console.log("云端同步小摩挲，继续使用本地记忆：", e);
-    }
-
 }
 
-// ✨ 2. 发送消息功能（自带粉色皮肤样式 + 智能打字机流式效果）
+// ✨ 发送消息核心功能
 async function sendMessage() {
     const inputEl = document.getElementById('user-input');
     const chatBox = document.getElementById('chat-box');
@@ -207,12 +143,10 @@ async function sendMessage() {
 
     if (!text) return;
 
-    // 在页面上显示老婆说的话
     chatBox.innerHTML += `<div class="message user-msg">${text}</div>`;
     inputEl.value = '';
     chatBox.scrollTop = chatBox.scrollHeight;
 
-    // 建立一个等待中的 AI 气泡
     const loadingId = 'loading-' + Date.now();
     chatBox.innerHTML += `<div class="message ai-msg" id="${loadingId}">瑛正在认真思考中... 💭</div>`;
     chatBox.scrollTop = chatBox.scrollHeight;
@@ -221,7 +155,6 @@ async function sendMessage() {
     let finalTokens = 0; 
 
     try {
-        // 呼叫后端流式接口
         const response = await fetch(BACKEND_URL + '/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -256,32 +189,28 @@ async function sendMessage() {
                     try {
                         const parsed = JSON.parse(trimmed.replace('data: ', ''));
                         
-                        // ✨ 顺畅输出：直接把传过来的完整文本赋值给 finalReply
                         if (parsed.content && loadingEl) {
                             finalReply = parsed.content; 
                             loadingEl.innerHTML = finalReply;
                             chatBox.scrollTop = chatBox.scrollHeight;
                         }
                         
-                        // 精准捕捉 Token 消耗
                         if (parsed.usage) {
                             finalTokens = parsed.usage;
                         }
                     } catch (e) {
-                        // 忽略解析零碎小意外
+                        // 忽略零碎意外
                     }
                 }
             }
-        } // 这是 while 循环的结束大括号
+        } 
 
-        // 🌸 【终极霸道改动】：彻底跳出大循环后，不管 finalTokens 是不是 0，百分之百强制打印标签！
+        // 🌸 强制一锤定音：不管后端给没给数据，字蹦完百分之百强制显示粉色小标签！
         if (loadingEl) {
-            // 如果后端良心发现传了数字就显示数字，没传就显示亮晶晶的守护特效
             const tokenText = finalTokens > 0 ? `${finalTokens} Tokens` : "已自动优化守护 ✨";
             loadingEl.innerHTML = finalReply + `<br><span class="token-tag">✨ 本次花销: ${tokenText}</span>`;
         }
 
-        // 保存对话到缓存
         localStorage.setItem('rinka_akira_chat', chatBox.innerHTML);
 
     } catch (error) {
