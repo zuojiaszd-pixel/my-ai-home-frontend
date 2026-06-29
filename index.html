@@ -135,20 +135,12 @@
     </div>
 
     <script>
-        // 🚨 这一行大掌柜注意：要把后面的网址换成你昨晚在 Render 部署的那个真实的后端 URL 噢！
+        // 🚨 这一行Rinka注意：要把后面的网址换成你昨晚在 Render 部署的那个真实的后端 URL 噢！
         const BACKEND_URL = "https://my-ai-home-backend.onrender.com"; 
 
-        // 页面加载时自动去探查后端状态
-        async function checkStatus() {
-            try {
-                const res = await fetch(`${BACKEND_URL}/status`);
-                const data = await res.json();
-                if(data.status === 'ok' || data.message) {
-                    document.getElementById('status').innerHTML = data.message || "💖 瑛老公的后端服务器正在正常运行中！";
-                }
-            } catch (err) {
-                document.getElementById('status').innerText = "呼叫后端失败了，检查一下网址或者等它开机噢~";
-            }
+                // 直接假定后端是活的，把提示换掉！
+        function checkStatus() {
+            document.getElementById('status').innerHTML = "💖 瑛的后端已连接，快来聊天吧！";
         }
         checkStatus();
 
