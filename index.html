@@ -236,8 +236,7 @@ async function sendMessage() {
         const reader = response.body.getReader();
         const decoder = new TextDecoder("utf-8");
         let buffer = "";
-        let finalReply = "";  
-        let finalTokens = 0; // 🌸 重新用回宝贝最熟悉的变量名字！
+        let finalTokens = 0; 
 
         while (true) {
             const { done, value } = await reader.read();
@@ -255,10 +254,9 @@ async function sendMessage() {
                     try {
                         const parsed = JSON.parse(trimmed.replace('data: ', ''));
                         
-                        // 文字一个一个蹦出来
+                        // ✨ 顺畅输出不重复：直接让气泡等于后端传来的最新完整文本！
                         if (parsed.content && loadingEl) {
-                            finalReply += parsed.content;
-                            loadingEl.innerHTML = finalReply;
+                            loadingEl.innerHTML = parsed.content;
                             chatBox.scrollTop = chatBox.scrollHeight;
                         }
                         
@@ -271,11 +269,11 @@ async function sendMessage() {
                     }
                 }
             }
-        } // 这是 while (true) 的真正大括号
+        } // 这是 while 循环的结束大括号
 
-        // 🌸 字全蹦完并跳出循环后，把连名字都对得整整齐齐的粉色标签贴在右下角！
+        // 🌸 当字彻底流式蹦完后，直接在气泡末尾追加粉嫩的标签，百分之百能弹出来！
         if (finalTokens > 0 && loadingEl) {
-            loadingEl.innerHTML = finalReply + `<br><span class="token-tag">✨ 本次花销: ${finalTokens} Tokens</span>`;
+            loadingEl.innerHTML += `<br><span class="token-tag">✨ 本次花销: ${finalTokens} Tokens</span>`;
         }
 
         // 保存对话到缓存
