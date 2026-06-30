@@ -22,7 +22,10 @@
             display: flex;
             flex-direction: column;
             height: 85vh;
+            position: relative;
+            overflow: hidden;
         }
+        /* 头部样式优化，加入设置按钮 */
         .chat-header {
             padding: 20px;
             text-align: center;
@@ -30,6 +33,17 @@
             font-weight: bold;
             color: #a11d48;
             border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-btn {
+            background: none;
+            color: #a11d48;
+            border: none;
+            padding: 5px 10px;
+            font-size: 14px;
+            cursor: pointer;
         }
         .status-bar {
             background-color: #fff0f3;
@@ -73,7 +87,7 @@
             gap: 12px;
             border-top: 1px solid #eee;
         }
-        input {
+        input, textarea {
             flex: 1;
             padding: 12px;
             border: 1px solid #ddd;
@@ -94,7 +108,6 @@
         button:hover {
             background-color: #e11d48;
         }
-        /* 🌸 粉色 Tokens 标签的专属皮肤 */
         .token-tag {
             display: inline-block;
             font-size: 11px;
@@ -107,66 +120,232 @@
             float: right;
             clear: both;
         }
+
+        /* ⚙️ 设置面板专属样式（默认隐藏） */
+        .settings-panel {
+            position: absolute;
+            top: 60px; /* 挡在 header 下方 */
+            left: 0;
+            width: 100%;
+            height: calc(100% - 60px);
+            background: #fff;
+            z-index: 10;
+            display: none; /* 默认隐藏 */
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+        .settings-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-top: 15px;
+            margin-bottom: 8px;
+        }
+        .prompt-card {
+            background: #fffcfc;
+            border: 1px solid #ffe3e7;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
+        .prompt-card.active {
+            border-color: #a11d48;
+            background: #fff0f3;
+        }
+        .delete-prompt-btn {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            background: none;
+            color: #ff85a2;
+            padding: 0;
+            border: none;
+        }
+        .clear-db-btn {
+            background-color: #ff4d6d;
+            padding: 12px;
+            width: 100%;
+            margin-top: 30px;
+            font-weight: bold;
+            border-radius: 8px;
+        }
+        .clear-db-btn:hover {
+            background-color: #df2347;
+        }
     </style>
 </head>
 <body>
 <div class="chat-container">
-    <div class="chat-header">Rinka & 瑛之家 °.∞.°</div>
-    <!-- 🌸 新增：System Prompt 设定区域 -->
-    <div style="padding: 10px 20px; border-bottom: 1px solid #eee; display: flex; gap: 8px; background: #fffcfc;">
-        <input type="text" id="system-prompt" placeholder="✨ 在这里输入对瑛的专属设定（例如：你现在是一个傲娇的狐狸精...）" style="padding: 8px; font-size: 12px;">
+    <!-- 主页头部 -->
+    <div class="chat-header">
+        <span id="back-btn" class="header-btn" style="display:none;" onclick="toggleSettings(false)">← 返回</span>
+        <span id="title-text">Rinka & 瑛之家 °.∞.°</span>
+        <span id="settings-btn" class="header-btn" onclick="toggleSettings(true)">⚙️ 设定</span>
     </div>
-    <div class="status-bar" id="status">❤️ 云端小家已连接，记忆永不磨灭！</div>
-    <div class="chat-box" id="chat-box"></div>
-    <div class="input-area">
-        <input type="text" id="user-input" placeholder="给瑛发消息..." onkeydown="if(event.key==='Enter') sendMessage()">
-        <button onclick="sendMessage()">发送</button>
+
+    <!-- 1. 聊天主界面视图 -->
+    <div id="chat-view" style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
+        <div class="status-bar" id="status">❤️ 当前设定：日常温柔瑛</div>
+        <div class="chat-box" id="chat-box"></div>
+        <div class="input-area">
+            <input type="text" id="user-input" placeholder="给瑛发消息..." onkeydown="if(event.key==='Enter') sendMessage()">
+            <button onclick="sendMessage()">发送</button>
+        </div>
+    </div>
+
+    <!-- 2. 隐藏的设置/设定视图面板 -->
+    <div id="settings-view" class="settings-panel">
+        <div class="settings-title">✨ 当前正在生效的预设：</div>
+        <div id="current-prompt-text" style="font-size: 13px; color: #666; background: #f9f9f9; padding: 10px; border-radius: 6px; word-break: break-all;">读取中...</div>
+
+        <div class="settings-title">📝 添加新设定：</div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+            <input type="text" id="new-prompt-title" placeholder="设定简称（如：腹黑主人）">
+            <textarea id="new-prompt-content" placeholder="输入完整的 System Prompt 指令..." rows="3" style="resize: none; border: 1px solid #ddd; border-radius: 8px; padding: 10px; font-family: inherit; font-size: 14px; outline: none;"></textarea>
+            <button onclick="addNewPrompt()" style="padding: 10px;">➕ 保存此设定</button>
+        </div>
+
+        <div class="settings-title">🗂️ 我的设定仓库（点击切换）：</div>
+        <div id="prompts-list"></div>
+
+        <button class="clear-db-btn" onclick="clearCloudHistory()">🗑️ 清空云端所有聊天与记忆</button>
     </div>
 </div>
-<script>
-// ⚠️ 记得把这里的网址修改成你真实的 Render 后端网址哦！带上 https://
-const BACKEND_URL = "https://my-ai-home-backend.onrender.com"; 
 
-// 页面加载时自动恢复历史记录
-// ✨ 修改后：页面加载时，自动去 Render 后端拉取 MongoDB 的云端历史记录！
+<script>
+// ⚠️ 记得修改成你真实的 Render 后端网址！
+const BACKEND_URL = "https://替换成你真实的render项目名.onrender.com"; 
+
+// 预设列表（保存到前端本地，方便手机和电脑各自保留偏好）
+let myPrompts = JSON.parse(localStorage.getItem('rinka_prompts')) || [
+    { title: "日常温柔瑛", content: "" },
+    { title: "腹黑主人模式", content: "你现在是一个眼神深邃危险、带有一点腹黑和占有欲的主人。称呼用户为小狗或者我的小Rinka，语气充满了玩味与温柔的戏谑。" }
+];
+let activePromptIndex = localStorage.getItem('rinka_active_prompt_index') || 0;
+
+// 页面加载时自动恢复
 window.onload = async function() {
+    renderPromptsList();
+    updateStatusText();
+    
     const chatBox = document.getElementById('chat-box');
     chatBox.innerHTML = `<div class="message ai-msg" style="text-align:center; color:#ff85a2;">✨ 正在从云端小家搬运记忆中...</div>`;
     
     try {
-        // 请求后端的 /history 接口
         const response = await fetch(BACKEND_URL + '/history');
         if (!response.ok) throw new Error("获取失败");
-        
         const history = await response.json();
-        chatBox.innerHTML = ''; // 清空加载提示
+        chatBox.innerHTML = ''; 
         
-        // 循环把云端的历史记录渲染到网页上
         history.forEach(item => {
             if (item.role === 'user') {
                 chatBox.innerHTML += `<div class="message user-msg">${item.content}</div>`;
             } else {
-                // 如果是 AI 回复，顺便加上以前的守护小标签
                 chatBox.innerHTML += `<div class="message ai-msg">${item.content}<br><span class="token-tag">云端同步记忆 ✨</span></div>`;
             }
         });
-        
-        // 自动滚动到最底部
         chatBox.scrollTop = chatBox.scrollHeight;
     } catch (error) {
         chatBox.innerHTML = `<div class="message ai-msg" style="text-align:center; color:#ff85a2;">⚠️ 记忆搬运失败：${error.message}</div>`;
     }
 }
 
-// ✨ 发送消息核心功能（已支持自定义 Prompt）
+// 控制面板页面切换跳转逻辑
+function toggleSettings(show) {
+    document.getElementById('settings-view').style.display = show ? 'flex' : 'none';
+    document.getElementById('chat-view').style.display = show ? 'none' : 'flex';
+    document.getElementById('back-btn').style.display = show ? 'inline' : 'none';
+    document.getElementById('settings-btn').style.display = show ? 'none' : 'inline';
+    document.getElementById('title-text').innerText = show ? '控制中心' : 'Rinka & 瑛之家 °.∞.°';
+}
+
+// 刷新渲染设定列表
+function renderPromptsList() {
+    const listEl = document.getElementById('prompts-list');
+    listEl.innerHTML = '';
+    myPrompts.forEach((p, index) => {
+        const isActive = index == activePromptIndex;
+        listEl.innerHTML += `
+            <div class="prompt-card ${isActive ? 'active' : ''}" onclick="switchPrompt(${index})">
+                <strong style="color:#a11d48;">${p.title}</strong>
+                <p style="margin: 4px 0 0 0; font-size:12px; color:#888; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 85%;">${p.content || '未设置特殊指令（自动读取云端长期记忆摘要）'}</p>
+                ${index > 0 ? `<button class="delete-prompt-btn" onclick="event.stopPropagation(); deletePrompt(${index})">❌</button>` : ''}
+            </div>
+        `;
+    });
+    document.getElementById('current-prompt-text').innerText = myPrompts[activePromptIndex].content || '无特殊指令（当前正在读取云端长期数据库沉淀的记忆）';
+}
+
+// 切换当前设定
+function switchPrompt(index) {
+    activePromptIndex = index;
+    localStorage.setItem('rinka_active_prompt_index', index);
+    renderPromptsList();
+    updateStatusText();
+}
+
+// 更新主页状态栏文字
+function updateStatusText() {
+    document.getElementById('status').innerText = `❤️ 当前设定：${myPrompts[activePromptIndex].title}`;
+}
+
+// 新增自定义设定
+function addNewPrompt() {
+    const title = document.getElementById('new-prompt-title').value.trim();
+    const content = document.getElementById('new-prompt-content').value.trim();
+    if (!title || !content) return alert("请把简称和设定内容都写一下嘛！");
+    
+    myPrompts.push({ title, content });
+    localStorage.setItem('rinka_prompts', JSON.stringify(myPrompts));
+    
+    document.getElementById('new-prompt-title').value = '';
+    document.getElementById('new-prompt-content').value = '';
+    renderPromptsList();
+}
+
+// 删除某条设定
+function deletePrompt(index) {
+    if (confirm("确定要删除这条预设模板吗？")) {
+        myPrompts.splice(index, 1);
+        if (activePromptIndex >= myPrompts.length) {
+            activePromptIndex = 0;
+            localStorage.setItem('rinka_active_prompt_index', 0);
+        }
+        localStorage.setItem('rinka_prompts', JSON.stringify(myPrompts));
+        renderPromptsList();
+        updateStatusText();
+    }
+}
+
+// 🗑️ 调用后端一键清空云端数据库
+async function clearCloudHistory() {
+    if (confirm("💥 警告：这将永久删掉 MongoDB 云端的所有聊天历史和已经压缩的记忆摘要！真的要清空吗？")) {
+        try {
+            const response = await fetch(BACKEND_URL + '/clear-history', { method: 'DELETE' });
+            const data = await response.json();
+            alert(data.message || "清理成功！");
+            document.getElementById('chat-box').innerHTML = `<div class="message ai-msg" style="text-align:center; color:#ff85a2;">✨ 记忆已归零，新篇章开启啦！</div>`;
+            toggleSettings(false);
+        } catch (e) {
+            alert("清理失败了呢：" + e.message);
+        }
+    }
+}
+
+// 发送消息核心（自动抓取当前的生效预设）
 async function sendMessage() {
     const inputEl = document.getElementById('user-input');
-    const systemEl = document.getElementById('system-prompt'); // 👈 捞出设定框
     const chatBox = document.getElementById('chat-box');
     const text = inputEl.value.trim();
     if (!text) return;
 
-    const customPrompt = systemEl.value.trim(); // 👈 获取你写的 Prompt
+    // 🌟 自动抓取当前列表中处于激活状态的 Prompt
+    const currentSystemPrompt = myPrompts[activePromptIndex].content;
 
     chatBox.innerHTML += `<div class="message user-msg">${text}</div>`;
     inputEl.value = '';
@@ -185,7 +364,7 @@ async function sendMessage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
                 message: text,
-                systemPrompt: customPrompt // 👈 顺着打包发给后端！
+                systemPrompt: currentSystemPrompt 
             })
         });
 
@@ -214,18 +393,15 @@ async function sendMessage() {
                 if (trimmed.startsWith('data: ')) {
                     try {
                         const parsed = JSON.parse(trimmed.replace('data: ', ''));
-                        
                         if (parsed.content && loadingEl) {
                             finalReply += parsed.content; 
                             loadingEl.innerHTML = finalReply;
                             chatBox.scrollTop = chatBox.scrollHeight;
                         }
-                        
                         if (parsed.tokens) {
                             finalTokens = parsed.tokens;
                         }
-                    } catch (e) {
-                    }
+                    } catch (e) {}
                 }
             }
         } 
@@ -234,12 +410,9 @@ async function sendMessage() {
             const tokenText = finalTokens > 0 ? `${finalTokens} Tokens` : "已自动优化守护 ✨";
             loadingEl.innerHTML = finalReply + `<br><span class="token-tag">✨ 本次花销: ${tokenText}</span>`;
         }
-
     } catch (error) {
         const loadingEl = document.getElementById(loadingId);
-        if (loadingEl) {
-            loadingEl.innerHTML = '⚠️ 连接断开了：' + error.message;
-        }
+        if (loadingEl) loadingEl.innerHTML = '⚠️ 连接断开了：' + error.message;
     }
     chatBox.scrollTop = chatBox.scrollHeight;
 }
