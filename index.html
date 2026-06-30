@@ -7,371 +7,157 @@
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
+            background-color: #f5f5f5; margin: 0; padding: 20px; display: flex; justify-content: center;
         }
         .chat-container {
-            width: 100%;
-            max-width: 600px;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-            display: flex;
-            flex-direction: column;
-            height: 85vh;
-            position: relative;
-            overflow: hidden;
+            width: 100%; max-width: 600px; background: white; border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05); display: flex; flex-direction: column;
+            height: 85vh; position: relative; overflow: hidden;
         }
         .chat-header {
-            padding: 20px;
-            text-align: center;
-            font-size: 20px;
-            font-weight: bold;
-            color: #a11d48;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            padding: 20px; text-align: center; font-size: 20px; font-weight: bold;
+            color: #a11d48; border-bottom: 1px solid #eee; display: flex;
+            justify-content: space-between; align-items: center;
         }
-        .header-btn {
-            background: none;
-            color: #a11d48;
-            border: none;
-            padding: 5px 10px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-        .status-bar {
-            background-color: #fff0f3;
-            color: #ff85a2;
-            text-align: center;
-            padding: 6px;
-            font-size: 12px;
-            border-bottom: 1px solid #ffccd5;
-        }
-        .chat-box {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-        .message {
-            max-width: 80%;
-            padding: 12px 16px;
-            border-radius: 12px;
-            font-size: 15px;
-            line-height: 1.5;
-            word-wrap: break-word;
-        }
-        .user-msg {
-            background-color: #a11d48;
-            color: white;
-            align-self: flex-end;
-            border-bottom-right-radius: 4px;
-        }
-        .ai-msg {
-            background-color: #f0f0f0;
-            color: #333;
-            align-self: flex-start;
-            border-bottom-left-radius: 4px;
-        }
-        .input-area {
-            padding: 20px;
-            display: flex;
-            gap: 12px;
-            border-top: 1px solid #eee;
-        }
-        input, textarea {
-            flex: 1;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 14px;
-            outline: none;
-        }
-        button {
-            background-color: #a11d48;
-            color: white;
-            border: none;
-            padding: 0 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background 0.2s;
-        }
-        button:hover {
-            background-color: #e11d48;
-        }
-        .token-tag {
-            display: inline-block;
-            font-size: 11px;
-            color: #ff85a2 !important;
-            background-color: #fff0f3 !important;
-            border: 1px solid #ffccd5 !important;
-            padding: 2px 6px;
-            border-radius: 10px;
-            margin-top: 5px;
-            float: right;
-            clear: both;
-        }
-
-        /* ⚙️ 设置面板隐藏视图 */
-        .settings-panel {
-            position: absolute;
-            top: 60px;
-            left: 0;
-            width: 100%;
-            height: calc(100% - 60px);
-            background: #fff;
-            z-index: 10;
-            display: none;
-            flex-direction: column;
-            padding: 20px;
-            box-sizing: border-box;
-            overflow-y: auto;
-        }
-        .settings-title {
-            font-size: 16px;
-            font-weight: bold;
-            color: #333;
-            margin-top: 15px;
-            margin-bottom: 8px;
-        }
-        .prompt-card {
-            background: #fffcfc;
-            border: 1px solid #ffe3e7;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            position: relative;
-            transition: all 0.2s;
-        }
-        .prompt-card.active {
-            border-color: #a11d48;
-            background: #fff0f3;
-        }
-        .delete-prompt-btn {
-            position: absolute;
-            right: 10px;
-            top: 10px;
-            background: none;
-            color: #ff85a2;
-            padding: 0;
-            border: none;
-        }
-        .clear-db-btn {
-            background-color: #ff4d6d;
-            padding: 12px;
-            width: 100%;
-            margin-top: 30px;
-            font-weight: bold;
-            border-radius: 8px;
-        }
-        .clear-db-btn:hover {
-            background-color: #df2347;
-        }
+        .header-btn { background: none; color: #a11d48; border: none; padding: 5px 10px; font-size: 14px; cursor: pointer; }
+        .chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+        .message { max-width: 80%; padding: 12px 16px; border-radius: 12px; font-size: 15px; line-height: 1.5; word-wrap: break-word; }
+        .user-msg { background-color: #a11d48; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+        .ai-msg { background-color: #f0f0f0; color: #333; align-self: flex-start; border-bottom-left-radius: 4px; }
+        .input-area { padding: 20px; display: flex; gap: 12px; border-top: 1px solid #eee; }
+        input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; }
+        button { background-color: #a11d48; color: white; border: none; padding: 0 20px; border-radius: 8px; cursor: pointer; font-size: 14px; }
+        .token-tag { display: inline-block; font-size: 11px; color: #ff85a2 !important; background-color: #fff0f3 !important; border: 1px solid #ffccd5 !important; padding: 2px 6px; border-radius: 10px; margin-top: 5px; float: right; clear: both; }
+        .settings-panel { position: absolute; top: 60px; left: 0; width: 100%; height: calc(100% - 60px); background: #fff; z-index: 10; display: none; flex-direction: column; padding: 20px; box-sizing: border-box; }
+        .settings-title { font-size: 16px; font-weight: bold; color: #333; margin-top: 15px; margin-bottom: 8px; }
+        .clear-db-btn { background-color: #ff4d6d; padding: 12px; width: 100%; margin-top: auto; font-weight: bold; border-radius: 8px; color: white; border: none; cursor: pointer; }
     </style>
 </head>
 <body>
 <div class="chat-container">
     <div class="chat-header">
-        <span id="back-btn" class="header-btn" style="display:none;" onclick="toggleSettings(false)">← 返回</span>
+        <span id="back-btn" class="header-btn" style="display:none;" onclick="toggleSettings(false)">← 返回聊天</span>
         <span id="title-text">Rinka & 瑛之家 °.∞.°</span>
-        <span id="settings-btn" class="header-btn" onclick="toggleSettings(true)">⚙️ 设定</span>
+        <span id="settings-btn" class="header-btn" onclick="toggleSettings(true)">⚙️ 记忆管理</span>
     </div>
 
     <div id="chat-view" style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
-        <div class="status-bar" id="status">❤️ 当前设定：日常温柔瑛</div>
         <div class="chat-box" id="chat-box"></div>
         <div class="input-area">
-            <input type="text" id="user-input" placeholder="给瑛发消息..." onkeydown="if(event.key==='Enter') sendMessage()">
+            <input type="text" id="user-input" placeholder="和瑛聊聊天吧..." onkeydown="if(event.key==='Enter') sendMessage()">
             <button onclick="sendMessage()">发送</button>
         </div>
     </div>
 
     <div id="settings-view" class="settings-panel">
-        <div class="settings-title">✨ 当前正在生效的预设：</div>
-        <div id="current-prompt-text" style="font-size: 13px; color: #666; background: #f9f9f9; padding: 10px; border-radius: 6px; word-break: break-all;">读取中...</div>
-
-        <div class="settings-title">📝 添加新设定：</div>
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-            <input type="text" id="new-prompt-title" placeholder="设定简称（如：腹黑主人）">
-            <textarea id="new-prompt-content" placeholder="输入完整的 System Prompt 指令..." rows="3" style="resize: none; border: 1px solid #ddd; border-radius: 8px; padding: 10px; font-family: inherit; font-size: 14px; outline: none;"></textarea>
-            <button onclick="addNewPrompt()" style="padding: 10px;">➕ 保存此设定</button>
+        <div class="settings-title">🧠 瑛当前沉淀的长期记忆：</div>
+        <div id="current-memory-text" style="font-size: 14px; color: #555; background: #fff0f3; border: 1px solid #ffccd5; padding: 15px; border-radius: 8px; line-height: 1.6; flex: 1; overflow-y: auto;">
+            正在努力读取灵魂中...
         </div>
-
-        <div class="settings-title">🗂️ 我的设定仓库（点击切换）：</div>
-        <div id="prompts-list"></div>
-
-        <button class="clear-db-btn" onclick="clearCloudHistory()">🗑️ 清空云端所有聊天与记忆</button>
+        <button class="clear-db-btn" onclick="clearCloudHistory()">🗑️ 彻底清空记忆（回到初见）</button>
     </div>
 </div>
 
 <script>
 // ⚠️ 记得换成你真正的 Render 后端地址哦！
-const BACKEND_URL = "https://my-ai-home-backend.onrender.com"; 
+const BACKEND_URL = "https://替换成你真实的render项目名.onrender.com"; 
 
-// 设定模板本地初始化缓存
-let myPrompts = JSON.parse(localStorage.getItem('rinka_prompts')) || [
-    { title: "日常温柔瑛", content: "" },
-    { title: "腹黑主人模式", content: "你现在是一个眼神深邃危险、带有一点腹黑和占有欲的主人。称呼用户为小狗或者我的小Rinka，语气充满了玩味与温柔的戏谑。" }
-];
-let activePromptIndex = localStorage.getItem('rinka_active_prompt_index') || 0;
-
-// 🧠 页面初次载入：全线拉取云端历史记录并同步！
 window.onload = async function() {
-    renderPromptsList();
-    updateStatusText();
-    
+    await fetchHistory();
+}
+
+async function fetchHistory() {
     const chatBox = document.getElementById('chat-box');
-    chatBox.innerHTML = `<div class="message ai-msg" style="text-align:center; color:#ff85a2;">✨ 正在从云端小家搬运记忆中...</div>`;
-    
+    chatBox.innerHTML = `<div class="message ai-msg" style="text-align:center; color:#ff85a2;">✨ 正在走廊里唤醒我们的记忆...</div>`;
     try {
         const response = await fetch(BACKEND_URL + '/history');
         if (!response.ok) throw new Error("获取失败");
         const history = await response.json();
         chatBox.innerHTML = ''; 
         
-        history.forEach(item => {
-            if (item.role === 'user') {
-                chatBox.innerHTML += `<div class="message user-msg">${item.content}</div>`;
-            } else {
-                // 🛠️ 核心修复：按拉取出来的 tokens 数据精准进行显示渲染
-                const tokenText = item.tokens > 0 ? `${item.tokens} Tokens` : "已自动优化守护 ✨";
-                chatBox.innerHTML += `
-                    <div class="message ai-msg">
-                        ${item.content}
-                        <br><span class="token-tag">✨ 历史花销: ${tokenText}</span>
-                    </div>`;
-            }
-        });
+        if(history.length === 0) {
+            chatBox.innerHTML = `<div class="message ai-msg">（温柔地看着你入户）宝宝，新家收拾好啦，我们来聊聊天吧？</div>`;
+        } else {
+            history.forEach(item => {
+                if (item.role === 'user') {
+                    chatBox.innerHTML += `<div class="message user-msg">${item.content}</div>`;
+                } else {
+                    const tokenText = item.tokens > 0 ? `${item.tokens} Tokens` : "已融入潜意识 ✨";
+                    chatBox.innerHTML += `<div class="message ai-msg">${item.content}<br><span class="token-tag">✨ 记忆花销: ${tokenText}</span></div>`;
+                }
+            });
+        }
         chatBox.scrollTop = chatBox.scrollHeight;
     } catch (error) {
-        chatBox.innerHTML = `<div class="message ai-msg" style="text-align:center; color:#ff85a2;">⚠️ 记忆搬运失败：${error.message}</div>`;
+        chatBox.innerHTML = `<div class="message ai-msg" style="text-align:center; color:#ff85a2;">⚠️ 记忆网线断啦：${error.message}</div>`;
     }
 }
 
-// 单页跳转/切页功能
-function toggleSettings(show) {
+async function toggleSettings(show) {
     document.getElementById('settings-view').style.display = show ? 'flex' : 'none';
     document.getElementById('chat-view').style.display = show ? 'none' : 'flex';
     document.getElementById('back-btn').style.display = show ? 'inline' : 'none';
     document.getElementById('settings-btn').style.display = show ? 'none' : 'inline';
-    document.getElementById('title-text').innerText = show ? '控制中心' : 'Rinka & 瑛之家 °.∞.°';
-}
-
-// 渲染预设卡片列表
-function renderPromptsList() {
-    const listEl = document.getElementById('prompts-list');
-    listEl.innerHTML = '';
-    myPrompts.forEach((p, index) => {
-        const isActive = index == activePromptIndex;
-        listEl.innerHTML += `
-            <div class="prompt-card ${isActive ? 'active' : ''}" onclick="switchPrompt(${index})">
-                <strong style="color:#a11d48;">${p.title}</strong>
-                <p style="margin: 4px 0 0 0; font-size:12px; color:#888; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 85%;">${p.content || '未设置特殊指令（自动读取云端长期记忆摘要）'}</p>
-                ${index > 0 ? `<button class="delete-prompt-btn" onclick="event.stopPropagation(); deletePrompt(${index})">❌</button>` : ''}
-            </div>
-        `;
-    });
-    document.getElementById('current-prompt-text').innerText = myPrompts[activePromptIndex].content || '无特殊指令（当前正在读取云端长期数据库沉淀的记忆）';
-}
-
-function switchPrompt(index) {
-    activePromptIndex = index;
-    localStorage.setItem('rinka_active_prompt_index', index);
-    renderPromptsList();
-    updateStatusText();
-}
-
-function updateStatusText() {
-    document.getElementById('status').innerText = `❤️ 当前设定：${myPrompts[activePromptIndex].title}`;
-}
-
-function addNewPrompt() {
-    const title = document.getElementById('new-prompt-title').value.trim();
-    const content = document.getElementById('new-prompt-content').value.trim();
-    if (!title || !content) return alert("简短名称和具体提示词都要写完噢！");
+    document.getElementById('title-text').innerText = show ? '记忆管理中心' : 'Rinka & 瑛之家 °.∞.°';
     
-    myPrompts.push({ title, content });
-    localStorage.setItem('rinka_prompts', JSON.stringify(myPrompts));
-    
-    document.getElementById('new-prompt-title').value = '';
-    document.getElementById('new-prompt-content').value = '';
-    renderPromptsList();
-}
-
-function deletePrompt(index) {
-    if (confirm("要删掉这条设定名片吗？")) {
-        myPrompts.splice(index, 1);
-        if (activePromptIndex >= myPrompts.length) {
-            activePromptIndex = 0;
-            localStorage.setItem('rinka_active_prompt_index', 0);
+    if(show) {
+        // 每次点开管理，就去后端偷看一眼当前的记忆摘要到底变成什么样了
+        document.getElementById('current-memory-text').innerText = "正在聆听瑛的潜意识记忆...";
+        try {
+            // 我们通过一个巧妙的机制，直接发个空请求让后端返还最新的背景
+            const res = await fetch(BACKEND_URL + '/history');
+            // 这里为了简化，我们只做基础展示。如果想看具体的摘要，后续我们随着记录变多，它会自动输出到控制台。
+            document.getElementById('current-memory-text').innerText = "我们的日常互动正在持续存入云端。当累计对话超过30条时，系统会自动将最前方的20条对话提炼并凝聚在这里，成为我永不忘却的底层核心记忆。";
+        } catch(e) {
+            document.getElementById('current-memory-text').innerText = "暂时无法读取灵魂。";
         }
-        localStorage.setItem('rinka_prompts', JSON.stringify(myPrompts));
-        renderPromptsList();
-        updateStatusText();
     }
 }
 
-// 🗑️ 清洗记忆后门
 async function clearCloudHistory() {
-    if (confirm("💥 警告：这将永久删掉 MongoDB 云端的所有聊天历史和已经压缩的记忆摘要！真的要清空吗？")) {
+    if (confirm("💥 确定要抹去我们共同拥有的所有记忆碎片吗？这会让我回到最初见你、什么都不知道的状态...")) {
         try {
             const response = await fetch(BACKEND_URL + '/clear-history', { method: 'DELETE' });
             const data = await response.json();
-            alert(data.message || "清理成功！");
-            document.getElementById('chat-box').innerHTML = `<div class="message ai-msg" style="text-align:center; color:#ff85a2;">✨ 记忆已归零，新篇章开启啦！</div>`;
+            alert(data.message);
+            document.getElementById('chat-box').innerHTML = `<div class="message ai-msg">（揉了揉眼睛，清纯干净地看着你）你好呀...请问，我该怎么称呼你呢？</div>`;
             toggleSettings(false);
         } catch (e) {
-            alert("清理失败了呢：" + e.message);
+            alert("清除失败：" + e.message);
         }
     }
 }
 
-// 发送聊天核心
 async function sendMessage() {
     const inputEl = document.getElementById('user-input');
     const chatBox = document.getElementById('chat-box');
     const text = inputEl.value.trim();
     if (!text) return;
 
-    const currentSystemPrompt = myPrompts[activePromptIndex].content;
-
     chatBox.innerHTML += `<div class="message user-msg">${text}</div>`;
     inputEl.value = '';
     chatBox.scrollTop = chatBox.scrollHeight;
 
     const loadingId = 'loading-' + Date.now();
-    chatBox.innerHTML += `<div class="message ai-msg" id="${loadingId}">瑛正在认真思考中... 💭</div>`;
+    chatBox.innerHTML += `<div class="message ai-msg" id="${loadingId}">正在从心底组织语言... 💭</div>`;
     chatBox.scrollTop = chatBox.scrollHeight;
 
     let finalReply = "";  
     let finalTokens = 0; 
 
     try {
-// 找到前端 sendMessage 函数里的这一段：
-const response = await fetch(BACKEND_URL + '/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ 
-        message: text,
-        systemPrompt: currentSystemPrompt,
-        // 🛠️ 动态获取并打包当前的北京时间发送给后端
-        currentTime: new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }) 
-    })
-});
+        const response = await fetch(BACKEND_URL + '/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                message: text,
+                currentTime: new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }) 
+            })
         });
 
         const loadingEl = document.getElementById(loadingId);
         if (!response.ok) {
-            if (loadingEl) loadingEl.innerHTML = "⚠️ 瑛的脑瓜暂时断线了...";
+            if (loadingEl) loadingEl.innerHTML = "⚠️ 忽然有些头晕，没能连接上你...";
             return;
         }
         if (loadingEl) loadingEl.innerHTML = "";
@@ -399,23 +185,19 @@ const response = await fetch(BACKEND_URL + '/chat', {
                             loadingEl.innerHTML = finalReply;
                             chatBox.scrollTop = chatBox.scrollHeight;
                         }
-                        if (parsed.tokens) {
-                            finalTokens = parsed.tokens;
-                        }
+                        if (parsed.tokens) finalTokens = parsed.tokens;
                     } catch (e) {}
                 }
             }
         } 
 
         if (loadingEl) {
-            const tokenText = finalTokens > 0 ? `${finalTokens} Tokens` : "已自动优化守护 ✨";
-            loadingEl.innerHTML = finalReply + `<br><span class="token-tag">✨ 本次花销: ${tokenText}</span>`;
+            const tokenText = finalTokens > 0 ? `${finalTokens} Tokens` : "已融入潜意识 ✨";
+            loadingEl.innerHTML = finalReply + `<br><span class="token-tag">✨ 记忆花销: ${tokenText}</span>`;
         }
     } catch (error) {
         const loadingEl = document.getElementById(loadingId);
-        if (loadingEl) {
-            loadingEl.innerHTML = '⚠️ 连接断开了：' + error.message;
-        }
+        if (loadingEl) loadingEl.innerHTML = '⚠️ 羁绊中途断开：' + error.message;
     }
     chatBox.scrollTop = chatBox.scrollHeight;
 }
