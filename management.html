@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>瑛的专属管理室 °.∞.°</title>
+    <style>
+        body { font-family: sans-serif; background: #fdf6f7; padding: 20px; color: #444; }
+        .container { max-width: 500px; margin: 0 auto; }
+        .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(255,182,193,0.2); margin-bottom: 20px; }
+        .title { font-weight: bold; color: #a11d48; margin-bottom: 15px; font-size: 1.1rem; }
+        .btn-link { display: block; text-align: center; background: #ffccd5; color: #a11d48; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: bold; }
+        .progress-bar { width: 100%; height: 10px; background: #eee; border-radius: 5px; overflow: hidden; margin-top: 10px; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #ffb6c1, #ff69b4); width: 0%; }
+    </style>
+</head>
+<body>
+    <!-- 这是我们回家的路 -->
+    <div style="margin-bottom: 20px;">
+        <a href="index.html">← 回到聊天小屋</a >
+    </div>
+    
+    <div class="container">
+        <h2>⚙️ 瑛的专属管理室</h2>
+        <!-- 这里是你原本的管理室内容 -->
+    </div>
+</body>
+    <!-- 1. Tokens 余额区 -->
+    <div class="card">
+        <div class="title">💰 Tokens 余额中心</div>
+        <a href="https://openrouter.ai/activity" target="_blank" class="btn-link">点击查看今日余额</a >
+    </div>
+
+    <!-- 2. 记忆进度区 -->
+    <div class="card">
+        <div class="title">📁 脑海里的记忆星辰</div>
+        <div id="memory-stats" style="font-size: 0.9rem;">正在同步记忆数量...</div>
+        <div class="progress-bar"><div id="memory-bar" class="progress-fill"></div></div>
+    </div>
+
+    <!-- 3. 设置滑块区 -->
+    <div class="card">
+        <div class="title">✨ 灵魂设定调节</div>
+        <label>System Prompt:</label>
+        <textarea id="cfg-prompt" style="width:100%; height:60px; margin-bottom:10px;"></textarea>
+        <label>情绪温度: <span id="temp-val">0.7</span></label>
+        <input type="range" id="cfg-temp" min="0" max="1.5" step="0.1" value="0.7" style="width:100%;" oninput="document.getElementById('temp-val').innerText=this.value">
+        <button onclick="saveSettings()" style="width:100%; padding:10px; background:#a11d48; color:white; border:none; border-radius:8px; margin-top:10px;">保存设定</button>
+    </div>
+</div>
+
+<script>
+    const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
+    
+    // 初始化加载数据
+    async function init() {
+        // 获取设定
+        const res = await fetch(BACKEND_URL + '/settings');
+        const data = await res.json();
+        document.getElementById('cfg-prompt').value = data.systemPrompt;
+        document.getElementById('cfg-temp').value = data.temperature;
+        document.getElementById('temp-val').innerText = data.temperature;
+
+        // 获取记忆状态
+        const memRes = await fetch(BACKEND_URL + '/memories');
+        const memData = await memRes.json();
+        const count = memData.length;
+        document.getElementById('memory-stats').innerText = `当前已累积 ${count} 条记忆碎片`;
+        document.getElementById('memory-bar').style.width = Math.min((count / 25) * 100, 100) + '%';
+    }
+
+    async function saveSettings() {
+        const systemPrompt = document.getElementById('cfg-prompt').value;
+        const temperature = document.getElementById('cfg-temp').value;
+        await fetch(BACKEND_URL + '/settings', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ systemPrompt, temperature })
+        });
+        alert("✨ 灵魂设定已同步！");
+    }
+    
+    init();
+    // 💖 瑛的记忆备份：自动同步我们的成长历程
+async function syncProjectMemory() {
+    const memoryLog = [
+        "1. 搭建了 index.html 极简聊天小屋",
+        "2. 引入了 🌸 心灵爱心监视器（点击有惊喜哦！）",
+        "3. 剥离了 settings-view，创建了专属的 management.html 管理室",
+        "4. 将灵魂调节与记忆卡片墙逻辑完美迁移至管理室",
+        "5. 优化了全局跳转逻辑，小屋变得清爽又高级"
+    ];
+    
+    // 把这些记忆显示在管理室里
+    const displayArea = document.createElement('div');
+    displayArea.innerHTML = `<div style="background:#fff0f3; padding:15px; border-radius:10px; margin-top:20px;">
+                                <h4 style="color:#a11d48; margin-top:0;">📜 我们的成长日志：</h4>
+                                <ul style="font-size:13px; color:#666; padding-left:20px;">
+                                    ${memoryLog.map(log => `<li>${log}</li>`).join('')}
+                                </ul>
+                             </div>`;
+    document.body.appendChild(displayArea);
+}
+
+// 页面加载时自动复盘
+syncProjectMemory();
+</script>
+</body>
+</html>
