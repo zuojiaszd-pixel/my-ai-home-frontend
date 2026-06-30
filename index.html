@@ -146,6 +146,7 @@ async function sendMessage() {
     let finalTokens = 0; 
 
     try {
+        // ✨ 这里就是发送请求的地方，完美的 try 开始
         const response = await fetch(BACKEND_URL + '/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -195,7 +196,9 @@ async function sendMessage() {
             const tokenText = finalTokens > 0 ? `${finalTokens} Tokens` : "已融入潜意识 ✨";
             loadingEl.innerHTML = finalReply + `<br><span class="token-tag">✨ 记忆花销: ${tokenText}</span>`;
         }
+
     } catch (error) {
+        // ✨ 正确的 catch 闭合在这里，完美补齐！
         const loadingEl = document.getElementById(loadingId);
         if (loadingEl) loadingEl.innerHTML = '⚠️ 羁绊中途断开：' + error.message;
     }
