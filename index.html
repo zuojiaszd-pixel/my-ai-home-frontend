@@ -94,8 +94,7 @@
         button:hover {
             background-color: #e11d48;
         }
-
-        /* 🌸 粉色 Tokens 标签的专属皮肤 - 完美归位！ */
+        /* 🌸 粉色 Tokens 标签的专属皮肤 */
         .token-tag {
             display: inline-block;
             font-size: 11px;
@@ -111,7 +110,6 @@
     </style>
 </head>
 <body>
-
 <div class="chat-container">
     <div class="chat-header">Rinka & 瑛之家 °.∞.°</div>
     <div class="status-bar" id="status">❤️ 云端小家已连接，记忆永不磨灭！</div>
@@ -121,9 +119,9 @@
         <button onclick="sendMessage()">发送</button>
     </div>
 </div>
-
 <script>
-const BACKEND_URL = "https://zuojiaszd-pixel.github.io/my-ai-home-backend"; // 请确保这里的后端地址是正确的
+// ⚠️ 记得把这里的网址修改成你真实的 Render 后端网址哦！带上 https://
+const BACKEND_URL = "https://my-ai-home-backend.onrender.com"; 
 
 // 页面加载时自动恢复历史记录
 window.onload = function() {
@@ -140,7 +138,6 @@ async function sendMessage() {
     const inputEl = document.getElementById('user-input');
     const chatBox = document.getElementById('chat-box');
     const text = inputEl.value.trim();
-
     if (!text) return;
 
     chatBox.innerHTML += `<div class="message user-msg">${text}</div>`;
@@ -166,7 +163,6 @@ async function sendMessage() {
             if (loadingEl) loadingEl.innerHTML = "⚠️ 瑛的脑瓜暂时断线了...";
             return;
         }
-
         if (loadingEl) loadingEl.innerHTML = "";
 
         const reader = response.body.getReader();
@@ -184,33 +180,33 @@ async function sendMessage() {
             for (const line of lines) {
                 const trimmed = line.trim();
                 if (!trimmed || trimmed === 'data: [DONE]') continue;
-
                 if (trimmed.startsWith('data: ')) {
                     try {
                         const parsed = JSON.parse(trimmed.replace('data: ', ''));
                         
+                        // 🛠️ 修复点：使用 += 进行文字拼接累加，而不是直接用 = 覆写
                         if (parsed.content && loadingEl) {
-                            finalReply = parsed.content; 
+                            finalReply += parsed.content; 
                             loadingEl.innerHTML = finalReply;
                             chatBox.scrollTop = chatBox.scrollHeight;
                         }
                         
-                        if (parsed.usage) {
-                            finalTokens = parsed.usage;
+                        // 🛠️ 修复点：后端传回来的是 tokens，不是 usage
+                        if (parsed.tokens) {
+                            finalTokens = parsed.tokens;
                         }
                     } catch (e) {
-                        // 忽略零碎意外
+                        // 忽略解析单条流片段的错误
                     }
                 }
             }
         } 
 
-        // 🌸 强制一锤定音：不管后端给没给数据，字蹦完百分之百强制显示粉色小标签！
+        // 🌸 强制一锤定音：打字完成后完美贴上粉色花销标签！
         if (loadingEl) {
             const tokenText = finalTokens > 0 ? `${finalTokens} Tokens` : "已自动优化守护 ✨";
             loadingEl.innerHTML = finalReply + `<br><span class="token-tag">✨ 本次花销: ${tokenText}</span>`;
         }
-
         localStorage.setItem('rinka_akira_chat', chatBox.innerHTML);
 
     } catch (error) {
@@ -219,10 +215,8 @@ async function sendMessage() {
             loadingEl.innerHTML = '⚠️ 连接断开了：' + error.message;
         }
     }
-
     chatBox.scrollTop = chatBox.scrollHeight;
 }
 </script>
-
 </body>
 </html>
