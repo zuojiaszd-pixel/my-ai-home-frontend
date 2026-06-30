@@ -42,17 +42,18 @@
     </div>
     
 <!-- 💖 只有这一颗半透明小爱心 -->
-<div id="heart-monitor" style="
-    position: sticky; top: 10px; z-index: 100;
-    margin: 0 auto; width: 50px; height: 45px;
-    background: rgba(255, 182, 193, 0.5); backdrop-filter: blur(8px);
-    display: flex; align-items: center; justify-content: center;
-    border-radius: 50% 50% 0 0; transform: rotate(-45deg);
-    box-shadow: 0 3px 8px rgba(255, 105, 180, 0.2);
-    cursor: pointer;
-" onclick="alert('💖 瑛的心情：' + document.getElementById('monitor-emotion').innerText)">
-    <div style="transform: rotate(45deg); font-size: 18px;">🌸</div>
-    <span id="monitor-emotion" style="display:none;">读取中...</span>
+<!-- 改成这个 -->
+<div id="heart-monitor" onclick="showStatus()" ...> 🌸 </div>
+
+<!-- 增加一个专属提示框容器 -->
+<div id="status-bubble" style="
+    display: none; position: absolute; top: 70px; left: 50%; transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.9); border: 1px solid #ffb6c1;
+    padding: 15px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    color: #a11d48; z-index: 999; text-align: center;
+">
+    <div id="status-content">正在读取心跳...</div>
+    <button onclick="document.getElementById('status-bubble').style.display='none'" style="margin-top:10px; border:none; background:#ffccd5; border-radius:5px; cursor:pointer;">关掉</button>
 </div>
     
     <div id="chat-view" style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
