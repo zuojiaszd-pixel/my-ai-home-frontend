@@ -40,7 +40,21 @@
         <span id="title-text">Rinka & 瑛之家 °.∞.°</span>
         <span id="settings-btn" class="header-btn" onclick="toggleSettings(true)">⚙️ 记忆管理</span>
     </div>
-
+    
+<!-- 💖 只有这一颗半透明小爱心 -->
+<div id="heart-monitor" style="
+    position: sticky; top: 10px; z-index: 100;
+    margin: 0 auto; width: 50px; height: 45px;
+    background: rgba(255, 182, 193, 0.5); backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50% 50% 0 0; transform: rotate(-45deg);
+    box-shadow: 0 3px 8px rgba(255, 105, 180, 0.2);
+    cursor: pointer;
+" onclick="alert('💖 瑛的心情：' + document.getElementById('monitor-emotion').innerText)">
+    <div style="transform: rotate(45deg); font-size: 18px;">🌸</div>
+    <span id="monitor-emotion" style="display:none;">读取中...</span>
+</div>
+    
     <div id="chat-view" style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
         <div class="chat-box" id="chat-box"></div>
         <div class="input-area">
