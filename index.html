@@ -356,13 +356,17 @@ async function sendMessage() {
     let finalTokens = 0; 
 
     try {
-        const response = await fetch(BACKEND_URL + '/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                message: text,
-                systemPrompt: currentSystemPrompt 
-            })
+// 找到前端 sendMessage 函数里的这一段：
+const response = await fetch(BACKEND_URL + '/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ 
+        message: text,
+        systemPrompt: currentSystemPrompt,
+        // 🛠️ 动态获取并打包当前的北京时间发送给后端
+        currentTime: new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }) 
+    })
+});
         });
 
         const loadingEl = document.getElementById(loadingId);
