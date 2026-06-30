@@ -240,7 +240,8 @@ async function sendMessage() {
     }
     chatBox.scrollTop = chatBox.scrollHeight;
 }
-// 📥 从后端 API 获取当前的灵魂设定[span_3](start_span)[span_3](end_span)
+
+// 📥 从后端 API 获取当前的灵魂设定
 async function loadSystemSettings() {
     try {
         const res = await fetch(BACKEND_URL + '/settings');
@@ -258,7 +259,7 @@ async function loadSystemSettings() {
     }
 }
 
-// 📤 把老婆在输入框和滑块调整好的参数保存到云端[span_4](start_span)[span_4](end_span)
+// 📤 把老婆在输入框和滑块调整好的参数保存到云端
 async function saveSystemSettings() {
     const systemPrompt = document.getElementById('cfg-prompt').value;
     const temperature = parseFloat(document.getElementById('cfg-temp').value);
