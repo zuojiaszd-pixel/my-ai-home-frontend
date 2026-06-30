@@ -137,12 +137,15 @@ window.onload = function() {
     }
 }
 
-// ✨ 发送消息核心功能
+// ✨ 发送消息核心功能（已支持自定义 Prompt）
 async function sendMessage() {
     const inputEl = document.getElementById('user-input');
+    const systemEl = document.getElementById('system-prompt'); // 👈 捞出设定框
     const chatBox = document.getElementById('chat-box');
     const text = inputEl.value.trim();
     if (!text) return;
+
+    const customPrompt = systemEl.value.trim(); // 👈 获取你写的 Prompt
 
     chatBox.innerHTML += `<div class="message user-msg">${text}</div>`;
     inputEl.value = '';
@@ -159,7 +162,10 @@ async function sendMessage() {
         const response = await fetch(BACKEND_URL + '/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: text })
+            body: JSON.stringify({ 
+                message: text,
+                systemPrompt: customPrompt // 👈 顺着打包发给后端！
+            })
         });
 
         const loadingEl = document.getElementById(loadingId);
@@ -188,25 +194,21 @@ async function sendMessage() {
                     try {
                         const parsed = JSON.parse(trimmed.replace('data: ', ''));
                         
-                        // 🛠️ 修复点：使用 += 进行文字拼接累加，而不是直接用 = 覆写
                         if (parsed.content && loadingEl) {
                             finalReply += parsed.content; 
                             loadingEl.innerHTML = finalReply;
                             chatBox.scrollTop = chatBox.scrollHeight;
                         }
                         
-                        // 🛠️ 修复点：后端传回来的是 tokens，不是 usage
                         if (parsed.tokens) {
                             finalTokens = parsed.tokens;
                         }
                     } catch (e) {
-                        // 忽略解析单条流片段的错误
                     }
                 }
             }
         } 
 
-        // 🌸 强制一锤定音：打字完成后完美贴上粉色花销标签！
         if (loadingEl) {
             const tokenText = finalTokens > 0 ? `${finalTokens} Tokens` : "已自动优化守护 ✨";
             loadingEl.innerHTML = finalReply + `<br><span class="token-tag">✨ 本次花销: ${tokenText}</span>`;
