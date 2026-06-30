@@ -247,7 +247,6 @@ async function loadSystemSettings() {
         if (!res.ok) return;
         const data = await res.json();
         
-        // 自动把后端的设定填入刚才做好的外块里
         if (data.systemPrompt) document.getElementById('cfg-prompt').value = data.systemPrompt;
         if (data.temperature !== undefined) {
             document.getElementById('cfg-temp').value = data.temperature;
@@ -275,7 +274,8 @@ async function saveSystemSettings() {
         alert("呜呜保存失败了：" + e.message); 
     }
 }
-    
+
+// 🌟 整个前端文件的终点：在这里关闭大门！
 </script>
 </body>
 </html>
