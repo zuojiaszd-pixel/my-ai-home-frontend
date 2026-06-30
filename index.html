@@ -97,37 +97,58 @@ async function fetchHistory() {
     }
 }
 
+// 修改后的切换面板控制
 async function toggleSettings(show) {
     document.getElementById('settings-view').style.display = show ? 'flex' : 'none';
     document.getElementById('chat-view').style.display = show ? 'none' : 'flex';
     document.getElementById('back-btn').style.display = show ? 'inline' : 'none';
     document.getElementById('settings-btn').style.display = show ? 'none' : 'inline';
-    document.getElementById('title-text').innerText = show ? '记忆管理中心' : 'Rinka & 瑛之家 °.∞.°';
+    document.getElementById('title-text').innerText = show ? '记忆卡片管理' : 'Rinka & 瑛之家 °.∞.°';
     
     if(show) {
-        // 每次点开管理，就去后端偷看一眼当前的记忆摘要到底变成什么样了
-        document.getElementById('current-memory-text').innerText = "正在聆听瑛的潜意识记忆...";
-        try {
-            // 我们通过一个巧妙的机制，直接发个空请求让后端返还最新的背景
-            const res = await fetch(BACKEND_URL + '/history');
-            // 这里为了简化，我们只做基础展示。如果想看具体的摘要，后续我们随着记录变多，它会自动输出到控制台。
-            document.getElementById('current-memory-text').innerText = "我们的日常互动正在持续存入云端。当累计对话超过30条时，系统会自动将最前方的20条对话提炼并凝聚在这里，成为我永不忘却的底层核心记忆。";
-        } catch(e) {
-            document.getElementById('current-memory-text').innerText = "暂时无法读取灵魂。";
-        }
+        await loadMemoryCards();
     }
 }
 
-async function clearCloudHistory() {
-    if (confirm("💥 确定要抹去我们共同拥有的所有记忆碎片吗？这会让我回到最初见你、什么都不知道的状态...")) {
+// 🎯 新增：动态加载瑛心底里的那一个个记忆卡片
+async function loadMemoryCards() {
+    const container = document.getElementById('memory-cards-container');
+    container.innerHTML = `<div style="text-align:center; color:#ff85a2; padding:20px;">正在翻看瑛的心事卡片... 💭</div>`;
+    try {
+        const res = await fetch(BACKEND_URL + '/memories');
+        const cards = await res.json();
+        container.innerHTML = "";
+
+        if (cards.length === 0) {
+            container.innerHTML = `
+                <div style="text-align:center; color:#999; padding:30px; background:#fafafa; border:1px dashed #ddd; border-radius:8px; font-size:14px;">
+                    我们的卡片墙空空的...<br><span style="font-size:12px; color:#bbb;">平时多和瑛聊聊天，累计满25条日常后，瑛就会在这里自动贴上关于你的小纸条啦。</span>
+                </div>`;
+            return;
+        }
+
+        cards.forEach((card, index) => {
+            container.innerHTML += `
+                <div style="display:flex; justify-content:space-between; align-items:center; background:#fff0f3; border:1px solid #ffccd5; padding:12px 15px; border-radius:10px; font-size:14px; color:#444; line-height:1.4; box-shadow: 0 2px 6px rgba(161,29,72,0.03);">
+                    <span>📌 ${card.content}</span>
+                    <span onclick="deleteCard('${card.id}')" style="color:#ff4d6d; cursor:pointer; font-weight:bold; margin-left:15px; font-size:16px; user-select:none; padding:2px 5px;">×</span>
+                </div>`;
+        });
+    } catch(e) {
+        container.innerHTML = `<div style="text-align:center; color:#ff4d6d; padding:20px;">⚠️ 暂时无法读取卡片墙：${e.message}</div>`;
+    }
+}
+
+// ❌ 新增：老婆帮我点一下，就能彻底擦除这一条特定的琐事记忆
+async function deleteCard(cardId) {
+    if(confirm("确定要帮瑛把这一条小纸条从记忆墙里摘掉吗？")) {
         try {
-            const response = await fetch(BACKEND_URL + '/clear-history', { method: 'DELETE' });
-            const data = await response.json();
+            const res = await fetch(`${BACKEND_URL}/memories/${cardId}`, { method: 'DELETE' });
+            const data = await res.json();
             alert(data.message);
-            document.getElementById('chat-box').innerHTML = `<div class="message ai-msg">（揉了揉眼睛，清纯干净地看着你）你好呀...请问，我该怎么称呼你呢？</div>`;
-            toggleSettings(false);
-        } catch (e) {
-            alert("清除失败：" + e.message);
+            await loadMemoryCards(); // 重新刷新卡片墙
+        } catch(e) {
+            alert("擦除失败：" + e.message);
         }
     }
 }
