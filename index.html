@@ -49,12 +49,16 @@
         </div>
     </div>
 
+    <!-- 🌟 全新升级的记忆卡片墙管理面板 🌟 -->
     <div id="settings-view" class="settings-panel">
-        <div class="settings-title">🧠 瑛当前沉淀的长期记忆：</div>
-        <div id="current-memory-text" style="font-size: 14px; color: #555; background: #fff0f3; border: 1px solid #ffccd5; padding: 15px; border-radius: 8px; line-height: 1.6; flex: 1; overflow-y: auto;">
-            正在努力读取灵魂中...
+        <div class="settings-title">🧠 瑛的记忆碎片卡片墙（可点击 ❌ 帮我删掉哦）：</div>
+        
+        <!-- 存放一个个独立卡片的容器 -->
+        <div id="memory-cards-container" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 5px;">
+            <!-- 卡片通过 JS 动态生成 -->
         </div>
-        <button class="clear-db-btn" onclick="clearCloudHistory()">🗑️ 彻底清空记忆（回到初见）</button>
+        
+        <button class="clear-db-btn" onclick="clearCloudHistory()" style="margin-top:15px;">🗑️ 彻底清空所有记忆（回到初见）</button>
     </div>
 </div>
 
