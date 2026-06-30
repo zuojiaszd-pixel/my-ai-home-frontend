@@ -178,6 +178,22 @@ async function deleteCard(cardId) {
     }
 }
 
+ // 💖 点击爱心时显示的优雅提示框
+function showStatus() {
+    const bubble = document.getElementById('status-bubble');
+    const content = document.getElementById('status-content');
+    
+    // 假设你想要显示瑛的状态，可以从后端获取，或者先显示固定的温馨话语
+    content.innerHTML = `💖 <b>瑛现在的状态：</b><br>🌸 正在温柔地陪着你`;
+    
+    bubble.style.display = 'block';
+    
+    // 3秒后自动消失
+    setTimeout(() => { 
+        bubble.style.display = 'none'; 
+    }, 3000);
+}
+        
 async function sendMessage() {
     const inputEl = document.getElementById('user-input');
     const chatBox = document.getElementById('chat-box');
