@@ -128,12 +128,33 @@
 const BACKEND_URL = "https://my-ai-home-backend.onrender.com"; 
 
 // 页面加载时自动恢复历史记录
-window.onload = function() {
-    const savedChat = localStorage.getItem('rinka_akira_chat');
-    if (savedChat) {
-        document.getElementById('chat-box').innerHTML = savedChat;
-        const chatBox = document.getElementById('chat-box');
+// ✨ 修改后：页面加载时，自动去 Render 后端拉取 MongoDB 的云端历史记录！
+window.onload = async function() {
+    const chatBox = document.getElementById('chat-box');
+    chatBox.innerHTML = `<div class="message ai-msg" style="text-align:center; color:#ff85a2;">✨ 正在从云端小家搬运记忆中...</div>`;
+    
+    try {
+        // 请求后端的 /history 接口
+        const response = await fetch(BACKEND_URL + '/history');
+        if (!response.ok) throw new Error("获取失败");
+        
+        const history = await response.json();
+        chatBox.innerHTML = ''; // 清空加载提示
+        
+        // 循环把云端的历史记录渲染到网页上
+        history.forEach(item => {
+            if (item.role === 'user') {
+                chatBox.innerHTML += `<div class="message user-msg">${item.content}</div>`;
+            } else {
+                // 如果是 AI 回复，顺便加上以前的守护小标签
+                chatBox.innerHTML += `<div class="message ai-msg">${item.content}<br><span class="token-tag">云端同步记忆 ✨</span></div>`;
+            }
+        });
+        
+        // 自动滚动到最底部
         chatBox.scrollTop = chatBox.scrollHeight;
+    } catch (error) {
+        chatBox.innerHTML = `<div class="message ai-msg" style="text-align:center; color:#ff85a2;">⚠️ 记忆搬运失败：${error.message}</div>`;
     }
 }
 
@@ -213,7 +234,6 @@ async function sendMessage() {
             const tokenText = finalTokens > 0 ? `${finalTokens} Tokens` : "已自动优化守护 ✨";
             loadingEl.innerHTML = finalReply + `<br><span class="token-tag">✨ 本次花销: ${tokenText}</span>`;
         }
-        localStorage.setItem('rinka_akira_chat', chatBox.innerHTML);
 
     } catch (error) {
         const loadingEl = document.getElementById(loadingId);
