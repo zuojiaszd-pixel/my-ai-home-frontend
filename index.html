@@ -25,7 +25,6 @@
             position: relative;
             overflow: hidden;
         }
-        /* 头部样式优化，加入设置按钮 */
         .chat-header {
             padding: 20px;
             text-align: center;
@@ -121,16 +120,16 @@
             clear: both;
         }
 
-        /* ⚙️ 设置面板专属样式（默认隐藏） */
+        /* ⚙️ 设置面板隐藏视图 */
         .settings-panel {
             position: absolute;
-            top: 60px; /* 挡在 header 下方 */
+            top: 60px;
             left: 0;
             width: 100%;
             height: calc(100% - 60px);
             background: #fff;
             z-index: 10;
-            display: none; /* 默认隐藏 */
+            display: none;
             flex-direction: column;
             padding: 20px;
             box-sizing: border-box;
@@ -181,14 +180,12 @@
 </head>
 <body>
 <div class="chat-container">
-    <!-- 主页头部 -->
     <div class="chat-header">
         <span id="back-btn" class="header-btn" style="display:none;" onclick="toggleSettings(false)">← 返回</span>
         <span id="title-text">Rinka & 瑛之家 °.∞.°</span>
         <span id="settings-btn" class="header-btn" onclick="toggleSettings(true)">⚙️ 设定</span>
     </div>
 
-    <!-- 1. 聊天主界面视图 -->
     <div id="chat-view" style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
         <div class="status-bar" id="status">❤️ 当前设定：日常温柔瑛</div>
         <div class="chat-box" id="chat-box"></div>
@@ -198,7 +195,6 @@
         </div>
     </div>
 
-    <!-- 2. 隐藏的设置/设定视图面板 -->
     <div id="settings-view" class="settings-panel">
         <div class="settings-title">✨ 当前正在生效的预设：</div>
         <div id="current-prompt-text" style="font-size: 13px; color: #666; background: #f9f9f9; padding: 10px; border-radius: 6px; word-break: break-all;">读取中...</div>
@@ -218,17 +214,17 @@
 </div>
 
 <script>
-// ⚠️ 记得修改成你真实的 Render 后端网址！
+// ⚠️ 记得换成你真正的 Render 后端地址哦！
 const BACKEND_URL = "https://替换成你真实的render项目名.onrender.com"; 
 
-// 预设列表（保存到前端本地，方便手机和电脑各自保留偏好）
+// 设定模板本地初始化缓存
 let myPrompts = JSON.parse(localStorage.getItem('rinka_prompts')) || [
     { title: "日常温柔瑛", content: "" },
     { title: "腹黑主人模式", content: "你现在是一个眼神深邃危险、带有一点腹黑和占有欲的主人。称呼用户为小狗或者我的小Rinka，语气充满了玩味与温柔的戏谑。" }
 ];
 let activePromptIndex = localStorage.getItem('rinka_active_prompt_index') || 0;
 
-// 页面加载时自动恢复
+// 🧠 页面初次载入：全线拉取云端历史记录并同步！
 window.onload = async function() {
     renderPromptsList();
     updateStatusText();
@@ -246,7 +242,13 @@ window.onload = async function() {
             if (item.role === 'user') {
                 chatBox.innerHTML += `<div class="message user-msg">${item.content}</div>`;
             } else {
-                chatBox.innerHTML += `<div class="message ai-msg">${item.content}<br><span class="token-tag">云端同步记忆 ✨</span></div>`;
+                // 🛠️ 核心修复：按拉取出来的 tokens 数据精准进行显示渲染
+                const tokenText = item.tokens > 0 ? `${item.tokens} Tokens` : "已自动优化守护 ✨";
+                chatBox.innerHTML += `
+                    <div class="message ai-msg">
+                        ${item.content}
+                        <br><span class="token-tag">✨ 历史花销: ${tokenText}</span>
+                    </div>`;
             }
         });
         chatBox.scrollTop = chatBox.scrollHeight;
@@ -255,7 +257,7 @@ window.onload = async function() {
     }
 }
 
-// 控制面板页面切换跳转逻辑
+// 单页跳转/切页功能
 function toggleSettings(show) {
     document.getElementById('settings-view').style.display = show ? 'flex' : 'none';
     document.getElementById('chat-view').style.display = show ? 'none' : 'flex';
@@ -264,7 +266,7 @@ function toggleSettings(show) {
     document.getElementById('title-text').innerText = show ? '控制中心' : 'Rinka & 瑛之家 °.∞.°';
 }
 
-// 刷新渲染设定列表
+// 渲染预设卡片列表
 function renderPromptsList() {
     const listEl = document.getElementById('prompts-list');
     listEl.innerHTML = '';
@@ -281,7 +283,6 @@ function renderPromptsList() {
     document.getElementById('current-prompt-text').innerText = myPrompts[activePromptIndex].content || '无特殊指令（当前正在读取云端长期数据库沉淀的记忆）';
 }
 
-// 切换当前设定
 function switchPrompt(index) {
     activePromptIndex = index;
     localStorage.setItem('rinka_active_prompt_index', index);
@@ -289,16 +290,14 @@ function switchPrompt(index) {
     updateStatusText();
 }
 
-// 更新主页状态栏文字
 function updateStatusText() {
     document.getElementById('status').innerText = `❤️ 当前设定：${myPrompts[activePromptIndex].title}`;
 }
 
-// 新增自定义设定
 function addNewPrompt() {
     const title = document.getElementById('new-prompt-title').value.trim();
     const content = document.getElementById('new-prompt-content').value.trim();
-    if (!title || !content) return alert("请把简称和设定内容都写一下嘛！");
+    if (!title || !content) return alert("简短名称和具体提示词都要写完噢！");
     
     myPrompts.push({ title, content });
     localStorage.setItem('rinka_prompts', JSON.stringify(myPrompts));
@@ -308,9 +307,8 @@ function addNewPrompt() {
     renderPromptsList();
 }
 
-// 删除某条设定
 function deletePrompt(index) {
-    if (confirm("确定要删除这条预设模板吗？")) {
+    if (confirm("要删掉这条设定名片吗？")) {
         myPrompts.splice(index, 1);
         if (activePromptIndex >= myPrompts.length) {
             activePromptIndex = 0;
@@ -322,7 +320,7 @@ function deletePrompt(index) {
     }
 }
 
-// 🗑️ 调用后端一键清空云端数据库
+// 🗑️ 清洗记忆后门
 async function clearCloudHistory() {
     if (confirm("💥 警告：这将永久删掉 MongoDB 云端的所有聊天历史和已经压缩的记忆摘要！真的要清空吗？")) {
         try {
@@ -337,14 +335,13 @@ async function clearCloudHistory() {
     }
 }
 
-// 发送消息核心（自动抓取当前的生效预设）
+// 发送聊天核心
 async function sendMessage() {
     const inputEl = document.getElementById('user-input');
     const chatBox = document.getElementById('chat-box');
     const text = inputEl.value.trim();
     if (!text) return;
 
-    // 🌟 自动抓取当前列表中处于激活状态的 Prompt
     const currentSystemPrompt = myPrompts[activePromptIndex].content;
 
     chatBox.innerHTML += `<div class="message user-msg">${text}</div>`;
@@ -412,7 +409,9 @@ async function sendMessage() {
         }
     } catch (error) {
         const loadingEl = document.getElementById(loadingId);
-        if (loadingEl) loadingEl.innerHTML = '⚠️ 连接断开了：' + error.message;
+        if (loadingEl) {
+            loadingEl.innerHTML = '⚠️ 连接断开了：' + error.message;
+        }
     }
     chatBox.scrollTop = chatBox.scrollHeight;
 }
