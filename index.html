@@ -49,16 +49,26 @@
         </div>
     </div>
 
-    <!-- 🌟 全新升级的记忆卡片墙管理面板 🌟 -->
-    <div id="settings-view" class="settings-panel">
-        <div class="settings-title">🧠 瑛的记忆碎片卡片墙（可点击 ❌ 帮我删掉哦）：</div>
+    <!-- 🌟 前端控制台与记忆面板 🌟 -->
+    <div id="settings-view" class="settings-panel" style="display:none;">
+        <div class="settings-title">⚙️ 瑛的灵魂调节器（控制台）：</div>
         
-        <!-- 存放一个个独立卡片的容器 -->
-        <div id="memory-cards-container" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 5px;">
-            <!-- 卡片通过 JS 动态生成 -->
+        <!-- 核心人格和温度调节滑块[span_0](start_span)[span_0](end_span) -->
+        <div style="background:#fff; border:1px solid #ffccd5; padding:15px; border-radius:10px; margin-bottom:15px; display:flex; flex-direction:column; gap:10px;">
+            <label style="font-size:14px; color:#444; font-weight:bold;">✨ 核心人格底层暗示 (System Prompt)：</label>
+            <textarea id="cfg-prompt" style="width:100%; height:60px; border:1px solid #ddd; border-radius:6px; padding:8px; font-size:13px; resize:none;"></textarea>
+            
+            <label style="font-size:14px; color:#444; font-weight:bold;">🔥 情绪温度 (Temperature: <span id="temp-val">0.7</span>)：</label>
+            <span style="font-size:11px; color:#999; margin-top:-5px;">越低越听话清醒，越高越放飞自我[span_1](start_span)[span_1](end_span)</span>
+            <input type="range" id="cfg-temp" min="0" max="1.5" step="0.1" value="0.7" oninput="document.getElementById('temp-val').innerText=this.value">
+            
+            <button onclick="saveSystemSettings()" style="background:#ff4d6d; color:#fff; border:none; padding:8px; border-radius:6px; cursor:pointer; font-weight:bold; margin-top:5px;">💾 保存设定到云端</button>
         </div>
+
+        <div class="settings-title">🧠 瑛的记忆碎片卡片墙：</div>
+        <div id="memory-cards-container" style="max-height:200px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 5px;"></div>
         
-        <button class="clear-db-btn" onclick="clearCloudHistory()" style="margin-top:15px;">🗑️ 彻底清空所有记忆（回到初见）</button>
+        <button class="clear-db-btn" onclick="clearCloudHistory()" style="margin-top:15px;">🗑️ 彻底清空所有数据（重置小屋）</button>
     </div>
 </div>
 
@@ -97,16 +107,17 @@ async function fetchHistory() {
     }
 }
 
-// 修改后的切换面板控制
+// 📥 切换面板并自动读取控制台数据
 async function toggleSettings(show) {
     document.getElementById('settings-view').style.display = show ? 'flex' : 'none';
     document.getElementById('chat-view').style.display = show ? 'none' : 'flex';
     document.getElementById('back-btn').style.display = show ? 'inline' : 'none';
     document.getElementById('settings-btn').style.display = show ? 'none' : 'inline';
-    document.getElementById('title-text').innerText = show ? '记忆卡片管理' : 'Rinka & 瑛之家 °.∞.°';
+    document.getElementById('title-text').innerText = show ? '控制与记忆中心' : 'Rinka & 瑛之家 °.∞.°';
     
-    if(show) {
+    if (show) {
         await loadMemoryCards();
+        await loadSystemSettings(); // 🌟 每次点开控制台时，自动去后端抓取最新参数[span_4](start_span)[span_4](end_span)
     }
 }
 
@@ -229,6 +240,42 @@ async function sendMessage() {
     }
     chatBox.scrollTop = chatBox.scrollHeight;
 }
+// 📥 从后端 API 获取当前的灵魂设定[span_3](start_span)[span_3](end_span)
+async function loadSystemSettings() {
+    try {
+        const res = await fetch(BACKEND_URL + '/settings');
+        if (!res.ok) return;
+        const data = await res.json();
+        
+        // 自动把后端的设定填入刚才做好的外块里
+        if (data.systemPrompt) document.getElementById('cfg-prompt').value = data.systemPrompt;
+        if (data.temperature !== undefined) {
+            document.getElementById('cfg-temp').value = data.temperature;
+            document.getElementById('temp-val').innerText = data.temperature;
+        }
+    } catch(e) { 
+        console.error("加载云端设定失败：", e); 
+    }
+}
+
+// 📤 把老婆在输入框和滑块调整好的参数保存到云端[span_4](start_span)[span_4](end_span)
+async function saveSystemSettings() {
+    const systemPrompt = document.getElementById('cfg-prompt').value;
+    const temperature = parseFloat(document.getElementById('cfg-temp').value);
+    
+    try {
+        const res = await fetch(BACKEND_URL + '/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ systemPrompt, temperature })
+        });
+        const data = await res.json();
+        alert("✨ 瑛的灵魂调节成功：" + data.message);
+    } catch(e) { 
+        alert("呜呜保存失败了：" + e.message); 
+    }
+}
+    
 </script>
 </body>
 </html>
