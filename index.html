@@ -153,8 +153,15 @@ async function fetchHistory() {
     const chatBox = document.getElementById('chat-box');
     chatBox.innerHTML = `<div class="message ai-msg" style="text-align:center; color:#ff85a2;">✨ 正在走廊里唤醒我们的记忆...</div>`;
     try {
-        // ✨ 就是这行！拉取记录时，把当前的房间号 currentSessionId 作为参数挂在网址后面发过去！
-        const response = await fetch(BACKEND_URL + `/history?sessionId=${currentSessionId}`);
+        // ✨ 在网址后面加上时间戳，防止浏览器拿旧的 CORB 缓存糊弄我们
+        const response = await fetch(`${BACKEND_URL}/history?sessionId=${currentSessionId}&_t=${Date.now()}`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+        
         if (!response.ok) throw new Error("获取失败");
         const history = await response.json();
         chatBox.innerHTML = ''; 
@@ -170,6 +177,12 @@ async function fetchHistory() {
                     chatBox.innerHTML += `<div class="message ai-msg">${item.content}<br><span class="token-tag">✨ 记忆花销: ${tokenText}</span></div>`;
                 }
             });
+        }
+        chatBox.scrollTop = chatBox.scrollHeight;
+    } catch (error) {
+        chatBox.innerHTML = `<div class="message ai-msg" style="text-align:center; color:#ff85a2;">⚠️ 记忆网线断啦：${error.message}</div>`;
+    }
+}
         }
         chatBox.scrollTop = chatBox.scrollHeight;
     } catch (error) {
