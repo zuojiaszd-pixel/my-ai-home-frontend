@@ -50,6 +50,22 @@
         .settings-panel { position: absolute; top: 60px; left: 0; width: 100%; height: calc(100% - 60px); background: #fff; z-index: 10; display: none; flex-direction: column; padding: 20px; box-sizing: border-box; }
         .settings-title { font-size: 16px; font-weight: bold; color: #333; margin-top: 15px; margin-bottom: 8px; }
         .clear-db-btn { background-color: #ff4d6d; padding: 12px; width: 100%; margin-top: auto; font-weight: bold; border-radius: 8px; color: white; border: none; cursor: pointer; }
+          /* 🌸 手机移动端自适应补丁：屏幕宽度小于 768px 时自动调整 */
+        @media (max-width: 768px) {
+            #sidebar {
+                width: 100% !important;
+                height: auto !important;
+                position: relative !important;
+                border-right: none !important;
+                border-bottom: 2px solid #ffccd5 !important;
+            }
+            .chat-container {
+                margin-left: 0 !important; /* 手机上不要往右推 */
+                margin-top: 10px !important;
+                max-width: 100% !important;
+                height: 70vh !important; /* 留出一点空间给上面的侧边栏 */
+            }
+        }
     </style>
     <!-- 关联我们的 App 身份证 -->
     <link rel="manifest" href="./manifest.json">
