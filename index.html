@@ -140,16 +140,17 @@
     </div>
 
 <script>
-// 1. 全局配置（确保地址没有多余的斜杠）
+// 1. 全局配置
 const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
 let currentSessionId = 'default_room';
 
-// 2. 核心功能函数（定义在最前面，永远不会报 not defined）
+// 2. 核心功能函数
 async function fetchHistory() {
     const chatBox = document.getElementById('chat-box');
+    if (!chatBox) return;
     try {
         const res = await fetch(`${BACKEND_URL}/history?sessionId=${currentSessionId}&_t=${Date.now()}`);
-        if (!res.ok) throw new Error("连接异常");
+        if (!res.ok) throw new Error("加载历史失败");
         const data = await res.json();
         chatBox.innerHTML = '';
         if (Array.isArray(data) && data.length > 0) {
@@ -160,52 +161,46 @@ async function fetchHistory() {
             chatBox.innerHTML = `<div class="message ai-msg">（瑛在等你呢，快跟我说话吧...）</div>`;
         }
         chatBox.scrollTop = chatBox.scrollHeight;
-    } catch (e) { console.error("加载失败:", e); }
+    } catch (e) { console.error("加载历史失败:", e); }
 }
 
 async function sendMessage() {
-    // 1. 拿到输入框元素
     const input = document.getElementById('user-input');
     if (!input) {
-        console.error("找不到 ID 为 user-input 的输入框，请检查 HTML 里的 id 是否正确！");
+        alert("错误：找不到输入框元素，请确保输入框的 id='user-input'");
         return;
     }
-
-    // 2. 拿到输入框里的文字并去掉空格
     const content = input.value.trim();
-    
-    // 如果没打字，直接返回不发送
     if (!content) return;
-
+    
+    input.value = ''; // 立即清空，防止重复发送
     try {
-        // 3. 发送给后端（注意：包裹里必须叫 content）
         const res = await fetch(`${BACKEND_URL}/chat`, {
             method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json' 
-            },
-            body: JSON.stringify({ 
-                sessionId: currentSessionId, 
-                content: content  // 🌟 核心：确保这里传的是 content
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionId: currentSessionId, content: content }) // 确保叫 content
         });
-
         if (!res.ok) {
             const errorData = await res.json();
-            throw new Error(errorData.error || "服务器拒绝");
+            throw new Error(errorData.error || "后端拒绝接收");
         }
-
-        // 4. 发送成功后清空输入框，并刷新聊天记录
-        input.value = '';
-        await fetchHistory();
-
+        await fetchHistory(); // 成功后立刻刷新
     } catch (e) { 
-        console.error("发送失败详情:", e);
-        alert("发送失败，原因：" + e.message); 
+        console.error("发送失败:", e);
+        alert("发送失败：" + e.message); 
     }
 }
 
-// 3. 页面加载启动
+// 🌟 补上这个漏掉的函数，不让浏览器再报错！
+function createNewSession() {
+    const newId = prompt("请输入新的会话ID：", "room_" + Date.now());
+    if (newId && newId.trim() !== "") {
+        currentSessionId = newId.trim();
+        fetchHistory();
+    }
+}
+
+// 3. 页面加载自动启动
 window.onload = function() {
     fetchHistory();
 };
