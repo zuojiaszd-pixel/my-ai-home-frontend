@@ -145,7 +145,7 @@ const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
 let currentSessionId = 'default_room';
 
 // 2. 核心功能函数
-async function fetchHistory() {
+ fetchHistory() {
     const chatBox = document.getElementById('chat-box');
     if (!chatBox) return;
     try {
@@ -166,28 +166,35 @@ async function fetchHistory() {
 
 async function sendMessage() {
     const input = document.getElementById('user-input');
-    if (!input) {
-        alert("错误：找不到输入框元素，请确保输入框的 id='user-input'");
+    const content = input.value ? input.value.trim() : '';
+    
+    // 🌟 打印出来，看看前端到底有没有拿到你的字
+    console.log("前端准备发送的内容是:", content);
+
+    if (!content) {
+        alert("输入框里好像没字哦，快写点什么吧~");
         return;
     }
-    const content = input.value.trim();
-    if (!content) return;
-    
-    input.value = ''; // 立即清空，防止重复发送
+
     try {
         const res = await fetch(`${BACKEND_URL}/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ sessionId: currentSessionId, content: content }) // 确保叫 content
+            body: JSON.stringify({ 
+                sessionId: currentSessionId, 
+                content: content // 🌟 确确实实叫 content
+            })
         });
+
         if (!res.ok) {
-            const errorData = await res.json();
-            throw new Error(errorData.error || "后端拒绝接收");
+            const errData = await res.json();
+            throw new Error(errData.error || "请求失败");
         }
-        await fetchHistory(); // 成功后立刻刷新
-    } catch (e) { 
-        console.error("发送失败:", e);
-        alert("发送失败：" + e.message); 
+
+        input.value = '';
+        fetchHistory();
+    } catch (e) {
+        alert("发送失败：" + e.message);
     }
 }
 
