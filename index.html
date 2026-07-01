@@ -32,6 +32,19 @@
         .settings-title { font-size: 16px; font-weight: bold; color: #333; margin-top: 15px; margin-bottom: 8px; }
         .clear-db-btn { background-color: #ff4d6d; padding: 12px; width: 100%; margin-top: auto; font-weight: bold; border-radius: 8px; color: white; border: none; cursor: pointer; }
     </style>
+    <!-- 关联我们的 App 身份证 -->
+<link rel="manifest" href="./manifest.json">
+
+<!-- 注册我们的守护精灵 -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('🌸 瑛的守护精灵已成功唤醒！', reg))
+        .catch(err => console.error('呜呜守护精灵迷路了：', err));
+    });
+  }
+</script>
 </head>
 <body>
 <div class="chat-container">
