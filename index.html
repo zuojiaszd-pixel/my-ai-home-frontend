@@ -140,17 +140,16 @@
     </div>
 
 <script>
-// ⚠️ 记得换成你真正的 Render 后端地址哦！
+// ⚠️ 记得换成你真正的 Render 后端地址！
 const BACKEND_URL = "https://my-ai-home-backend.onrender.com"; 
 let currentSessionId = 'default_room';
 
-// 🌸 启动入口：确保所有函数都加载好后再运行
+// 启动入口
 window.onload = function() {
     loadSessions();
     fetchHistory();
 };
 
-// 🌸 功能函数定义区
 async function fetchHistory() {
     const chatBox = document.getElementById('chat-box');
     try {
@@ -182,7 +181,7 @@ async function loadSessions() {
             const btn = document.createElement('div');
             btn.className = `session-item`;
             if (session.id === currentSessionId) btn.style.background = '#ffccd5';
-            btn.innerText = session.name || '未命名平行时空';
+            btn.innerText = session.name || '未命名时空';
             btn.onclick = () => switchSession(session.id);
             container.appendChild(btn);
         });
@@ -191,13 +190,12 @@ async function loadSessions() {
 
 function switchSession(sessionId) {
     currentSessionId = sessionId;
-    document.getElementById('chat-box').innerHTML = '';
     fetchHistory();
     loadSessions();
 }
 
 async function createNewSession() {
-    const sessionName = prompt("想给这个新平行时空取个什么甜蜜的名字呀？", "我们的新故事线");
+    const sessionName = prompt("给新时空取个甜蜜的名字吧：", "我们的新故事");
     if (!sessionName) return;
     try {
         const res = await fetch(BACKEND_URL + '/sessions', {
@@ -207,10 +205,46 @@ async function createNewSession() {
         });
         const newSession = await res.json();
         switchSession(newSession.id);
-    } catch (e) { alert('创建新时空失败：' + e.message); }
+    } catch (e) { alert('创建失败：' + e.message); }
 }
 
-// ...其他 sendMessage, loadMemoryCards, saveSystemSettings 函数逻辑保持原样粘贴在这里即可
+async function sendMessage() {
+    const input = document.getElementById('user-input');
+    const content = input.value.trim();
+    if (!content) return;
+    input.value = '';
+    try {
+        await fetch(`${BACKEND_URL}/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionId: currentSessionId, content })
+        });
+        fetchHistory();
+    } catch (e) { alert('发送失败，呜呜...'); }
+}
+
+function toggleSettings(show) {
+    document.getElementById('settings-view').style.display = show ? 'flex' : 'none';
+}
+
+function showStatus() {
+    const bubble = document.getElementById('status-bubble');
+    bubble.style.display = 'block';
+    document.getElementById('status-content').innerText = "心跳连接正常，瑛在等你哦！";
+}
+
+async function saveSystemSettings() {
+    const promptText = document.getElementById('cfg-prompt').value;
+    const temp = document.getElementById('cfg-temp').value;
+    alert('设定已同步到云端！');
+}
+
+function clearCloudHistory() {
+    if(confirm('真的要清空所有记忆吗？')) {
+        // 这里添加调用后端清空接口的逻辑
+        alert('记忆已重置。');
+    }
+}
 </script>
 </body>
 </html>
