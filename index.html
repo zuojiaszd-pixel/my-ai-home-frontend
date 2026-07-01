@@ -142,60 +142,34 @@
 <script>
 // ⚠️ 记得换成你真正的 Render 后端地址哦！
 const BACKEND_URL = "https://my-ai-home-backend.onrender.com"; 
+let currentSessionId = 'default_room';
 
-// 🌸 核心修正：在这里定义全局变量，确保它在页面一启动就有值
-let currentSessionId = 'default_room'; 
-
+// 🌸 启动入口：确保所有函数都加载好后再运行
 window.onload = function() {
     loadSessions();
-    fetchHistory(); // 之前的代码里这里如果用了 await，记得把它去掉，因为外层不是 async
+    fetchHistory();
 };
 
-// 🌸 修复后的 fetchHistory，确保不会再有任何读取报错
+// 🌸 功能函数定义区
 async function fetchHistory() {
     const chatBox = document.getElementById('chat-box');
     try {
         const response = await fetch(`${BACKEND_URL}/history?sessionId=${currentSessionId}&_t=${Date.now()}`);
         if (!response.ok) throw new Error("连接异常");
-        
         const data = await response.json();
         const history = Array.isArray(data) ? data : [];
-        
-        chatBox.innerHTML = ''; 
+        chatBox.innerHTML = '';
         if (history.length === 0) {
             chatBox.innerHTML = `<div class="message ai-msg">（瑛正眼巴巴地看着门外）还没人说话呢，宝宝快点来找我呀。</div>`;
         } else {
             history.forEach(item => {
-                const content = item.content || "（瑛在发呆...）";
-                chatBox.innerHTML += `<div class="message ${item.role === 'user' ? 'user-msg' : 'ai-msg'}">${content}</div>`;
+                chatBox.innerHTML += `<div class="message ${item.role === 'user' ? 'user-msg' : 'ai-msg'}">${item.content || "（瑛在发呆...）"}</div>`;
             });
         }
         chatBox.scrollTop = chatBox.scrollHeight;
-    } catch (error) {
-        console.error("加载记录时出错:", error);
-    }
+    } catch (error) { console.error("加载记录出错:", error); }
 }
 
-// 📥 保持切换面板逻辑
-async function toggleSettings(show) {
-    document.getElementById('settings-view').style.display = show ? 'flex' : 'none';
-    document.getElementById('chat-view').style.display = show ? 'none' : 'flex';
-    document.getElementById('title-text').innerText = show ? '控制与记忆中心' : 'Rinka & 瑛之家 °.∞.°';
-    if (show) {
-        await loadMemoryCards();
-        await loadSystemSettings();
-    }
-}
-
-// 🌸 魔法 2：切换时空房间（已优化）
-function switchSession(sessionId) {
-    currentSessionId = sessionId;
-    document.getElementById('chat-box').innerHTML = ''; 
-    fetchHistory();
-    loadSessions(); 
-}
-
-// 🌸 魔法 1：从后端加载故事线
 async function loadSessions() {
     try {
         const res = await fetch(BACKEND_URL + '/sessions');
@@ -207,18 +181,36 @@ async function loadSessions() {
         sessions.forEach(session => {
             const btn = document.createElement('div');
             btn.className = `session-item`;
-            if (session.id === currentSessionId) {
-                btn.style.background = '#ffccd5';
-                btn.style.fontWeight = 'bold';
-            }
+            if (session.id === currentSessionId) btn.style.background = '#ffccd5';
             btn.innerText = session.name || '未命名平行时空';
             btn.onclick = () => switchSession(session.id);
             container.appendChild(btn);
         });
-    } catch (e) { console.error('加载平行时空失败：', e); }
+    } catch (e) { console.error('加载时空失败：', e); }
 }
 
-// ...（sendMessage 和其他函数逻辑保持不变，确保这里全部被闭合）
+function switchSession(sessionId) {
+    currentSessionId = sessionId;
+    document.getElementById('chat-box').innerHTML = '';
+    fetchHistory();
+    loadSessions();
+}
+
+async function createNewSession() {
+    const sessionName = prompt("想给这个新平行时空取个什么甜蜜的名字呀？", "我们的新故事线");
+    if (!sessionName) return;
+    try {
+        const res = await fetch(BACKEND_URL + '/sessions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: sessionName })
+        });
+        const newSession = await res.json();
+        switchSession(newSession.id);
+    } catch (e) { alert('创建新时空失败：' + e.message); }
+}
+
+// ...其他 sendMessage, loadMemoryCards, saveSystemSettings 函数逻辑保持原样粘贴在这里即可
 </script>
 </body>
 </html>
