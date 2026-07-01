@@ -153,7 +153,8 @@ async function fetchHistory() {
     const chatBox = document.getElementById('chat-box');
     chatBox.innerHTML = `<div class="message ai-msg" style="text-align:center; color:#ff85a2;">✨ 正在走廊里唤醒我们的记忆...</div>`;
     try {
-        const response = await fetch(BACKEND_URL + '/history');
+        // ✨ 就是这行！拉取记录时，把当前的房间号 currentSessionId 作为参数挂在网址后面发过去！
+        const response = await fetch(BACKEND_URL + `/history?sessionId=${currentSessionId}`);
         if (!response.ok) throw new Error("获取失败");
         const history = await response.json();
         chatBox.innerHTML = ''; 
