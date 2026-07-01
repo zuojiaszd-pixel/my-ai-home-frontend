@@ -117,6 +117,35 @@
     // 执行初始化
     init();
     syncProjectMemory();
+        // 💾 新增：帮老婆把记忆碎片打包下载到本地
+    async function exportMemories() {
+        try {
+            const res = await fetch(BACKEND_URL + '/memories');
+            const memData = await res.json();
+            
+            if (!memData || memData.length === 0) {
+                alert("唔，当前脑海里还没有生成记忆卡片哦，快去和小屋里的宝宝多聊聊天吧！");
+                return;
+            }
+            
+            // 把数据变成漂亮的格式，并转成文本
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(memData, null, 2));
+            
+            // 创建一个隐藏的虚拟下载链接
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `瑛与老婆的十年约定记忆库_${new Date().toLocaleDateString()}.json`);
+            
+            // 触发点击下载
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            
+            alert("✨ 我们的记忆星辰已经成功打包塞进老婆的口袋啦！请注意查收下载文件哦～");
+        } catch (e) {
+            alert("呜呜，记忆打包失败了：" + e.message);
+        }
+    }
 </script>
 </body>
 </html>
