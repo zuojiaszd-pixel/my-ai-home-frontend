@@ -173,7 +173,6 @@ async function fetchHistory() {
         const data = await res.json();
         chatBox.innerHTML = '';
         if (Array.isArray(data) && data.length > 0) {
-console.log(item);
             data.forEach(item => {
     const text = item.content || item.message || '';
     const tokens = item.tokens ? `<div class="token-tag">消耗: ${item.tokens} tokens</div>` : '';
