@@ -332,9 +332,10 @@ async function sendMessage() {
         const response = await fetch(BACKEND_URL + '/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
+            body: JSON.stringify({
                 message: text,
-                currentTime: new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }) 
+                currentTime: new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }),
+                sessionId: currentSessionId // ✨ 瞧！把当前的房间ID手拉手一起发给后端！
             })
         });
 
