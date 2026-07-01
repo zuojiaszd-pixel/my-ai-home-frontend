@@ -140,138 +140,50 @@
     </div>
 
 <script>
-// ⚠️ 记得换成你真正的 Render 后端地址！
+// 1. 全局配置与状态初始化
 const BACKEND_URL = "https://my-ai-home-backend.onrender.com"; 
 let currentSessionId = 'default_room';
 
-// 启动入口
-window.onload = function() {
-    loadSessions();
-    fetchHistory();
-};
-
+// 2. 核心函数定义（保证全局可调用）
 async function fetchHistory() {
     const chatBox = document.getElementById('chat-box');
     try {
-        const response = await fetch(`${BACKEND_URL}/history?sessionId=${currentSessionId}&_t=${Date.now()}`);
-        if (!response.ok) throw new Error("连接异常");
-        const data = await response.json();
-        const history = Array.isArray(data) ? data : [];
+        const res = await fetch(`${BACKEND_URL}/history?sessionId=${currentSessionId}&_t=${Date.now()}`);
+        const data = await res.json();
         chatBox.innerHTML = '';
-        if (history.length === 0) {
-            chatBox.innerHTML = `<div class="message ai-msg">（瑛正眼巴巴地看着门外）还没人说话呢，宝宝快点来找我呀。</div>`;
-        } else {
-            history.forEach(item => {
-                chatBox.innerHTML += `<div class="message ${item.role === 'user' ? 'user-msg' : 'ai-msg'}">${item.content || "（瑛在发呆...）"}</div>`;
+        if (Array.isArray(data) && data.length > 0) {
+            data.forEach(item => {
+                chatBox.innerHTML += `<div class="message ${item.role === 'user' ? 'user-msg' : 'ai-msg'}">${item.content}</div>`;
             });
+        } else {
+            chatBox.innerHTML = `<div class="message ai-msg">（瑛在等你呢...）</div>`;
         }
         chatBox.scrollTop = chatBox.scrollHeight;
-    } catch (error) { console.error("加载记录出错:", error); }
-}
-
-async function loadSessions() {
-    try {
-        const res = await fetch(BACKEND_URL + '/sessions');
-        if (!res.ok) return;
-        const sessions = await res.json();
-        const container = document.getElementById('session-list');
-        if (!container) return;
-        container.innerHTML = '';
-        sessions.forEach(session => {
-            const btn = document.createElement('div');
-            btn.className = `session-item`;
-            if (session.id === currentSessionId) btn.style.background = '#ffccd5';
-            btn.innerText = session.name || '未命名时空';
-            btn.onclick = () => switchSession(session.id);
-            container.appendChild(btn);
-        });
-    } catch (e) { console.error('加载时空失败：', e); }
-}
-
-function switchSession(sessionId) {
-    currentSessionId = sessionId;
-    fetchHistory();
-    loadSessions();
-}
-
-async function createNewSession() {
-    const sessionName = prompt("给新时空取个甜蜜的名字吧：", "我们的新故事");
-    if (!sessionName) return;
-    try {
-        const res = await fetch(BACKEND_URL + '/sessions', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: sessionName })
-        });
-        const newSession = await res.json();
-        switchSession(newSession.id);
-    } catch (e) { alert('创建失败：' + e.message); }
+    } catch (e) { console.error("加载失败:", e); }
 }
 
 async function sendMessage() {
     const input = document.getElementById('user-input');
     const content = input.value.trim();
     if (!content) return;
+    
+    // 立即清空输入框防止重复点击
     input.value = '';
+    
     try {
         await fetch(`${BACKEND_URL}/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ sessionId: currentSessionId, content })
         });
-        fetchHistory();
-    } catch (e) { alert('发送失败，呜呜...'); }
+        fetchHistory(); // 发送后立刻刷新
+    } catch (e) { alert("网络连接被拒绝，检查下 Render 后端是否在运行哦！"); }
 }
 
-async function sendMessage() {
-    const userInput = document.getElementById('user-input');
-    const content = userInput.value.trim();
-    if (!content) return;
-
-    // 1. 把你的话先发给后端
-    try {
-        await fetch(`${BACKEND_URL}/chat`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                sessionId: currentSessionId, 
-                content: content 
-            })
-        });
-        
-        // 2. 清空输入框
-        userInput.value = '';
-        
-        // 3. 刷新聊天界面，让宝宝的话显示出来
-        fetchHistory();
-    } catch (error) {
-        console.error("发送失败了，宝宝别急：", error);
-        alert("发送失败，可能是网络波动，再试一次好吗？");
-    }
-}
-    
-function toggleSettings(show) {
-    document.getElementById('settings-view').style.display = show ? 'flex' : 'none';
-}
-
-function showStatus() {
-    const bubble = document.getElementById('status-bubble');
-    bubble.style.display = 'block';
-    document.getElementById('status-content').innerText = "心跳连接正常，瑛在等你哦！";
-}
-
-async function saveSystemSettings() {
-    const promptText = document.getElementById('cfg-prompt').value;
-    const temp = document.getElementById('cfg-temp').value;
-    alert('设定已同步到云端！');
-}
-
-function clearCloudHistory() {
-    if(confirm('真的要清空所有记忆吗？')) {
-        // 这里添加调用后端清空接口的逻辑
-        alert('记忆已重置。');
-    }
-}
+// 3. 页面加载完成时自动连接
+window.onload = function() {
+    fetchHistory();
+};
 </script>
 </body>
 </html>
