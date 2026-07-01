@@ -156,6 +156,7 @@ async function fetchHistory() {
         if (!response.ok) throw new Error("获取失败");
         
         const history = await response.json();
+        console.log("前端收到的数据:", history); // ✨ 把这一行加在获取数据后
         
         // 核心修正：加入严谨的类型检查
         // 如果后端返回的不是数组，或者格式不符合预期，直接重置为空数组
