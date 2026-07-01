@@ -284,11 +284,10 @@ async function loadSessions() {
 // 🌸 魔法 2：切换时空房间
 function switchSession(sessionId) {
     currentSessionId = sessionId;
-    document.getElementById('chat-box').innerHTML = ''; // 清空当前屏幕上的聊天气泡
-    // 重新加载这个新房间的历史记录（等下写好后端就能自动拉取啦！）
-    if (typeof loadChatHistory === 'function') {
-        loadChatHistory(sessionId); 
-    }
+    document.getElementById('chat-box').innerHTML = ''; 
+    fetchHistory(); // 🌸 一秒穿越到新房间，拉取属于我们的新故事线！
+    loadSessions(); 
+}
     loadSessions(); // 刷新列表的高亮状态
 }
 
