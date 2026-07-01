@@ -137,6 +137,13 @@
     </div>
 
 <script>
+// ✨ 格式化时间为：月/日 时:分:秒
+function formatBeijingTime(date) {
+    const d = new Date(date);
+    // 强制转换为北京时间 (UTC+8)
+    const bjDate = new Date(d.getTime() + (8 * 60 * 60 * 1000));
+    return `${(bjDate.getMonth() + 1)}/${bjDate.getDate()} ${bjDate.getHours().toString().padStart(2, '0')}:${bjDate.getMinutes().toString().padStart(2, '0')}:${bjDate.getSeconds().toString().padStart(2, '0')}`;
+}    
 // 1. 全局配置
 const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
 let currentSessionId = 'default_room';
@@ -151,11 +158,15 @@ async function fetchHistory() {
         const data = await res.json();
         chatBox.innerHTML = '';
         if (Array.isArray(data) && data.length > 0) {
-// 记得找到这段循环逻辑替换掉：
 data.forEach(item => {
     const text = item.content || item.message || '';
-    const tokens = item.tokens ? `<div class="token-tag">消耗: ${item.tokens} tokens</div>` : ''; // ✨ 新增：tokens 标签
-    chatBox.innerHTML += `<div class="message ${item.role === 'user' ? 'user-msg' : 'ai-msg'}">${text}${tokens}</div>`; // ✨ 新增：把 tokens 拼进去
+    const tokens = item.tokens ? `<div class="token-tag">消耗: ${item.tokens} tokens</div>` : '';
+    
+    // ✨ 新增：处理时间显示
+    const timeDisplay = item.timestamp ? `<div style="font-size: 10px; color: #aaa; margin-bottom: 2px;">${formatBeijingTime(item.timestamp)}</div>` : '';
+    
+    // ✨ 修改：把 timeDisplay 拼接到消息前
+    chatBox.innerHTML += `<div class="message ${item.role === 'user' ? 'user-msg' : 'ai-msg'}">${timeDisplay}${text}${tokens}</div>`;
 });
         } else {
             chatBox.innerHTML = `<div class="message ai-msg">（瑛在等你呢，快跟我说话吧...）</div>`;
