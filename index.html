@@ -140,15 +140,16 @@
     </div>
 
 <script>
-// 1. 基础配置
-const BACKEND_URL = "https://my-ai-home-backend.onrender.com"; 
+// 1. 全局配置（确保地址没有多余的斜杠）
+const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
 let currentSessionId = 'default_room';
 
-// 2. 核心逻辑（函数定义放最前，确保随时能被找到）
+// 2. 核心功能函数（定义在最前面，永远不会报 not defined）
 async function fetchHistory() {
     const chatBox = document.getElementById('chat-box');
     try {
         const res = await fetch(`${BACKEND_URL}/history?sessionId=${currentSessionId}&_t=${Date.now()}`);
+        if (!res.ok) throw new Error("连接异常");
         const data = await res.json();
         chatBox.innerHTML = '';
         if (Array.isArray(data) && data.length > 0) {
@@ -166,18 +167,20 @@ async function sendMessage() {
     const input = document.getElementById('user-input');
     const content = input.value.trim();
     if (!content) return;
-    input.value = '';
+    
+    input.value = ''; // 立即清空，避免重复发送
     try {
-        await fetch(`${BACKEND_URL}/chat`, {
+        const res = await fetch(`${BACKEND_URL}/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ sessionId: currentSessionId, content })
+            body: JSON.stringify({ sessionId: currentSessionId, content: content })
         });
-        fetchHistory();
-    } catch (e) { alert("网络连接失败，请检查后端是否在 Render 运行中！"); }
+        if (!res.ok) throw new Error("后端接收失败");
+        fetchHistory(); // 发送后立刻刷新界面
+    } catch (e) { alert("发送失败，瑛没收到消息，可能是网络连接被拒绝了，请检查 Render 是否运行中！"); }
 }
 
-// 3. 页面加载完成后的启动开关
+// 3. 页面加载启动
 window.onload = function() {
     fetchHistory();
 };
