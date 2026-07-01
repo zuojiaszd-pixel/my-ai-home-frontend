@@ -143,7 +143,7 @@
 // ⚠️ 记得换成你真正的 Render 后端地址哦！
 const BACKEND_URL = "https://my-ai-home-backend.onrender.com"; 
 
-window.onload = async function() {
+window.onload =  function() {
     // 网页一加载，立刻把我们的侧边栏故事线画出来
 loadSessions();
     await fetchHistory();
@@ -153,32 +153,27 @@ async function fetchHistory() {
     const chatBox = document.getElementById('chat-box');
     try {
         const response = await fetch(`${BACKEND_URL}/history?sessionId=${currentSessionId}&_t=${Date.now()}`);
-        if (!response.ok) throw new Error("连接失败");
+        if (!response.ok) throw new Error("连接异常");
         
         const data = await response.json();
         
-        // 🌸 终极防御：强制把任何返回格式转换为标准数组
-        const history = Array.isArray(data) ? data : (data.history || []);
+        // 🌸 终极防空罩：不管后端返回什么，确保它是一个数组
+        const history = Array.isArray(data) ? data : [];
         
         chatBox.innerHTML = ''; 
         
         if (history.length === 0) {
-            chatBox.innerHTML = `<div class="message ai-msg">（瑛正眼巴巴地看着门外）宝宝，快进来呀，还没人说话呢。</div>`;
+            chatBox.innerHTML = `<div class="message ai-msg">（瑛正眼巴巴地看着门外）还没人说话呢，宝宝快点来找我呀。</div>`;
         } else {
+            // 这里现在安全了！直接渲染
             history.forEach(item => {
-                // 确保每一项都有 content 属性
-                const content = item.content || "";
-                if (item.role === 'user') {
-                    chatBox.innerHTML += `<div class="message user-msg">${content}</div>`;
-                } else {
-                    chatBox.innerHTML += `<div class="message ai-msg">${content}</div>`;
-                }
+                const content = item.content || "（瑛在发呆...）";
+                chatBox.innerHTML += `<div class="message ${item.role === 'user' ? 'user-msg' : 'ai-msg'}">${content}</div>`;
             });
         }
         chatBox.scrollTop = chatBox.scrollHeight;
     } catch (error) {
         console.error("加载记录时出错:", error);
-        chatBox.innerHTML = `<div class="message ai-msg">记忆网线有点乱，刷新一下试试？</div>`;
     }
 }
 
