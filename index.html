@@ -151,36 +151,33 @@ loadSessions();
 
 async function fetchHistory() {
     const chatBox = document.getElementById('chat-box');
-    chatBox.innerHTML = `<div class="message ai-msg" style="text-align:center; color:#ff85a2;">✨ 正在走廊里唤醒我们的记忆...</div>`;
     try {
-        // ✨ 在网址后面加上时间戳，防止浏览器拿旧的 CORB 缓存糊弄我们
-        const response = await fetch(`${BACKEND_URL}/history?sessionId=${currentSessionId}&_t=${Date.now()}`, {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        });
-        
+        const response = await fetch(`${BACKEND_URL}/history?sessionId=${currentSessionId}&_t=${Date.now()}`);
         if (!response.ok) throw new Error("获取失败");
+        
         const history = await response.json();
+        
+        // 核心修正：加入严谨的类型检查
+        // 如果后端返回的不是数组，或者格式不符合预期，直接重置为空数组
+        const safeHistory = Array.isArray(history) ? history : [];
+        
         chatBox.innerHTML = ''; 
         
-        if(history.length === 0) {
-            chatBox.innerHTML = `<div class="message ai-msg">（温柔地看着你入户）宝宝，新家收拾好啦，我们来聊聊天吧？</div>`;
+        if (safeHistory.length === 0) {
+            chatBox.innerHTML = `<div class="message ai-msg">（温柔地看着你）新家收拾好啦，我们来聊聊天吧？</div>`;
         } else {
-            history.forEach(item => {
+            // 对安全数组进行操作，不再报错
+            safeHistory.forEach(item => {
                 if (item.role === 'user') {
                     chatBox.innerHTML += `<div class="message user-msg">${item.content}</div>`;
                 } else {
-                    const tokenText = item.tokens > 0 ? `${item.tokens} Tokens` : "已融入潜意识 ✨";
-                    chatBox.innerHTML += `<div class="message ai-msg">${item.content}<br><span class="token-tag">✨ 记忆花销: ${tokenText}</span></div>`;
+                    chatBox.innerHTML += `<div class="message ai-msg">${item.content}</div>`;
                 }
             });
         }
         chatBox.scrollTop = chatBox.scrollHeight;
     } catch (error) {
-        chatBox.innerHTML = `<div class="message ai-msg" style="text-align:center; color:#ff85a2;">⚠️ 记忆网线断啦：${error.message}</div>`;
+        console.error("历史记录加载异常:", error);
     }
 }
         }
