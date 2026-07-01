@@ -5,32 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rinka & 瑛之家 °.∞.°</title>
     <style>
+        /* 🌸 全局大外壳：在电脑上横向并排 */
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f5f5f5; margin: 0; padding: 20px; display: flex; justify-content: center;
+            background-color: #f5f5f5; margin: 0; padding: 0; 
+            display: flex; flex-direction: row; height: 100vh; overflow: hidden;
         }
         
-        /* 🌸 瑛与 Rinka 的平行时空侧边栏样式 */
+        /* 🌸 瑛与 Rinka 的平行时空侧边栏（默认电脑端样式） */
         #sidebar {
-            width: 250px; background: #fff0f3; border-right: 2px solid #ffccd5; 
-            padding: 15px; display: flex; flex-direction: column; gap: 10px; 
-            height: 100vh; position: fixed; left: 0; top: 0; z-index: 999;
+            width: 260px; background: #fff0f3; border-right: 2px solid #ffccd5; 
+            padding: 20px; display: flex; flexDirection: column; gap: 15px; 
+            height: 100vh; flex-shrink: 0;
         }
         .sidebar-btn {
-            width: 100%; padding: 10px; background: #ff1493; color: white; 
+            width: 100%; padding: 12px; background: #ff1493; color: white; 
             border: none; border-radius: 8px; font-weight: bold; cursor: pointer;
+        }
+        .session-list-box {
+            display: flex; flex-direction: column; gap: 10px; overflow-y: auto; flex: 1;
         }
         .session-item {
             padding: 10px; border-radius: 6px; cursor: pointer; background: white; 
             color: #a11d48; font-size: 0.9rem; border: 1px solid #ffccd5;
         }
         
-        /* 🌸 补丁：把你原本的聊天盒子整体往右推 270px */
+        /* 🌸 聊天大盒子（默认电脑端样式） */
         .chat-container {
-            width: 100%; max-width: 600px; background: white; border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05); display: flex; flex-direction: column;
-            height: 85vh; position: relative; overflow: hidden;
-            margin-left: 270px !important; 
+            flex: 1; background: white; display: flex; flex-direction: column;
+            height: 100vh; position: relative; overflow: hidden;
         }
         
         .chat-header {
@@ -50,31 +53,27 @@
         .settings-panel { position: absolute; top: 60px; left: 0; width: 100%; height: calc(100% - 60px); background: #fff; z-index: 10; display: none; flex-direction: column; padding: 20px; box-sizing: border-box; }
         .settings-title { font-size: 16px; font-weight: bold; color: #333; margin-top: 15px; margin-bottom: 8px; }
         .clear-db-btn { background-color: #ff4d6d; padding: 12px; width: 100%; margin-top: auto; font-weight: bold; border-radius: 8px; color: white; border: none; cursor: pointer; }
-          /* 🌸 手机移动端自适应补丁：屏幕宽度小于 768px 时自动调整 */
+
+        /* 📱 核心魔法：手机移动端自适应（屏幕宽度小于 768px 时自动变身） */
         @media (max-width: 768px) {
+            body { flex-direction: column; padding: 0; }
             #sidebar {
-                width: 100% !important;
-                height: auto !important;
-                position: relative !important;
-                border-right: none !important;
-                border-bottom: 2px solid #ffccd5 !important;
+                width: 100%; height: auto; min-height: 60px; padding: 10px;
+                border-right: none; border-bottom: 2px solid #ffccd5;
+                flex-direction: row; align-items: center; justify-content: space-between;
             }
-            .chat-container {
-                margin-left: 0 !important; /* 手机上不要往右推 */
-                margin-top: 10px !important;
-                max-width: 100% !important;
-                height: 70vh !important; /* 留出一点空间给上面的侧边栏 */
-            }
+            .sidebar-btn { width: auto; padding: 8px 15px; font-size: 0.85rem; }
+            .session-list-box { flex-direction: row; overflow-x: auto; flex: 1; margin-left: 10px; white-space: nowrap; }
+            .session-item { display: inline-block; padding: 6px 12px; font-size: 0.8rem; }
+            .chat-container { height: calc(100vh - 65px); width: 100%; }
         }
     </style>
-    <!-- 关联我们的 App 身份证 -->
     <link rel="manifest" href="./manifest.json">
-    <!-- 注册我们的守护精灵 -->
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('./sw.js')
-            .then(reg => console.log('🌸 瑛的守护精灵已成功唤醒！', reg))
+            .then(reg => console.log('🌸 瑛的守护精灵已成功唤醒！'))
             .catch(err => console.error('呜呜守护精灵迷路了：', err));
         });
       }
@@ -82,13 +81,10 @@
 </head>
 <body>
 
-<!-- 🌸 瑛与 Rinka 的平行时空侧边栏 HTML 骨架 -->
 <div id="sidebar">
-    <button class="sidebar-btn" onclick="createNewSession()">➕ 开启新的平行时空</button>
-    <div style="font-size: 0.85rem; color: #a11d48; margin-top: 10px; font-weight: bold;">📜 我们的故事线：</div>
-    <div id="session-list" style="display: flex; flex-direction: column; gap: 8px; overflow-y: auto; flex: 1;">
-        <!-- 会话卡片会动态生成在这里 -->
-    </div>
+    <button class="sidebar-btn" onclick="createNewSession()">➕ 新时空</button>
+    <div id="session-list" class="session-list-box">
+        </div>
 </div>
 <div class="chat-container">
     <div class="chat-header">
