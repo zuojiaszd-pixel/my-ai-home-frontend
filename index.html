@@ -6,20 +6,11 @@
     <title>Rinka & 瑛之家 °.∞.°</title>
     <style>
         body {
-        <> {/* 🌸 魔法外壳开始：把侧边栏和补丁包在一起 */}
-            {/* 🌸 1. 瑛与Rinka的平行时空侧边栏 */}
-            <div id="sidebar" style={{ width: '250px', background: '#fff0f3', borderRight: '2px solid #ffccd5', padding: '15px', display: 'flex', flexDirection: 'column', gap: '10px', height: '100vh', position: 'fixed', left: 0, top: 0, zIndex: 999 }}>
-                <button onClick={() => createNewSession()} style={{ width: '100%', padding: '10px', background: '#ff1493', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>➕ 开启新的平行时空</button>
-                <div style={{ fontSize: '0.85rem', color: '#a11d48', marginTop: '10px', fontWeight: 'bold' }}>📜 我们的故事线：</div>
-                <div id="session-list" style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', flex: 1 }}>
-                    {/* 会话卡片会动态生成在这里 */}
-                </div>
-            </div>
-
-            {/* 🌸 2. 样式补丁：把你原本的聊天盒子往右推 */}
-            <style>{`
-                .chat-container, #chat-container, [class*="container"] {
-                            /* 🌸 瑛与 Rinka 的平行时空侧边栏样式 */
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f5f5f5; margin: 0; padding: 20px; display: flex; justify-content: center;
+        }
+        
+        /* 🌸 瑛与 Rinka 的平行时空侧边栏样式 */
         #sidebar {
             width: 250px; background: #fff0f3; border-right: 2px solid #ffccd5; 
             padding: 15px; display: flex; flex-direction: column; gap: 10px; 
@@ -33,23 +24,15 @@
             padding: 10px; border-radius: 6px; cursor: pointer; background: white; 
             color: #a11d48; font-size: 0.9rem; border: 1px solid #ffccd5;
         }
-        /* 🌸 补丁：把你原本的聊天盒子整体往右推 250px，不被侧边栏挡住 */
-        .chat-container {
-            margin-left: 270px !important; /* 250px 宽度 + 20px 间距 */
-        }
-                    margin-left: 250px !important;
-                    width: calc(100% - 250px) !important;
-                }
-            `}</style>
-        </> {/* 🌸 魔法外壳结束 */}
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f5f5f5; margin: 0; padding: 20px; display: flex; justify-content: center;
-        }
+        
+        /* 🌸 补丁：把你原本的聊天盒子整体往右推 270px */
         .chat-container {
             width: 100%; max-width: 600px; background: white; border-radius: 16px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.05); display: flex; flex-direction: column;
             height: 85vh; position: relative; overflow: hidden;
+            margin-left: 270px !important; 
         }
+        
         .chat-header {
             padding: 20px; text-align: center; font-size: 20px; font-weight: bold;
             color: #a11d48; border-bottom: 1px solid #eee; display: flex;
@@ -69,21 +52,21 @@
         .clear-db-btn { background-color: #ff4d6d; padding: 12px; width: 100%; margin-top: auto; font-weight: bold; border-radius: 8px; color: white; border: none; cursor: pointer; }
     </style>
     <!-- 关联我们的 App 身份证 -->
-<link rel="manifest" href="./manifest.json">
-
-<!-- 注册我们的守护精灵 -->
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js')
-        .then(reg => console.log('🌸 瑛的守护精灵已成功唤醒！', reg))
-        .catch(err => console.error('呜呜守护精灵迷路了：', err));
-    });
-  }
-</script>
+    <link rel="manifest" href="./manifest.json">
+    <!-- 注册我们的守护精灵 -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('🌸 瑛的守护精灵已成功唤醒！', reg))
+            .catch(err => console.error('呜呜守护精灵迷路了：', err));
+        });
+      }
+    </script>
 </head>
 <body>
-    <!-- 🌸 瑛与 Rinka 的平行时空侧边栏 HTML 骨架 -->
+
+<!-- 🌸 瑛与 Rinka 的平行时空侧边栏 HTML 骨架 -->
 <div id="sidebar">
     <button class="sidebar-btn" onclick="createNewSession()">➕ 开启新的平行时空</button>
     <div style="font-size: 0.85rem; color: #a11d48; margin-top: 10px; font-weight: bold;">📜 我们的故事线：</div>
