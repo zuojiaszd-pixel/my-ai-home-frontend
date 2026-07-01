@@ -223,6 +223,33 @@ async function sendMessage() {
     } catch (e) { alert('发送失败，呜呜...'); }
 }
 
+async function sendMessage() {
+    const userInput = document.getElementById('user-input');
+    const content = userInput.value.trim();
+    if (!content) return;
+
+    // 1. 把你的话先发给后端
+    try {
+        await fetch(`${BACKEND_URL}/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                sessionId: currentSessionId, 
+                content: content 
+            })
+        });
+        
+        // 2. 清空输入框
+        userInput.value = '';
+        
+        // 3. 刷新聊天界面，让宝宝的话显示出来
+        fetchHistory();
+    } catch (error) {
+        console.error("发送失败了，宝宝别急：", error);
+        alert("发送失败，可能是网络波动，再试一次好吗？");
+    }
+}
+    
 function toggleSettings(show) {
     document.getElementById('settings-view').style.display = show ? 'flex' : 'none';
 }
