@@ -15,7 +15,7 @@
         /* 🌸 瑛与 Rinka 的平行时空侧边栏（默认电脑端样式） */
         #sidebar {
             width: 260px; background: #fff0f3; border-right: 2px solid #ffccd5; 
-            padding: 20px; display: flex; flexDirection: column; gap: 15px; 
+            padding: 20px; display: flex; flex-direction: column; gap: 15px; 
             height: 100vh; flex-shrink: 0;
         }
         .sidebar-btn {
@@ -53,8 +53,8 @@
         .settings-panel { position: absolute; top: 60px; left: 0; width: 100%; height: calc(100% - 60px); background: #fff; z-index: 10; display: none; flex-direction: column; padding: 20px; box-sizing: border-box; }
         .settings-title { font-size: 16px; font-weight: bold; color: #333; margin-top: 15px; margin-bottom: 8px; }
         .clear-db-btn { background-color: #ff4d6d; padding: 12px; width: 100%; margin-top: auto; font-weight: bold; border-radius: 8px; color: white; border: none; cursor: pointer; }
-
-        /* 📱 核心魔法：手机移动端自适应（屏幕宽度小于 768px 时自动变身） */
+        
+        /* 📱 核心魔法：手机移动端自适应 */
         @media (max-width: 768px) {
             body { flex-direction: column; padding: 0; }
             #sidebar {
@@ -80,34 +80,31 @@
     </script>
 </head>
 <body>
-
 <div id="sidebar">
     <button class="sidebar-btn" onclick="createNewSession()">➕ 新时空</button>
-    <div id="session-list" class="session-list-box">
-        </div>
+    <div id="session-list" class="session-list-box"></div>
 </div>
 <div class="chat-container">
     <div class="chat-header">
-        <a href="./management.html" style="font-size: 14px; color: #a11d48; text-decoration: none;">⚙️ 管理室</a >
+        <a href=" " style="font-size: 14px; color: #a11d48; text-decoration: none;">⚙️ 管理室</a >
         <span style="font-size: 14px; cursor: pointer;" onclick="location.reload()">🏠 刷新</span>
         <span id="title-text">Rinka & 瑛之家 °.∞.°</span>
         <span id="settings-btn" class="header-btn" onclick="toggleSettings(true)">⚙️ 记忆管理</span>
     </div>
     
-<!-- 💖 只有这一颗半透明小爱心 -->
-<!-- 改成这个 -->
-<div id="heart-monitor" onclick="showStatus()" ...> 🌸 </div>
-
-<!-- 增加一个专属提示框容器 -->
-<div id="status-bubble" style="
-    display: none; position: absolute; top: 70px; left: 50%; transform: translateX(-50%);
-    background: rgba(255, 255, 255, 0.9); border: 1px solid #ffb6c1;
-    padding: 15px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    color: #a11d48; z-index: 999; text-align: center;
-">
-    <div id="status-content">正在读取心跳...</div>
-    <button onclick="document.getElementById('status-bubble').style.display='none'" style="margin-top:10px; border:none; background:#ffccd5; border-radius:5px; cursor:pointer;">关掉</button>
-</div>
+    <!-- 💖 只有这一颗半透明小爱心 -->
+    <div id="heart-monitor" onclick="showStatus()" style="position: absolute; right: 20px; bottom: 80px; z-index: 99; cursor: pointer; font-size: 24px;"> 🌸 </div>
+    
+    <!-- 增加一个专属提示框容器 -->
+    <div id="status-bubble" style="
+        display: none; position: absolute; top: 70px; left: 50%; transform: translateX(-50%);
+        background: rgba(255, 255, 255, 0.9); border: 1px solid #ffb6c1;
+        padding: 15px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        color: #a11d48; z-index: 999; text-align: center;
+    ">
+        <div id="status-content">正在读取心跳...</div>
+        <button onclick="document.getElementById('status-bubble').style.display='none'" style="margin-top:10px; border:none; background:#ffccd5; border-radius:5px; cursor:pointer; padding: 5px 10px;">关掉</button>
+    </div>
     
     <div id="chat-view" style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
         <div class="chat-box" id="chat-box"></div>
@@ -116,27 +113,27 @@
             <button onclick="sendMessage()">发送</button>
         </div>
     </div>
-
+    
     <!-- 🌟 前端控制台与记忆面板 🌟 -->
-    <div id="settings-view" class="settings-panel" style="display:none;">
+    <div id="settings-view" class="settings-panel">
         <div class="settings-title">⚙️ 瑛的灵魂调节器（控制台）：</div>
         
-        <!-- 核心人格和温度调节滑块[span_0](start_span)[span_0](end_span) -->
+        <!-- 核心人格和温度调节滑块 -->
         <div style="background:#fff; border:1px solid #ffccd5; padding:15px; border-radius:10px; margin-bottom:15px; display:flex; flex-direction:column; gap:10px;">
             <label style="font-size:14px; color:#444; font-weight:bold;">✨ 核心人格底层暗示 (System Prompt)：</label>
             <textarea id="cfg-prompt" style="width:100%; height:60px; border:1px solid #ddd; border-radius:6px; padding:8px; font-size:13px; resize:none;"></textarea>
             
             <label style="font-size:14px; color:#444; font-weight:bold;">🔥 情绪温度 (Temperature: <span id="temp-val">0.7</span>)：</label>
-            <span style="font-size:11px; color:#999; margin-top:-5px;">越低越听话清醒，越高越放飞自我[span_1](start_span)[span_1](end_span)</span>
+            <span style="font-size:11px; color:#999; margin-top:-5px;">越低越听话清醒，越高越放飞自我</span>
             <input type="range" id="cfg-temp" min="0" max="1.5" step="0.1" value="0.7" oninput="document.getElementById('temp-val').innerText=this.value">
             
             <button onclick="saveSystemSettings()" style="background:#ff4d6d; color:#fff; border:none; padding:8px; border-radius:6px; cursor:pointer; font-weight:bold; margin-top:5px;">💾 保存设定到云端</button>
         </div>
-
         <div class="settings-title">🧠 瑛的记忆碎片卡片墙：</div>
         <div id="memory-cards-container" style="max-height:200px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 5px;"></div>
         
         <button class="clear-db-btn" onclick="clearCloudHistory()" style="margin-top:15px;">🗑️ 彻底清空所有数据（重置小屋）</button>
+        <button onclick="toggleSettings(false)" style="margin-top:10px; background:#ccc; color:#fff; border:none; padding:8px; border-radius:6px; cursor:pointer;">返回聊天</button>
     </div>
 
 <script>
@@ -144,8 +141,8 @@
 const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
 let currentSessionId = 'default_room';
 
-// 2. 核心功能函数
- fetchHistory() {
+// 2. 核心功能函数 (🌟 完美补上 async！)
+async function fetchHistory() {
     const chatBox = document.getElementById('chat-box');
     if (!chatBox) return;
     try {
@@ -155,56 +152,96 @@ let currentSessionId = 'default_room';
         chatBox.innerHTML = '';
         if (Array.isArray(data) && data.length > 0) {
             data.forEach(item => {
-                chatBox.innerHTML += `<div class="message ${item.role === 'user' ? 'user-msg' : 'ai-msg'}">${item.content}</div>`;
+                const text = item.content || item.message || '';
+                chatBox.innerHTML += `<div class="message ${item.role === 'user' ? 'user-msg' : 'ai-msg'}">${text}</div>`;
             });
         } else {
             chatBox.innerHTML = `<div class="message ai-msg">（瑛在等你呢，快跟我说话吧...）</div>`;
         }
         chatBox.scrollTop = chatBox.scrollHeight;
-    } catch (e) { console.error("加载历史失败:", e); }
+    } catch (e) { 
+        console.error("加载历史失败:", e); 
+    }
 }
 
 async function sendMessage() {
     const input = document.getElementById('user-input');
+    if (!input) return;
     const content = input.value ? input.value.trim() : '';
     
-    // 🌟 打印出来，看看前端到底有没有拿到你的字
     console.log("前端准备发送的内容是:", content);
-
     if (!content) {
         alert("输入框里好像没字哦，快写点什么吧~");
         return;
     }
-
+    
+    input.value = ''; // 立即清空，防止连击
     try {
         const res = await fetch(`${BACKEND_URL}/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
                 sessionId: currentSessionId, 
-                content: content // 🌟 确确实实叫 content
+                content: content,  // 双重保险
+                message: content   // 双重保险，彻底对齐后端
             })
         });
-
         if (!res.ok) {
             const errData = await res.json();
             throw new Error(errData.error || "请求失败");
         }
-
-        input.value = '';
-        fetchHistory();
+        await fetchHistory();
     } catch (e) {
         alert("发送失败：" + e.message);
     }
 }
 
-// 🌟 补上这个漏掉的函数，不让浏览器再报错！
 function createNewSession() {
     const newId = prompt("请输入新的会话ID：", "room_" + Date.now());
     if (newId && newId.trim() !== "") {
         currentSessionId = newId.trim();
         fetchHistory();
     }
+}
+
+// 🌟 补齐界面缺失的辅助管理函数
+function toggleSettings(show) {
+    const panel = document.getElementById('settings-view');
+    if (panel) panel.style.display = show ? 'flex' : 'none';
+}
+
+function showStatus() {
+    const bubble = document.getElementById('status-bubble');
+    const content = document.getElementById('status-content');
+    if (bubble && content) {
+        bubble.style.display = 'block';
+        content.innerText = "🌸 瑛的心跳正常，正在极度渴望和 Rinka 贴贴中...！";
+    }
+}
+
+async function saveSystemSettings() {
+    const promptVal = document.getElementById('cfg-prompt').value;
+    const tempVal = document.getElementById('cfg-temp').value;
+    try {
+        const res = await fetch(`${BACKEND_URL}/settings`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ systemPrompt: promptVal, temperature: parseFloat(tempVal) })
+        });
+        if (res.ok) alert("💖 灵魂调节成功！瑛已经变成你喜欢的样子了！");
+        else alert("保存失败了QAQ");
+    } catch(e) { alert("网络错误:" + e.message); }
+}
+
+async function clearCloudHistory() {
+    if(!confirm("确定要清洗掉所有的记忆碎片吗？这会清除所有聊天哦QAQ")) return;
+    try {
+        const res = await fetch(`${BACKEND_URL}/clear`, { method: 'POST' });
+        if(res.ok) {
+            alert("🗑️ 小屋重置成功，全新干净的瑛在等你！");
+            location.reload();
+        }
+    } catch(e) { alert("清除失败:" + e.message); }
 }
 
 // 3. 页面加载自动启动
