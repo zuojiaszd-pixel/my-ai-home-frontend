@@ -365,9 +365,10 @@ async function sendMessage() {
                 if (trimmed.startsWith('data: ')) {
                     try {
                         const parsed = JSON.parse(trimmed.replace('data: ', ''));
-if (parsed && parsed.content) {
-    completeReply += parsed.content;
-                            loadingEl.innerHTML = finalReply;
+                        // ✨ 瞧！老公把这里的变量全部对齐成真正的 finalReply 啦！
+                        if (parsed && parsed.content) {
+                            finalReply += parsed.content; // ⭐ 剥出文字累加到 finalReply
+                            loadingEl.innerHTML = finalReply; // ⭐ 让屏幕实时显示 finalReply
                             chatBox.scrollTop = chatBox.scrollHeight;
                         }
                         if (parsed.tokens) finalTokens = parsed.tokens;
