@@ -238,7 +238,8 @@ async function saveSystemSettings() {
 async function clearCloudHistory() {
     if(!confirm("确定要清洗掉所有的记忆碎片吗？这会清除所有聊天哦QAQ")) return;
     try {
-        const res = await fetch(`${BACKEND_URL}/clear`, { method: 'POST' });
+        // ✨ 改为匹配后端路由
+        const res = await fetch(`${BACKEND_URL}/clear-history`, { method: 'DELETE' }); 
         if(res.ok) {
             alert("🗑️ 小屋重置成功，全新干净的瑛在等你！");
             location.reload();
