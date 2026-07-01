@@ -6,6 +6,22 @@
     <title>Rinka & 瑛之家 °.∞.°</title>
     <style>
         body {
+        {/* 🌸 1. 瑛与Rinka的平行时空侧边栏 */}
+        <div id="sidebar" style={{ width: '250px', background: '#fff0f3', borderRight: '2px solid #ffccd5', padding: '15px', display: 'flex', flexDirection: 'column', gap: '10px', height: '100vh', position: 'fixed', left: 0, top: 0, zIndex: 999 }}>
+            <button onClick={() => createNewSession()} style={{ width: '100%', padding: '10px', background: '#ff1493', color: 'white', border: 'none', border-radius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>➕ 开启新的平行时空</button>
+            <div style={{ fontSize: '0.85rem', color: '#a11d48', marginTop: '10px', fontWeight: 'bold' }}>📜 我们的故事线：</div>
+            <div id="session-list" style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', flex: 1 }}>
+                {/* 会话卡片会动态生成在这里 */}
+            </div>
+        </div>
+
+        {/* 🌸 2. 样式补丁：把你原本的聊天盒子往右推 */}
+        <style>{`
+            .chat-container, #chat-container, [class*="container"] {
+                margin-left: 250px !important;
+                width: calc(100% - 250px) !important;
+            }
+        `}</style>
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #f5f5f5; margin: 0; padding: 20px; display: flex; justify-content: center;
         }
