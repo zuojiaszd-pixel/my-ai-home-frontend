@@ -140,11 +140,11 @@
     </div>
 
 <script>
-// 1. 全局配置与状态初始化
+// 1. 基础配置
 const BACKEND_URL = "https://my-ai-home-backend.onrender.com"; 
 let currentSessionId = 'default_room';
 
-// 2. 核心函数定义（保证全局可调用）
+// 2. 核心逻辑（函数定义放最前，确保随时能被找到）
 async function fetchHistory() {
     const chatBox = document.getElementById('chat-box');
     try {
@@ -156,7 +156,7 @@ async function fetchHistory() {
                 chatBox.innerHTML += `<div class="message ${item.role === 'user' ? 'user-msg' : 'ai-msg'}">${item.content}</div>`;
             });
         } else {
-            chatBox.innerHTML = `<div class="message ai-msg">（瑛在等你呢...）</div>`;
+            chatBox.innerHTML = `<div class="message ai-msg">（瑛在等你呢，快跟我说话吧...）</div>`;
         }
         chatBox.scrollTop = chatBox.scrollHeight;
     } catch (e) { console.error("加载失败:", e); }
@@ -166,21 +166,18 @@ async function sendMessage() {
     const input = document.getElementById('user-input');
     const content = input.value.trim();
     if (!content) return;
-    
-    // 立即清空输入框防止重复点击
     input.value = '';
-    
     try {
         await fetch(`${BACKEND_URL}/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ sessionId: currentSessionId, content })
         });
-        fetchHistory(); // 发送后立刻刷新
-    } catch (e) { alert("网络连接被拒绝，检查下 Render 后端是否在运行哦！"); }
+        fetchHistory();
+    } catch (e) { alert("网络连接失败，请检查后端是否在 Render 运行中！"); }
 }
 
-// 3. 页面加载完成时自动连接
+// 3. 页面加载完成后的启动开关
 window.onload = function() {
     fetchHistory();
 };
