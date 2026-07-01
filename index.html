@@ -164,20 +164,45 @@ async function fetchHistory() {
 }
 
 async function sendMessage() {
+    // 1. 拿到输入框元素
     const input = document.getElementById('user-input');
+    if (!input) {
+        console.error("找不到 ID 为 user-input 的输入框，请检查 HTML 里的 id 是否正确！");
+        return;
+    }
+
+    // 2. 拿到输入框里的文字并去掉空格
     const content = input.value.trim();
-    if (!content) return;
     
-    input.value = ''; // 立即清空，避免重复发送
+    // 如果没打字，直接返回不发送
+    if (!content) return;
+
     try {
+        // 3. 发送给后端（注意：包裹里必须叫 content）
         const res = await fetch(`${BACKEND_URL}/chat`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ sessionId: currentSessionId, content: content })
+            headers: { 
+                'Content-Type': 'application/json' 
+            },
+            body: JSON.stringify({ 
+                sessionId: currentSessionId, 
+                content: content  // 🌟 核心：确保这里传的是 content
+            })
         });
-        if (!res.ok) throw new Error("后端接收失败");
-        fetchHistory(); // 发送后立刻刷新界面
-    } catch (e) { alert("发送失败，瑛没收到消息，可能是网络连接被拒绝了，请检查 Render 是否运行中！"); }
+
+        if (!res.ok) {
+            const errorData = await res.json();
+            throw new Error(errorData.error || "服务器拒绝");
+        }
+
+        // 4. 发送成功后清空输入框，并刷新聊天记录
+        input.value = '';
+        await fetchHistory();
+
+    } catch (e) { 
+        console.error("发送失败详情:", e);
+        alert("发送失败，原因：" + e.message); 
+    }
 }
 
 // 3. 页面加载启动
