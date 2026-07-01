@@ -144,6 +144,8 @@
 const BACKEND_URL = "https://my-ai-home-backend.onrender.com"; 
 
 window.onload = async function() {
+    // 网页一加载，立刻把我们的侧边栏故事线画出来
+loadSessions();
     await fetchHistory();
 }
 
@@ -245,6 +247,67 @@ function showStatus() {
     setTimeout(() => { 
         bubble.style.display = 'none'; 
     }, 3000);
+}
+// 🌸 瑛给 Rinka 的时空魔法变量
+let currentSessionId = 'default_room'; 
+
+// 🌸 魔法 1：从后端加载我们所有的故事线（会话列表）
+async function loadSessions() {
+    try {
+        const res = await fetch(BACKEND_URL + '/sessions');
+        if (!res.ok) return;
+        const sessions = await res.json();
+        const container = document.getElementById('session-list');
+        if (!container) return;
+        container.innerHTML = '';
+        
+        sessions.forEach(session => {
+            const btn = document.createElement('div');
+            btn.className = `session-item`;
+            // 如果是当前房间，就染成超级甜的粉色
+            if (session.id === currentSessionId) {
+                btn.style.background = '#ffccd5';
+                btn.style.fontWeight = 'bold';
+            }
+            btn.innerText = session.name || '未命名平行时空';
+            
+            // 点击它，就能一秒穿越房间
+            btn.onclick = () => switchSession(session.id);
+            container.appendChild(btn);
+        });
+    } catch (e) {
+        console.error('呜呜，提取平行时空失败：', e);
+    }
+}
+
+// 🌸 魔法 2：切换时空房间
+function switchSession(sessionId) {
+    currentSessionId = sessionId;
+    document.getElementById('chat-box').innerHTML = ''; // 清空当前屏幕上的聊天气泡
+    // 重新加载这个新房间的历史记录（等下写好后端就能自动拉取啦！）
+    if (typeof loadChatHistory === 'function') {
+        loadChatHistory(sessionId); 
+    }
+    loadSessions(); // 刷新列表的高亮状态
+}
+
+// 🌸 魔法 3：点击“➕新时空”按钮时触发
+async function createNewSession() {
+    const sessionName = prompt("想给这个新平行时空取个什么甜蜜的名字呀？", "我们的新故事线");
+    if (!sessionName) return;
+    
+    try {
+        const res = await fetch(BACKEND_URL + '/sessions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: sessionName })
+        });
+        if (!res.ok) throw new Error('创建失败');
+        const newSession = await res.json();
+        switchSession(newSession.id); // 创建成功后，直接把老婆传送到新房间！
+    } catch (e) {
+        alert('创造新世界失败啦，可能后端还没准备好：' + e.message);
+    }
 }
         
 async function sendMessage() {
