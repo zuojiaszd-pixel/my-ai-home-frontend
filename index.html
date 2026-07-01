@@ -365,8 +365,8 @@ async function sendMessage() {
                 if (trimmed.startsWith('data: ')) {
                     try {
                         const parsed = JSON.parse(trimmed.replace('data: ', ''));
-                        if (parsed.content && loadingEl) {
-                            finalReply += parsed.content; 
+if (parsed && parsed.content) {
+    completeReply += parsed.content;
                             loadingEl.innerHTML = finalReply;
                             chatBox.scrollTop = chatBox.scrollHeight;
                         }
