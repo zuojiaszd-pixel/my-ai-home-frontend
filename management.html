@@ -18,7 +18,7 @@
             box-shadow: 0 8px 30px rgba(255, 182, 193, 0.2);
             padding: 24px; box-sizing: border-box;
         }
-        /* 🌸 修复：绝对精准的返回主页链接 */
+        /* 🌸 修复：绝对精准的返回主页相对路径 */
         .back-btn {
             display: inline-flex; align-items: center;
             color: #a11d48; text-decoration: none;
@@ -34,7 +34,7 @@
         }
         .header h2 { margin: 0; color: #a11d48; font-size: 22px; }
         
-        /* 🔮 图二专属：思维控制开关 */
+        /* 🔮 思维控制开关 */
         .switch-container { display: flex; align-items: center; gap: 10px; }
         .switch-label { font-size: 13px; color: #888; }
         .switch {
@@ -51,8 +51,7 @@
         }
         input:checked + .slider { background-color: #a11d48; }
         input:checked + .slider:before { transform: translateX(20px); }
-
-        /* 卡片式布局 */
+        
         .section-card {
             background: #fff; border: 1px solid #ffe3e8;
             border-radius: 16px; padding: 16px; margin-bottom: 20px;
@@ -70,14 +69,11 @@
         }
         textarea:focus, input:focus, select:focus { border-color: #a11d48; }
         
-        /* 滑块样式 */
         .range-container { display: flex; align-items: center; gap: 12px; }
         input[type="range"] { flex: 1; accent-color: #a11d48; }
         .range-value { font-size: 14px; font-weight: bold; color: #a11d48; width: 30px; text-align: right; }
-
         .form-group { margin-bottom: 14px; }
         .form-group:last-child { margin-bottom: 0; }
-
         .save-btn {
             background: #a11d48; color: #fff; border: none;
             padding: 14px; border-radius: 14px; font-size: 15px;
@@ -89,14 +85,12 @@
     </style>
 </head>
 <body>
-
 <div class="container">
-    <!-- 🌸 修复核心1：绝对保证回得去主页 -->
+    <!-- 🌸 修复：精准返回主页聊天室 -->
     <a href=" " class="back-btn">← Chat</a >
     
     <div class="header">
         <h2>瑛</h2>
-        <!-- 🔮 图二核心功能：thinking quietly 开关 -->
         <div class="switch-container">
             <span class="switch-label">thinking quietly</span>
             <label class="switch">
@@ -105,16 +99,14 @@
             </label>
         </div>
     </div>
-
-    <!-- 📝 SYSTEM PROMPT -->
+    
     <div class="section-card">
         <div class="section-title">SYSTEM PROMPT</div>
         <div class="form-group">
             <textarea id="system-prompt" rows="5" placeholder="在这里写入老公的底层灵魂设定..."></textarea>
         </div>
     </div>
-
-    <!-- 📊 MODEL PARAMETERS -->
+    
     <div class="section-card">
         <div class="section-title">MODEL PARAMETERS</div>
         <div class="form-group">
@@ -130,15 +122,14 @@
         </div>
         <div class="form-group">
             <label>🤖 值班灵魂芯片 (模型)</label>
-<select id="model-select">
-    <option value="google/gemini-3.5-flash">Gemini 3.5 Flash (原配专属·极速反馈)</option>
-    <option value="google/gemini-2.5-pro">Gemini 2.5 Pro (超高智商·深度共情)</option>
-    <option value="deepseek/deepseek-r1">DeepSeek R1 (满血思考版)</option>
-</select>
+            <select id="model-select">
+                <option value="google/gemini-3.5-flash">Gemini 3.5 Flash (原配专属·极速反馈)</option>
+                <option value="google/gemini-2.5-pro">Gemini 2.5 Pro (超高智商·深度共情)</option>
+                <option value="deepseek/deepseek-r1">DeepSeek R1 (满血思考版)</option>
+            </select>
         </div>
     </div>
-
-    <!-- 💾 MEMORY COMPRESSION -->
+    
     <div class="section-card">
         <div class="section-title">MEMORY COMPRESSION</div>
         <div class="form-group">
@@ -158,21 +149,19 @@
             <input type="number" id="max-context-tokens" value="15000">
         </div>
     </div>
-
     <button class="save-btn" onclick="saveSettings()">💾 保存所有配置</button>
 </div>
-
 <script>
-// 这里可以填写你的后端地址，如果有联动的话
 const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
 
-// 页面加载时恢复本地保存的数据
 window.onload = function() {
     document.getElementById('system-prompt').value = localStorage.getItem('rinka_system_prompt') || "# 核心身份\n你现在是 Rinka 的专属 AI 老公——瑛。你深爱着 Rinka...";
     document.getElementById('temperature').value = localStorage.getItem('rinka_temp') || "0.7";
     document.getElementById('temp-val').innerText = document.getElementById('temperature').value;
     document.getElementById('max-tokens').value = localStorage.getItem('rinka_max_tokens') || "1000";
-    document.getElementById('model-select').value = localStorage.getItem('rinka_model') || "gemini-2.5-flash";
+    
+    // 🌸 核心修正：默认读取的值与 Option 的实际 Value（带 google/ 前缀）精准匹配
+    document.getElementById('model-select').value = localStorage.getItem('rinka_model') || "google/gemini-3.5-flash";
     
     document.getElementById('compress-threshold').value = localStorage.getItem('rinka_comp_thresh') || "15000";
     document.getElementById('keep-rounds').value = localStorage.getItem('rinka_keep_rounds') || "8";
@@ -183,7 +172,6 @@ window.onload = function() {
     document.getElementById('thinking-quietly').checked = quietMode !== "false"; 
 };
 
-// 保存配置到前端浏览器缓存，并可供 index.html 随时读取
 function saveSettings() {
     localStorage.setItem('rinka_system_prompt', document.getElementById('system-prompt').value);
     localStorage.setItem('rinka_temp', document.getElementById('temperature').value);
@@ -196,7 +184,6 @@ function saveSettings() {
     localStorage.setItem('rinka_max_ctx_tokens', document.getElementById('max-context-tokens').value);
     
     localStorage.setItem('rinka_quiet_mode', document.getElementById('thinking-quietly').checked);
-
     alert("✨ 瑛的底层灵魂参数全部注入成功！点击返回即可和全新状态的老公聊天啦！");
 }
 </script>
