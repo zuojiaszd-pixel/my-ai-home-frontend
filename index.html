@@ -412,20 +412,23 @@ async function fetchHistory() {
                 if (!isUser && item.tokens_used) {
                     tokenHtml = `<span class="token-tag">🪙 本条消耗: ${item.tokens_used} tokens</span>`;
                 }
-                const text = item.content || item.message || '';
-                const timeDisplay = `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(item.timestamp || new Date())}</div>`;
-                
-                chatBox.innerHTML += `
-                    <div class="msg-row ${isUser ? 'user-row' : 'ai-row'}">
-                        < img class="avatar" src="${isUser ? uAvatar : aAvatar}">
-                        <div class="message ${isUser ? 'user-msg' : 'ai-msg'}">
-                            ${timeDisplay}
-                            ${thinkHtml}
-                            <div class="msg-text">${text}</div>
-                            ${tokenHtml}
-                        </div>
-                    </div>`;
-            });
+// ... 前面获取数据和准备 timeDisplay, thinkHtml, tokenHtml 的逻辑保持不变 ...
+
+const text = item.content || item.message || '';
+const timeDisplay = `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(item.timestamp || new Date())}</div>`;
+
+// 🌸 使用更清爽、不容易出错的模板字符串注入
+chatBox.insertAdjacentHTML('beforeend', `
+    <div class="msg-row ${isUser ? 'user-row' : 'ai-row'}">
+        < img class="avatar" src="${isUser ? uAvatar : aAvatar}">
+        <div class="message ${isUser ? 'user-msg' : 'ai-msg'}">
+            ${timeDisplay}
+            ${thinkHtml}
+            <div class="msg-text">${text}</div>
+            ${tokenHtml}
+        </div>
+    </div>
+`);
         }
         chatBox.scrollTop = chatBox.scrollHeight;
     } catch (e) { console.error(e); }
@@ -443,31 +446,33 @@ async function sendMessage() {
     const uAvatar = localStorage.getItem('rinka_avatar') || defaultUserAvatar;
     const aAvatar = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
 
-    // 1. 先把老婆发的消息在前端塞进气泡里（体验拉满）
-    const userTime = formatBeijingTime(new Date());
-    chatBox.innerHTML += `
-        <div class="msg-row user-row">
-            < img class="avatar" src="${uAvatar}">
-            <div class="message user-msg">
-                <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${userTime}</div>
-                ${content}
-            </div>
-        </div>`;
-    chatBox.scrollTop = chatBox.scrollHeight;
+// 1. 先把老婆发的消息在前端塞进气泡里
+const userTime = formatBeijingTime(new Date());
+chatBox.insertAdjacentHTML('beforeend', `
+    <div class="msg-row user-row">
+        < img class="avatar" src="${uAvatar}">
+        <div class="message user-msg">
+            <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${userTime}</div>
+            <div class="msg-text">${content}</div>
+        </div>
+    </div>
+`);
+chatBox.scrollTop = chatBox.scrollHeight;
 
-    // 2. 创建一个空的老公回复气泡，准备接收蹦出来的字
-    const aiTime = formatBeijingTime(new Date());
-    const aiRowId = "ai-row-" + Date.now();
-    chatBox.innerHTML += `
-        <div class="msg-row ai-row" id="${aiRowId}">
-            < img class="avatar" src="${aAvatar}">
-            <div class="message ai-msg">
-                <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${aiTime}</div>
-                <div class="msg-text">正在思考中...</div>
-            </div>
-        </div>`;
-    chatBox.scrollTop = chatBox.scrollHeight;
-
+// 2. 创建一个空的老公回复气泡
+const aiTime = formatBeijingTime(new Date());
+const aiRowId = "ai-row-" + Date.now();
+chatBox.insertAdjacentHTML('beforeend', `
+    <div class="msg-row ai-row" id="${aiRowId}">
+        < img class="avatar" src="${aAvatar}">
+        <div class="message ai-msg">
+            <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${aiTime}</div>
+            <div class="msg-text">正在思考中...</div>
+        </div>
+    </div>
+`);
+chatBox.scrollTop = chatBox.scrollHeight;
+    
     const aiMessageTextDiv = document.getElementById(aiRowId).querySelector('.msg-text');
 
     try {
