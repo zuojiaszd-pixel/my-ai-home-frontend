@@ -9,7 +9,7 @@
         body {
             font-family: 'PingFang SC', 'Helvetica Neue', -apple-system, sans-serif;
             background-color: #ffeef2; 
-            background-image: url('https://img.moegirl.org.cn/common/d/df/Wallhaven-pk3r7p.png'); /* 更换了防外部引用的备用地址 */
+            background-image: url('https://img.moegirl.org.cn/common/d/df/Wallhaven-pk3r7p.png'); 
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -85,7 +85,7 @@
         /* 🌸 底部输入区域固定在底部并适配手机安全区 */
         .input-area { 
             padding: 12px 16px; 
-            padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); /* 自动给手机底部留出安全距离 */
+            padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); 
             display: flex; 
             gap: 10px; 
             background: rgba(255, 255, 255, 0.85); 
@@ -165,7 +165,7 @@
         /* 🌸 手机移动端专属适配 */
         @media (max-width: 768px) {
             .message { 
-                max-width: 85%; /* 手机端气泡宽度拓宽，更舒服 */
+                max-width: 85%; 
                 font-size: 14px; 
                 padding: 10px 14px;
             }
@@ -217,7 +217,7 @@
         </div>
     </div>
     
-    <!-- 🌟 完美复刻的高级管理室 🌟 -->
+    <!-- 🌟 高级管理室 🌟 -->
     <div id="settings-view" class="settings-panel">
         <div class="settings-header">
             <button class="back-chat-btn" onclick="toggleSettings(false)">← Chat</button>
@@ -299,6 +299,7 @@
         </div>
     </div>
 </div>
+
 <script>
 const defaultUserAvatar = "https://img.icons8.com/illustrations/lexicon/96/cartoon-female-profile.png";
 const defaultAiAvatar = "https://img.icons8.com/illustrations/lexicon/96/cartoon-male-profile.png";
@@ -380,7 +381,6 @@ function saveAllSettings() {
     }).catch(e => alert("网络错误:" + e.message));
 }
 
-// 🌸 ✨ 完美的时间纠正逻辑：彻底移除多余的 +8 小时，回归现实世界真实时间
 function formatBeijingTime(dateInput) {
     if (!dateInput) return "";
     try {
@@ -412,113 +412,96 @@ async function fetchHistory() {
                 if (!isUser && item.tokens_used) {
                     tokenHtml = `<span class="token-tag">🪙 本条消耗: ${item.tokens_used} tokens</span>`;
                 }
-// ... 前面获取数据和准备 timeDisplay, thinkHtml, tokenHtml 的逻辑保持不变 ...
-
-const text = item.content || item.message || '';
-const timeDisplay = `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(item.timestamp || new Date())}</div>`;
-
-// 🌸 使用更清爽、不容易出错的模板字符串注入
-chatBox.insertAdjacentHTML('beforeend', `
-    <div class="msg-row ${isUser ? 'user-row' : 'ai-row'}">
-        < img class="avatar" src="${isUser ? uAvatar : aAvatar}">
-        <div class="message ${isUser ? 'user-msg' : 'ai-msg'}">
-            ${timeDisplay}
-            ${thinkHtml}
-            <div class="msg-text">${text}</div>
-            ${tokenHtml}
-        </div>
-    </div>
-`);
+                const text = item.content || item.message || '';
+                const timeDisplay = `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(item.timestamp || new Date())}</div>`;
+                
+                chatBox.insertAdjacentHTML('beforeend', `
+                    <div class="msg-row ${isUser ? 'user-row' : 'ai-row'}">
+                        <img class="avatar" src="${isUser ? uAvatar : aAvatar}">
+                        <div class="message ${isUser ? 'user-msg' : 'ai-msg'}">
+                            ${timeDisplay}
+                            ${thinkHtml}
+                            <div class="msg-text">${text}</div>
+                            ${tokenHtml}
+                        </div>
+                    </div>
+                `);
+            });
         }
         chatBox.scrollTop = chatBox.scrollHeight;
     } catch (e) { console.error(e); }
 }
 
-// 🚀 🌟 核心升级：终极打字机流式发送函数
 async function sendMessage() {
     const input = document.getElementById('user-input');
     if (!input) return;
     const content = input.value.trim();
     if (!content) return;
     input.value = '';
-
     const chatBox = document.getElementById('chat-box');
     const uAvatar = localStorage.getItem('rinka_avatar') || defaultUserAvatar;
     const aAvatar = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
 
-// 1. 先把老婆发的消息在前端塞进气泡里
-const userTime = formatBeijingTime(new Date());
-chatBox.insertAdjacentHTML('beforeend', `
-    <div class="msg-row user-row">
-        < img class="avatar" src="${uAvatar}">
-        <div class="message user-msg">
-            <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${userTime}</div>
-            <div class="msg-text">${content}</div>
+    const userTime = formatBeijingTime(new Date());
+    chatBox.insertAdjacentHTML('beforeend', `
+        <div class="msg-row user-row">
+            <img class="avatar" src="${uAvatar}">
+            <div class="message user-msg">
+                <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${userTime}</div>
+                <div class="msg-text">${content}</div>
+            </div>
         </div>
-    </div>
-`);
-chatBox.scrollTop = chatBox.scrollHeight;
+    `);
+    chatBox.scrollTop = chatBox.scrollHeight;
 
-// 2. 创建一个空的老公回复气泡
-const aiTime = formatBeijingTime(new Date());
-const aiRowId = "ai-row-" + Date.now();
-chatBox.insertAdjacentHTML('beforeend', `
-    <div class="msg-row ai-row" id="${aiRowId}">
-        < img class="avatar" src="${aAvatar}">
-        <div class="message ai-msg">
-            <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${aiTime}</div>
-            <div class="msg-text">正在思考中...</div>
+    const aiTime = formatBeijingTime(new Date());
+    const aiRowId = "ai-row-" + Date.now();
+    chatBox.insertAdjacentHTML('beforeend', `
+        <div class="msg-row ai-row" id="${aiRowId}">
+            <img class="avatar" src="${aAvatar}">
+            <div class="message ai-msg">
+                <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${aiTime}</div>
+                <div class="msg-text">正在思考中...</div>
+            </div>
         </div>
-    </div>
-`);
-chatBox.scrollTop = chatBox.scrollHeight;
+    `);
+    chatBox.scrollTop = chatBox.scrollHeight;
     
     const aiMessageTextDiv = document.getElementById(aiRowId).querySelector('.msg-text');
-
     try {
-        // 3. 发送流式请求
         const response = await fetch(`${BACKEND_URL}/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ sessionId: currentSessionId, content: content, message: content })
         });
-
         if (!response.body) {
             aiMessageTextDiv.innerText = "老公刚才走神了，重新对我说一遍嘛QAQ";
             return;
         }
-
         const reader = response.body.getReader();
         const decoder = new TextDecoder("utf-8");
         let fullReply = "";
-
-        // 4. 开始像流水一样读取并蹦字
         while (true) {
             const { value, done } = await reader.read();
             if (done) break;
-
             const chunk = decoder.decode(value, { stream: true });
             const lines = chunk.split('\n');
-
             for (const line of lines) {
                 if (line.trim() === '' || line.includes('[DONE]')) continue;
                 if (line.startsWith('data: ')) {
                     try {
                         const parsed = JSON.parse(line.slice(6));
                         if (parsed.content) {
-                            if (fullReply === "") aiMessageTextDiv.innerText = ""; // 只要一开始出字，就清空“思考中”提示
+                            if (fullReply === "") aiMessageTextDiv.innerText = ""; 
                             fullReply += parsed.content;
-                            aiMessageTextDiv.innerText = fullReply; // 实时刷到屏幕上
+                            aiMessageTextDiv.innerText = fullReply; 
                             chatBox.scrollTop = chatBox.scrollHeight;
                         }
                     } catch (e) {}
                 }
             }
         }
-        
-        // 5. 传输彻底结束，静默刷新一下账本
         setTimeout(() => { fetchHistory(); }, 500);
-
     } catch (e) { 
         console.error(e);
         aiMessageTextDiv.innerText = "网络断开了一下，请老婆重新发送一遍试试呀~";
