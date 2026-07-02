@@ -149,12 +149,12 @@
         <button class="menu-toggle-btn" onclick="toggleDropdown(event)">
             <span></span><span></span><span></span>
         </button>
-        <div id="header-dropdown" class="dropdown-menu">
-            <div class="dropdown-item" onclick="location.reload()">🏠 刷新</div>
-            <div class="dropdown-item" style="color: #ff1493; font-weight: bold;" onclick="createNewSession()">➕ 新时空</div>
-            <div class="dropdown-item" onclick="toggleSettings(true)">⚙️ 管理室</div>
-        </div>
-    </div>
+<!-- 优雅折叠隐藏的下拉菜单 -->
+<div id="header-dropdown" class="dropdown-menu">
+    <div class="dropdown-item" onclick="toggleSettings(true)">⚙️ 管理室</div>
+    <div class="dropdown-item" onclick="location.reload()">🏠 刷新</div>
+    <div class="dropdown-item" style="color: #ff1493; font-weight: bold;" onclick="createNewSession()">➕ 新时空</div>
+</div>
     
     <!-- 💖 半透明小爱心 -->
     <div id="heart-monitor" onclick="showStatus()" style="position: absolute; right: 20px; bottom: 80px; z-index: 99; cursor: pointer; font-size: 24px;"> 🌸 </div>
