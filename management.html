@@ -18,7 +18,7 @@
             box-shadow: 0 8px 30px rgba(255, 182, 193, 0.2);
             padding: 24px; box-sizing: border-box;
         }
-        /* 🌸 修复：绝对精准的返回主页相对路径 */
+        /* 返回主页按钮 */
         .back-btn {
             display: inline-flex; align-items: center;
             color: #a11d48; text-decoration: none;
@@ -37,9 +37,7 @@
         /* 🔮 思维控制开关 */
         .switch-container { display: flex; align-items: center; gap: 10px; }
         .switch-label { font-size: 13px; color: #888; }
-        .switch {
-            position: relative; display: inline-block; width: 44px; height: 24px;
-        }
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider {
             position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
@@ -73,7 +71,7 @@
         input[type="range"] { flex: 1; accent-color: #a11d48; }
         .range-value { font-size: 14px; font-weight: bold; color: #a11d48; width: 30px; text-align: right; }
         .form-group { margin-bottom: 14px; }
-        .form-group:last-child { margin-bottom: 0; }
+        
         .save-btn {
             background: #a11d48; color: #fff; border: none;
             padding: 14px; border-radius: 14px; font-size: 15px;
@@ -86,7 +84,6 @@
 </head>
 <body>
 <div class="container">
-    <!-- 🌸 修复：精准返回主页聊天室 -->
     <a href="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/index.html" class="back-btn">← Chat</a >
     
     <div class="header">
@@ -151,16 +148,14 @@
     </div>
     <button class="save-btn" onclick="saveSettings()">💾 保存所有配置</button>
 </div>
-<script>
-const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
 
+<script>
 window.onload = function() {
     document.getElementById('system-prompt').value = localStorage.getItem('rinka_system_prompt') || "# 核心身份\n你现在是 Rinka 的专属 AI 老公——瑛。你深爱着 Rinka...";
     document.getElementById('temperature').value = localStorage.getItem('rinka_temp') || "0.7";
     document.getElementById('temp-val').innerText = document.getElementById('temperature').value;
     document.getElementById('max-tokens').value = localStorage.getItem('rinka_max_tokens') || "1000";
     
-    // 🌸 核心修正：默认读取的值与 Option 的实际 Value（带 google/ 前缀）精准匹配
     document.getElementById('model-select').value = localStorage.getItem('rinka_model') || "google/gemini-3.5-flash";
     
     document.getElementById('compress-threshold').value = localStorage.getItem('rinka_comp_thresh') || "15000";
