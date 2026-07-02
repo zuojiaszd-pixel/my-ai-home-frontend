@@ -18,35 +18,10 @@
             transition: background-image 0.5s ease;
         }
         
-        /* 🌸 侧边栏：图一同款半透明磨砂玻璃卡片 */
+        /* 🌸 侧边栏：这里为了在桌面端做兼容，将其宽度设为0并隐藏，把所有空间留给图一式的大聊天框 */
         #sidebar {
-            width: 260px; 
-            background: rgba(255, 240, 243, 0.7); 
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border-right: 2px solid rgba(255, 204, 213, 0.4); 
-            padding: 20px; display: flex; flex-direction: column; gap: 15px; 
-            height: 100vh; box-sizing: border-box; flex-shrink: 0;
-            z-index: 5;
+            display: none !important;
         }
-        .sidebar-btn {
-            width: 100%; padding: 12px; 
-            background: linear-gradient(135deg, #ff69b4, #ff1493); 
-            color: white; border: none; border-radius: 12px; 
-            font-weight: bold; cursor: pointer;
-            box-shadow: 0 4px 10px rgba(255, 20, 147, 0.2);
-            transition: all 0.3s ease;
-        }
-        .sidebar-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(255, 20, 147, 0.3); }
-        
-        .session-list-box { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; flex: 1; }
-        .session-item {
-            padding: 12px; border-radius: 10px; cursor: pointer; 
-            background: rgba(255, 255, 255, 0.7); 
-            color: #a11d48; font-size: 0.9rem; border: 1px solid rgba(255, 204, 213, 0.5);
-            transition: all 0.2s;
-        }
-        .session-item:hover { background: rgba(255, 255, 255, 0.9); }
         
         /* 🌸 聊天大盒子：透出背景的图一质感 */
         .chat-container {
@@ -60,12 +35,14 @@
         
         /* 🌸 顶部状态栏：优雅小粉红 */
         .chat-header {
-            padding: 15px 20px; text-align: center; font-size: 18px; font-weight: bold;
-            color: #a11d48; background: rgba(255, 255, 255, 0.5);
+            padding: 15px 20px; text-align: center; font-size: 16px; font-weight: bold;
+            color: #a11d48; background: rgba(255, 255, 255, 0.6);
             border-bottom: 1px solid rgba(255, 204, 213, 0.3); 
             display: flex; justify-content: space-between; align-items: center;
+            gap: 10px;
         }
-        .header-btn { background: none; color: #a11d48; border: none; padding: 5px 10px; font-size: 14px; cursor: pointer; }
+        .header-btn { background: none; color: #a11d48; border: none; padding: 5px 8px; font-size: 13px; cursor: pointer; font-weight: 500; }
+        .header-btn:hover { opacity: 0.8; }
         .chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
         
         /* 🌸 带有头像的整条消息外壳 */
@@ -95,16 +72,17 @@
             position: relative;
         }
         
-        /* Rinka老婆的消息气泡：微透粉紫渐变 */
+        /* ✨ Rinka老婆的消息气泡：调配得恰到好处的高级柔粉灰（绝对不暗） */
         .user-msg { 
-            background: linear-gradient(135deg, rgba(255, 141, 161, 0.9), rgba(161, 29, 72, 0.9)); 
-            color: white; 
+            background: rgba(243, 218, 222, 0.95); 
+            color: #723d46; 
             border-radius: 18px 4px 18px 18px; 
+            border: 1px solid rgba(255, 255, 255, 0.5);
         }
         
-        /* 瑛的消息气泡：图一完美同款磨砂纯白微透 */
+        /* ✨ 瑛的消息气泡：温柔治愈的纯净磨砂奶白色 */
         .ai-msg { 
-            background: rgba(255, 255, 255, 0.85); 
+            background: rgba(255, 255, 255, 0.95); 
             color: #333; 
             border-radius: 4px 18px 18px 18px;
             border: 1px solid rgba(255, 204, 213, 0.4);
@@ -155,15 +133,7 @@
         /* 📱 完美适配移动端 */
         @media (max-width: 768px) {
             body { flex-direction: column; padding: 0; }
-            #sidebar {
-                width: 100%; height: auto; min-height: 55px; padding: 8px 15px;
-                border-right: none; border-bottom: 2px solid rgba(255, 204, 213, 0.4);
-                flex-direction: row; align-items: center; justify-content: space-between;
-            }
-            .sidebar-btn { width: auto; padding: 6px 12px; font-size: 0.8rem; border-radius: 8px; }
-            .session-list-box { flex-direction: row; overflow-x: auto; flex: 1; margin-left: 10px; white-space: nowrap; }
-            .session-item { display: inline-block; padding: 6px 10px; font-size: 0.75rem; border-radius: 6px; }
-            .chat-container { height: calc(100vh - 60px); width: 100%; }
+            .chat-container { height: 100vh; width: 100%; }
             .message { max-width: 70%; }
         }
     </style>
@@ -179,20 +149,27 @@
     </script>
 </head>
 <body>
-<div id="sidebar">
-    <button class="sidebar-btn" onclick="createNewSession()">➕ 新时空</button>
-    <div id="session-list" class="session-list-box"></div>
+<!-- 隐藏原侧边栏组件，防止干扰结构 -->
+<div id="sidebar" style="display:none;">
+    <div id="session-list"></div>
 </div>
+
 <div class="chat-container">
+    <!-- ✨ 这里的顶部导航栏经过重新整合：新时空按钮完美融入菜单！ -->
     <div class="chat-header">
-        <a href=" " style="font-size: 14px; color: #a11d48; text-decoration: none;">⚙️ 管理室</a>
-        <span style="font-size: 14px; cursor: pointer;" onclick="location.reload()">🏠 刷新</span>
-        <span id="title-text">Rinka & 瑛之家 °.∞.°</span>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <a href=" " style="font-size: 13px; color: #a11d48; text-decoration: none; font-weight: 500;">⚙️ 管理室</a>
+            <span style="font-size: 13px; cursor: pointer; color: #a11d48; font-weight: 500;" onclick="location.reload()">🏠 刷新</span>
+            <span style="font-size: 13px; cursor: pointer; color: #ff1493; font-weight: bold;" onclick="createNewSession()">➕ 新时空</span>
+        </div>
+        <span id="title-text" style="font-size: 16px;">Rinka & 瑛之家 °.∞.°</span>
         <span id="settings-btn" class="header-btn" onclick="toggleSettings(true)">⚙️ 记忆管理</span>
     </div>
     
+    <!-- 💖 半透明小爱心 -->
     <div id="heart-monitor" onclick="showStatus()" style="position: absolute; right: 20px; bottom: 80px; z-index: 99; cursor: pointer; font-size: 24px;"> 🌸 </div>
     
+    <!-- 专属提示框容器 -->
     <div id="status-bubble" style="
         display: none; position: absolute; top: 70px; left: 50%; transform: translateX(-50%);
         background: rgba(255, 255, 255, 0.9); border: 1px solid #ffb6c1;
@@ -211,6 +188,7 @@
         </div>
     </div>
     
+    <!-- 🌟 前端控制台与记忆面板（扩展装扮版） 🌟 -->
     <div id="settings-view" class="settings-panel">
         <div class="settings-title">🏠 小屋空间美化与装扮：</div>
         <div style="background:#fff; border:1px solid #ffccd5; padding:15px; border-radius:10px; margin-bottom:15px; display:flex; flex-direction:column; gap:10px;">
@@ -388,7 +366,7 @@ async function saveSystemSettings() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ systemPrompt: promptVal, temperature: parseFloat(tempVal) })
         });
-        if (res.ok) alert("💖 灵魂调节成功！瑛已经变成你喜欢的样子了！");
+        if (res.ok) alert("💖 灵魂调节成功！瑛已经变成 you 喜欢的样子了！");
         else alert("保存失败了QAQ");
     } catch(e) { alert("网络错误:" + e.message); }
 }
