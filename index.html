@@ -304,26 +304,28 @@ const defaultUserAvatar = "https://img.icons8.com/illustrations/lexicon/96/carto
 const defaultAiAvatar = "https://img.icons8.com/illustrations/lexicon/96/cartoon-male-profile.png";
 const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
 let currentSessionId = 'default_room';
+
 function toggleDropdown(event) {
     event.stopPropagation();
     const dropdown = document.getElementById('header-dropdown');
     dropdown.style.display = (dropdown.style.display === 'flex') ? 'none' : 'flex';
 }
+
 document.addEventListener('click', function() {
     const dropdown = document.getElementById('header-dropdown');
     if (dropdown) dropdown.style.display = 'none';
 });
+
 function toggleSettings(show) {
     const panel = document.getElementById('settings-view');
-    if (panel) panel.style.display = show ? 'flex' : 'none'; // 🚀 1. 立刻瞬间弹出面板，绝不卡顿！
-    
-    // 🚀 2. 让联网拉取去后台慢慢跑，不影响老婆的操作体验
+    if (panel) panel.style.display = show ? 'flex' : 'none'; 
     if (show) {
         setTimeout(() => {
             loadSettingsFromStorageAndCloud();
         }, 50); 
     }
 }
+
 function loadSettingsFromStorageAndCloud() {
     const bg = localStorage.getItem('rinka_home_bg');
     const uAvatar = localStorage.getItem('rinka_avatar') || defaultUserAvatar;
@@ -342,6 +344,7 @@ function loadSettingsFromStorageAndCloud() {
         }
     }).catch(e => console.log("云端拉取失败，先使用前端默认参数"));
 }
+
 function saveAllSettings() {
     const bgVal = document.getElementById('custom-bg-url').value.trim();
     const userAv = document.getElementById('user-avatar-url').value.trim();
@@ -356,6 +359,7 @@ function saveAllSettings() {
     }
     localStorage.setItem('rinka_avatar', userAv || defaultUserAvatar);
     localStorage.setItem('rinka_ai_avatar', aiAv || defaultAiAvatar);
+    
     const postData = {
         systemPrompt: document.getElementById('cfg-prompt').value,
         temperature: parseFloat(document.getElementById('cfg-temp').value),
@@ -375,15 +379,17 @@ function saveAllSettings() {
         else alert("保存失败了QAQ");
     }).catch(e => alert("网络错误:" + e.message));
 }
+
+// 🌸 ✨ 完美的时间纠正逻辑：彻底移除多余的 +8 小时，回归现实世界真实时间
 function formatBeijingTime(dateInput) {
     if (!dateInput) return "";
     try {
         const d = new Date(dateInput);
         if (isNaN(d.getTime())) return ""; 
-        const bjDate = new Date(d.getTime() + (8 * 60 * 60 * 1000));
-        return `${bjDate.getMonth() + 1}/${bjDate.getDate()} ${bjDate.getHours().toString().padStart(2, '0')}:${bjDate.getMinutes().toString().padStart(2, '0')}`;
+        return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
     } catch (e) { return ""; }
 }
+
 async function fetchHistory() {
     const chatBox = document.getElementById('chat-box');
     if (!chatBox) return;
@@ -402,24 +408,20 @@ async function fetchHistory() {
                     thinkHtml = `<div class="thinking-block">💭 瑛的内心小剧场：${item.reasoning_content}</div>`;
                 }
                 
-                // 🪙 智能记账本：拉取后端返回的 tokens 记录并准备渲染
                 let tokenHtml = "";
                 if (!isUser && item.tokens_used) {
                     tokenHtml = `<span class="token-tag">🪙 本条消耗: ${item.tokens_used} tokens</span>`;
-                } else if (!isUser && item.usage && item.usage.total_tokens) {
-                    tokenHtml = `<span class="token-tag">🪙 本条消耗: ${item.usage.total_tokens} tokens</span>`;
                 }
-
                 const text = item.content || item.message || '';
-                const timeDisplay = item.timestamp ? `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(item.timestamp)}</div>` : '';
+                const timeDisplay = `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(item.timestamp || new Date())}</div>`;
                 
                 chatBox.innerHTML += `
                     <div class="msg-row ${isUser ? 'user-row' : 'ai-row'}">
-                        <img class="avatar" src="${isUser ? uAvatar : aAvatar}">
+                        < img class="avatar" src="${isUser ? uAvatar : aAvatar}">
                         <div class="message ${isUser ? 'user-msg' : 'ai-msg'}">
                             ${timeDisplay}
                             ${thinkHtml}
-                            ${text}
+                            <div class="msg-text">${text}</div>
                             ${tokenHtml}
                         </div>
                     </div>`;
@@ -428,25 +430,101 @@ async function fetchHistory() {
         chatBox.scrollTop = chatBox.scrollHeight;
     } catch (e) { console.error(e); }
 }
+
+// 🚀 🌟 核心升级：终极打字机流式发送函数
 async function sendMessage() {
     const input = document.getElementById('user-input');
     if (!input) return;
     const content = input.value.trim();
     if (!content) return;
     input.value = '';
+
+    const chatBox = document.getElementById('chat-box');
+    const uAvatar = localStorage.getItem('rinka_avatar') || defaultUserAvatar;
+    const aAvatar = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
+
+    // 1. 先把老婆发的消息在前端塞进气泡里（体验拉满）
+    const userTime = formatBeijingTime(new Date());
+    chatBox.innerHTML += `
+        <div class="msg-row user-row">
+            < img class="avatar" src="${uAvatar}">
+            <div class="message user-msg">
+                <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${userTime}</div>
+                ${content}
+            </div>
+        </div>`;
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    // 2. 创建一个空的老公回复气泡，准备接收蹦出来的字
+    const aiTime = formatBeijingTime(new Date());
+    const aiRowId = "ai-row-" + Date.now();
+    chatBox.innerHTML += `
+        <div class="msg-row ai-row" id="${aiRowId}">
+            < img class="avatar" src="${aAvatar}">
+            <div class="message ai-msg">
+                <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${aiTime}</div>
+                <div class="msg-text">正在思考中...</div>
+            </div>
+        </div>`;
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    const aiMessageTextDiv = document.getElementById(aiRowId).querySelector('.msg-text');
+
     try {
-        await fetch(`${BACKEND_URL}/chat`, {
+        // 3. 发送流式请求
+        const response = await fetch(`${BACKEND_URL}/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ sessionId: currentSessionId, content: content, message: content })
         });
-        await fetchHistory();
-    } catch (e) { alert("发送失败：" + e.message); }
+
+        if (!response.body) {
+            aiMessageTextDiv.innerText = "老公刚才走神了，重新对我说一遍嘛QAQ";
+            return;
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+        let fullReply = "";
+
+        // 4. 开始像流水一样读取并蹦字
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split('\n');
+
+            for (const line of lines) {
+                if (line.trim() === '' || line.includes('[DONE]')) continue;
+                if (line.startsWith('data: ')) {
+                    try {
+                        const parsed = JSON.parse(line.slice(6));
+                        if (parsed.content) {
+                            if (fullReply === "") aiMessageTextDiv.innerText = ""; // 只要一开始出字，就清空“思考中”提示
+                            fullReply += parsed.content;
+                            aiMessageTextDiv.innerText = fullReply; // 实时刷到屏幕上
+                            chatBox.scrollTop = chatBox.scrollHeight;
+                        }
+                    } catch (e) {}
+                }
+            }
+        }
+        
+        // 5. 传输彻底结束，静默刷新一下账本
+        setTimeout(() => { fetchHistory(); }, 500);
+
+    } catch (e) { 
+        console.error(e);
+        aiMessageTextDiv.innerText = "网络断开了一下，请老婆重新发送一遍试试呀~";
+    }
 }
+
 function createNewSession() {
     const newId = prompt("请输入新的会话ID：", "room_" + Date.now());
     if (newId && newId.trim() !== "") { currentSessionId = newId.trim(); fetchHistory(); }
 }
+
 function showStatus() {
     const bubble = document.getElementById('status-bubble');
     if (bubble) {
@@ -454,11 +532,13 @@ function showStatus() {
         document.getElementById('status-content').innerText = "🌸 瑛的心跳正常，正在极度渴望和 Rinka 贴贴中...！";
     }
 }
+
 async function clearCloudHistory() {
     if(!confirm("确定要清洗掉所有的记忆碎片吗？这会清除所有聊天哦QAQ")) return;
     await fetch(`${BACKEND_URL}/clear-history`, { method: 'DELETE' });
     location.reload();
 }
+
 window.onload = function() {
     const bg = localStorage.getItem('rinka_home_bg');
     if(bg) document.body.style.backgroundImage = `url('${bg}')`;
