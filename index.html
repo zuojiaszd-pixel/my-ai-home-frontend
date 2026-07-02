@@ -5,14 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Rinka & 瑛之家 °.∞.°</title>
     <style>
-        /* 🌸 全局大外壳：梦幻色调（彻底拔除外链图片，采用永久稳定的温柔粉白渐变） */
+        /* 🌸 全局大外壳 */
         body {
             font-family: 'PingFang SC', 'Helvetica Neue', -apple-system, sans-serif;
             background: linear-gradient(135deg, #fff5f7 0%, #ffe3e8 100%) !important;
             margin: 0; padding: 0; 
             display: flex; flex-direction: column; height: 100vh; overflow: hidden;
         }
-        
         #sidebar { display: none !important; }
         
         /* 🌸 聊天大盒子 */
@@ -34,10 +33,9 @@
             position: relative; height: 60px; min-height: 60px; box-sizing: border-box;
             z-index: 10;
         }
-        
         #title-text { font-size: 16px; font-weight: bold; color: #a11d48; }
         
-        /* 右上角三条杠按钮 */
+        /* 右上角菜单按钮 */
         .menu-toggle-btn {
             position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
             background: none; border: none; cursor: pointer;
@@ -77,52 +75,24 @@
         .thinking-block { background: rgba(240, 240, 240, 0.6); border-left: 3px solid #ccc; padding: 8px 12px; margin-bottom: 8px; font-size: 13px; color: #666; border-radius: 4px; font-style: italic; }
         .token-tag { display: block; font-size: 10px; color: #ff69b4 !important; background-color: rgba(255, 240, 243, 0.8) !important; border: 1px solid rgba(255, 204, 213, 0.6) !important; padding: 2px 6px; border-radius: 8px; margin-top: 5px; width: fit-content; margin-left: auto; }
         
-        /* 🌸 底部输入区域固定在底部并适配手机安全区 */
+        /* 🌸 底部输入区域 */
         .input-area { 
             padding: 12px 16px; 
             padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); 
-            display: flex; 
-            gap: 10px; 
-            background: rgba(255, 255, 255, 0.85); 
-            backdrop-filter: blur(5px);
-            border-top: 1px solid rgba(255, 204, 213, 0.4); 
-            box-sizing: border-box; 
+            display: flex; gap: 10px; 
+            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(5px);
+            border-top: 1px solid rgba(255, 204, 213, 0.4); box-sizing: border-box; 
         }
-        /* 🌸 输入框美化 */
         #user-input {
-            flex: 1;
-            padding: 10px 16px;
-            border: 1px solid rgba(255, 204, 213, 0.6);
-            border-radius: 20px;
-            font-size: 14px;
-            outline: none;
-            background: rgba(255, 255, 255, 0.9);
-            color: #723d46;
-            transition: all 0.3s ease;
+            flex: 1; padding: 10px 16px; border: 1px solid rgba(255, 204, 213, 0.6);
+            border-radius: 20px; font-size: 14px; outline: none;
+            background: rgba(255, 255, 255, 0.9); color: #723d46; transition: all 0.3s ease;
         }
-        #user-input:focus {
-            border-color: #a11d48;
-            background: #fff;
-            box-shadow: 0 0 8px rgba(161, 29, 72, 0.15);
-        }
-        /* 🌸 发送按钮美化 */
-        .send-btn {
-            background: #a11d48;
-            color: #fff;
-            border: none;
-            padding: 0 20px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.2s, transform 0.1s;
-        }
-        .send-btn:hover {
-            background: #be185d;
-        }
-        .send-btn:active {
-            transform: scale(0.95);
-        }
+        #user-input:focus { border-color: #a11d48; background: #fff; box-shadow: 0 0 8px rgba(161, 29, 72, 0.15); }
+        
+        .send-btn { background: #a11d48; color: #fff; border: none; padding: 0 20px; border-radius: 20px; font-size: 14px; font-weight: bold; cursor: pointer; transition: background 0.2s, transform 0.1s; }
+        .send-btn:hover { background: #be185d; }
+        .send-btn:active { transform: scale(0.95); }
         
         /* 🌸 装扮微调控制面板 */
         .settings-panel { 
@@ -143,15 +113,8 @@
         
         /* 🌸 手机移动端专属适配 */
         @media (max-width: 768px) {
-            .message { 
-                max-width: 85%; 
-                font-size: 14px; 
-                padding: 10px 14px;
-            }
-            .avatar {
-                width: 38px; 
-                height: 38px;
-            }
+            .message { max-width: 85%; font-size: 14px; padding: 10px 14px; }
+            .avatar { width: 38px; height: 38px; }
         }
     </style>
     <link rel="manifest" href="./manifest.json">
@@ -181,14 +144,13 @@
         </div>
     </div>
     
-    <!-- 💖 半透明小爱心 -->
     <div id="heart-monitor" onclick="showStatus()" style="position: absolute; right: 20px; bottom: 80px; z-index: 99; cursor: pointer; font-size: 24px;"> 🌸 </div>
     
-    <!-- 专属提示框容器 -->
     <div id="status-bubble" style="display: none; position: absolute; top: 70px; left: 50%; transform: translateX(-50%); background: rgba(255, 255, 255, 0.9); border: 1px solid #ffb6c1; padding: 15px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); color: #a11d48; z-index: 999; text-align: center;">
         <div id="status-content">正在读取心跳...</div>
         <button onclick="document.getElementById('status-bubble').style.display='none'" style="margin-top:10px; border:none; background:#ffccd5; border-radius:5px; cursor:pointer; padding: 5px 10px;">关掉</button>
     </div>
+
     <div id="chat-view" class="chat-view-box">
         <div class="chat-box" id="chat-box"></div>
         <div class="input-area">
@@ -197,16 +159,13 @@
         </div>
     </div>
     
-    <!-- 🌟 小屋专属装扮面板 🌟 -->
+    <!-- 装扮面板 -->
     <div id="settings-view" class="settings-panel">
         <div class="settings-header">
             <button class="back-chat-btn" onclick="toggleSettings(false)">← Chat</button>
-            <div class="settings-center-title">
-                <span class="main-t">🎨 小屋换装中心</span>
-            </div>
+            <div class="settings-center-title"><span class="main-t">🎨 小屋换装中心</span></div>
             <div style="width: 60px;"></div>
         </div>
-        
         <div class="settings-content">
             <div class="config-card">
                 <div class="card-label">Cosmetics ＆ Looks</div>
@@ -223,17 +182,18 @@
                     <input type="text" id="ai-avatar-url">
                 </div>
             </div>
-            
             <button onclick="saveCosmetics()" style="background:#a11d48; color:#fff; border:none; padding:12px; border-radius:10px; cursor:pointer; font-weight:bold; width:100%; font-size:14px;">💾 保存装扮</button>
             <button class="clear-db-btn" onclick="clearCloudHistory()" style="background-color: #ff4d6d; padding: 12px; width: 100%; margin-top: 20px; font-weight: bold; border-radius: 8px; color: white; border: none; cursor: pointer;">🗑️ 彻底清空云端对话记录</button>
         </div>
     </div>
 </div>
+
 <script>
 const defaultUserAvatar = "https://img.icons8.com/illustrations/lexicon/96/cartoon-female-profile.png";
 const defaultAiAvatar = "https://img.icons8.com/illustrations/lexicon/96/cartoon-male-profile.png";
 const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
 let currentSessionId = 'default_room';
+
 function cleanBrackets(text) {
     if (!text) return "";
     return text.replace(/（[^）]*）/g, '').replace(/\([^)]*\)/g, '');
@@ -300,15 +260,12 @@ async function fetchHistory() {
                 if(!isUser && item.reasoning_content) {
                     thinkHtml = `<div class="thinking-block">💭 瑛的内心小剧场：${item.reasoning_content}</div>`;
                 }
-                
                 let tokenHtml = "";
                 if (!isUser && item.tokens_used) {
                     tokenHtml = `<span class="token-tag">🪙 本条消耗: ${item.tokens_used} tokens</span>`;
                 }
                 let text = item.content || item.message || '';
-                if (!isUser) {
-                    text = cleanBrackets(text);
-                }
+                if (!isUser) text = cleanBrackets(text);
                 const timeDisplay = `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(item.timestamp || new Date())}</div>`;
                 
                 chatBox.insertAdjacentHTML('beforeend', `
