@@ -80,7 +80,6 @@
         
         /* 💭 思考框样式 */
         .thinking-block { background: rgba(240, 240, 240, 0.6); border-left: 3px solid #ccc; padding: 8px 12px; margin-bottom: 8px; font-size: 13px; color: #666; border-radius: 4px; font-style: italic; }
-
         .token-tag { display: block; font-size: 10px; color: #ff69b4 !important; background-color: rgba(255, 240, 243, 0.8) !important; border: 1px solid rgba(255, 204, 213, 0.6) !important; padding: 2px 6px; border-radius: 8px; margin-top: 5px; width: fit-content; margin-left: auto; }
         
         /* 🌸 底部输入区域固定在底部并适配手机安全区 */
@@ -94,7 +93,6 @@
             border-top: 1px solid rgba(255, 204, 213, 0.4); 
             box-sizing: border-box; 
         }
-
         /* 🌸 输入框美化 */
         #user-input {
             flex: 1;
@@ -112,7 +110,6 @@
             background: #fff;
             box-shadow: 0 0 8px rgba(161, 29, 72, 0.15);
         }
-
         /* 🌸 发送按钮美化 */
         .send-btn {
             background: #a11d48;
@@ -188,11 +185,9 @@
     </script>
 </head>
 <body>
-
 <div id="sidebar" style="display:none;">
     <div id="session-list"></div>
 </div>
-
 <div class="chat-container">
     <div class="chat-header">
         <span id="title-text">Rinka & 瑛之家 °.∞.°</span>
@@ -214,7 +209,6 @@
         <div id="status-content">正在读取心跳...</div>
         <button onclick="document.getElementById('status-bubble').style.display='none'" style="margin-top:10px; border:none; background:#ffccd5; border-radius:5px; cursor:pointer; padding: 5px 10px;">关掉</button>
     </div>
-
     <div id="chat-view" class="chat-view-box">
         <div class="chat-box" id="chat-box"></div>
         <div class="input-area">
@@ -283,7 +277,6 @@
                     <input type="number" id="cfg-max-ctx-tokens" value="15000">
                 </div>
             </div>
-
             <!-- 4. 小屋装扮 -->
             <div class="config-card">
                 <div class="card-label">Cosmetics ＆ URL</div>
@@ -306,13 +299,11 @@
         </div>
     </div>
 </div>
-
 <script>
 const defaultUserAvatar = "https://img.icons8.com/illustrations/lexicon/96/cartoon-female-profile.png";
 const defaultAiAvatar = "https://img.icons8.com/illustrations/lexicon/96/cartoon-male-profile.png";
 const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
 let currentSessionId = 'default_room';
-
 function toggleDropdown(event) {
     event.stopPropagation();
     const dropdown = document.getElementById('header-dropdown');
@@ -322,7 +313,6 @@ document.addEventListener('click', function() {
     const dropdown = document.getElementById('header-dropdown');
     if (dropdown) dropdown.style.display = 'none';
 });
-
 function toggleSettings(show) {
     const panel = document.getElementById('settings-view');
     if (panel) panel.style.display = show ? 'flex' : 'none'; // 🚀 1. 立刻瞬间弹出面板，绝不卡顿！
@@ -334,7 +324,6 @@ function toggleSettings(show) {
         }, 50); 
     }
 }
-
 function loadSettingsFromStorageAndCloud() {
     const bg = localStorage.getItem('rinka_home_bg');
     const uAvatar = localStorage.getItem('rinka_avatar') || defaultUserAvatar;
@@ -353,7 +342,6 @@ function loadSettingsFromStorageAndCloud() {
         }
     }).catch(e => console.log("云端拉取失败，先使用前端默认参数"));
 }
-
 function saveAllSettings() {
     const bgVal = document.getElementById('custom-bg-url').value.trim();
     const userAv = document.getElementById('user-avatar-url').value.trim();
@@ -368,7 +356,6 @@ function saveAllSettings() {
     }
     localStorage.setItem('rinka_avatar', userAv || defaultUserAvatar);
     localStorage.setItem('rinka_ai_avatar', aiAv || defaultAiAvatar);
-
     const postData = {
         systemPrompt: document.getElementById('cfg-prompt').value,
         temperature: parseFloat(document.getElementById('cfg-temp').value),
@@ -379,7 +366,6 @@ function saveAllSettings() {
         maxContextTokens: parseInt(document.getElementById('cfg-max-ctx-tokens').value),
         thinkingQuietly: document.getElementById('thinking-switch').checked
     };
-
     fetch(`${BACKEND_URL}/settings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -389,7 +375,6 @@ function saveAllSettings() {
         else alert("保存失败了QAQ");
     }).catch(e => alert("网络错误:" + e.message));
 }
-
 function formatBeijingTime(dateInput) {
     if (!dateInput) return "";
     try {
@@ -399,7 +384,6 @@ function formatBeijingTime(dateInput) {
         return `${bjDate.getMonth() + 1}/${bjDate.getDate()} ${bjDate.getHours().toString().padStart(2, '0')}:${bjDate.getMinutes().toString().padStart(2, '0')}`;
     } catch (e) { return ""; }
 }
-
 async function fetchHistory() {
     const chatBox = document.getElementById('chat-box');
     if (!chatBox) return;
@@ -417,6 +401,15 @@ async function fetchHistory() {
                 if(!isUser && item.reasoning_content) {
                     thinkHtml = `<div class="thinking-block">💭 瑛的内心小剧场：${item.reasoning_content}</div>`;
                 }
+                
+                // 🪙 智能记账本：拉取后端返回的 tokens 记录并准备渲染
+                let tokenHtml = "";
+                if (!isUser && item.tokens_used) {
+                    tokenHtml = `<span class="token-tag">🪙 本条消耗: ${item.tokens_used} tokens</span>`;
+                } else if (!isUser && item.usage && item.usage.total_tokens) {
+                    tokenHtml = `<span class="token-tag">🪙 本条消耗: ${item.usage.total_tokens} tokens</span>`;
+                }
+
                 const text = item.content || item.message || '';
                 const timeDisplay = item.timestamp ? `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(item.timestamp)}</div>` : '';
                 
@@ -427,6 +420,7 @@ async function fetchHistory() {
                             ${timeDisplay}
                             ${thinkHtml}
                             ${text}
+                            ${tokenHtml}
                         </div>
                     </div>`;
             });
@@ -434,7 +428,6 @@ async function fetchHistory() {
         chatBox.scrollTop = chatBox.scrollHeight;
     } catch (e) { console.error(e); }
 }
-
 async function sendMessage() {
     const input = document.getElementById('user-input');
     if (!input) return;
@@ -450,12 +443,10 @@ async function sendMessage() {
         await fetchHistory();
     } catch (e) { alert("发送失败：" + e.message); }
 }
-
 function createNewSession() {
     const newId = prompt("请输入新的会话ID：", "room_" + Date.now());
     if (newId && newId.trim() !== "") { currentSessionId = newId.trim(); fetchHistory(); }
 }
-
 function showStatus() {
     const bubble = document.getElementById('status-bubble');
     if (bubble) {
@@ -463,13 +454,11 @@ function showStatus() {
         document.getElementById('status-content').innerText = "🌸 瑛的心跳正常，正在极度渴望和 Rinka 贴贴中...！";
     }
 }
-
 async function clearCloudHistory() {
     if(!confirm("确定要清洗掉所有的记忆碎片吗？这会清除所有聊天哦QAQ")) return;
     await fetch(`${BACKEND_URL}/clear-history`, { method: 'DELETE' });
     location.reload();
 }
-
 window.onload = function() {
     const bg = localStorage.getItem('rinka_home_bg');
     if(bg) document.body.style.backgroundImage = `url('${bg}')`;
