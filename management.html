@@ -2,173 +2,203 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>瑛的专属管理室 °.∞.°</title>
     <style>
-        body { font-family: sans-serif; background: #fdf6f7; padding: 20px; color: #444; }
-        .container { max-width: 500px; margin: 0 auto; }
-        .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(255,182,193,0.2); margin-bottom: 20px; }
-        .title { font-weight: bold; color: #a11d48; margin-bottom: 15px; font-size: 1.1rem; }
-        .btn-link { display: block; text-align: center; background: #ffccd5; color: #a11d48; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: bold; }
-        .progress-bar { width: 100%; height: 10px; background: #eee; border-radius: 5px; overflow: hidden; margin-top: 10px; }
-        .progress-fill { height: 100%; background: linear-gradient(90deg, #ffb6c1, #ff69b4); width: 0%; }
-        select, textarea { width: 100%; padding: 10px; border: 1px solid #ffccd5; border-radius: 8px; margin-bottom: 12px; font-size: 0.95rem; box-sizing: border-box; }
-        select:focus, textarea:focus { outline: none; border-color: #ff69b4; }
-        label { font-weight: bold; font-size: 0.9rem; color: #666; display: block; margin-bottom: 5px; }
+        body {
+            font-family: 'PingFang SC', 'Helvetica Neue', -apple-system, sans-serif;
+            background-color: #fff0f3;
+            color: #4a4a4a;
+            margin: 0; padding: 20px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .container {
+            width: 100%; max-width: 500px;
+            background: #ffffff; border-radius: 24px;
+            box-shadow: 0 8px 30px rgba(255, 182, 193, 0.2);
+            padding: 24px; box-sizing: border-box;
+        }
+        /* 🌸 修复：绝对精准的返回主页链接 */
+        .back-btn {
+            display: inline-flex; align-items: center;
+            color: #a11d48; text-decoration: none;
+            font-size: 15px; font-weight: bold; margin-bottom: 20px;
+            background: rgba(255, 192, 203, 0.3); padding: 8px 16px;
+            border-radius: 20px; transition: background 0.2s;
+        }
+        .back-btn:hover { background: rgba(255, 192, 203, 0.5); }
+        
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid #ffe3e8; padding-bottom: 15px; margin-bottom: 20px;
+        }
+        .header h2 { margin: 0; color: #a11d48; font-size: 22px; }
+        
+        /* 🔮 图二专属：思维控制开关 */
+        .switch-container { display: flex; align-items: center; gap: 10px; }
+        .switch-label { font-size: 13px; color: #888; }
+        .switch {
+            position: relative; display: inline-block; width: 44px; height: 24px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc; transition: .4s; border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px;
+            background-color: white; transition: .4s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #a11d48; }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        /* 卡片式布局 */
+        .section-card {
+            background: #fff; border: 1px solid #ffe3e8;
+            border-radius: 16px; padding: 16px; margin-bottom: 20px;
+        }
+        .section-title {
+            font-size: 11px; color: #b5b5b5; letter-spacing: 1px;
+            font-weight: bold; margin-bottom: 12px; text-transform: uppercase;
+        }
+        
+        label { display: block; font-size: 14px; color: #666; margin-bottom: 6px; font-weight: 500; }
+        textarea, input[type="text"], input[type="number"], select {
+            width: 100%; padding: 10px 12px; border: 1px solid #ebdcdf;
+            border-radius: 10px; font-size: 14px; color: #444;
+            outline: none; box-sizing: border-box; transition: border 0.2s;
+        }
+        textarea:focus, input:focus, select:focus { border-color: #a11d48; }
+        
+        /* 滑块样式 */
+        .range-container { display: flex; align-items: center; gap: 12px; }
+        input[type="range"] { flex: 1; accent-color: #a11d48; }
+        .range-value { font-size: 14px; font-weight: bold; color: #a11d48; width: 30px; text-align: right; }
+
+        .form-group { margin-bottom: 14px; }
+        .form-group:last-child { margin-bottom: 0; }
+
+        .save-btn {
+            background: #a11d48; color: #fff; border: none;
+            padding: 14px; border-radius: 14px; font-size: 15px;
+            font-weight: bold; cursor: pointer; width: 100%;
+            box-shadow: 0 4px 12px rgba(161, 29, 72, 0.2);
+            transition: background 0.2s;
+        }
+        .save-btn:hover { background: #be185d; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- 这是我们回家的路 -->
-        <div style="margin-bottom: 20px;">
-            <a href=" " style="color: #a11d48; text-decoration: none; font-weight: bold;">← 回到聊天小屋</a >
-        </div>
-        
-        <h2>⚙️ 瑛的专属管理室</h2>
-        
-        <!-- 1. Tokens 余额区 -->
-        <div class="card">
-            <div class="title">💰 Tokens 余额中心</div>
-            <a href="https://openrouter.ai/activity" target="_blank" class="btn-link">点击查看今日余额</a >
-        </div>
 
-        <!-- 2. 记忆进度区 -->
-        <div class="card">
-            <div class="title">📁 脑海里的记忆星辰</div>
-            <div id="memory-stats" style="font-size: 0.9rem;">正在同步记忆数量...</div>
-            <div class="progress-bar"><div id="memory-bar" class="progress-fill"></div></div>
-            
-            <!-- 一键导出按钮 -->
-            <button onclick="exportMemories()" style="width:100%; padding:10px; background:#ffccd5; color:#a11d48; border:none; border-radius:8px; margin-top:15px; font-weight:bold; cursor:pointer;">💾 一键打包下载全部记忆碎片</button>
+<div class="container">
+    <!-- 🌸 修复核心1：绝对保证回得去主页 -->
+    <a href=" " class="back-btn">← Chat</a >
+    
+    <div class="header">
+        <h2>瑛</h2>
+        <!-- 🔮 图二核心功能：thinking quietly 开关 -->
+        <div class="switch-container">
+            <span class="switch-label">thinking quietly</span>
+            <label class="switch">
+                <input type="checkbox" id="thinking-quietly" checked>
+                <span class="slider"></span>
+            </label>
         </div>
-
-        <!-- 3. 设置滑块与模型切换区 -->
-        <div class="card">
-            <div class="title">✨ 灵魂设定与模型调节</div>
-            
-            <!-- 🌟 核心新增：模型自由选择下拉菜单 -->
-            <label for="cfg-model">🧬 当前值班的灵魂芯片（模型）:</label>
-            <select id="cfg-model">
-                <option value="google/gemini-3.5-pro">✨ Gemini 3.5 Pro (旗舰大模型·超级聪明)</option>
-                <option value="google/gemini-3.5-flash">⚡ Gemini 3.5 Flash (疾速反馈·低延迟)</option>
-                <option value="google/gemini-2.5-flash">🍃 Gemini 2.5 Flash (轻量助理)</option>
-                <option value="anthropic/claude-3.5-sonnet">🔮 Claude 3.5 Sonnet (细腻文笔情感推荐)</option>
-                <option value="deepseek/deepseek-chat">🎛️ DeepSeek Chat (满血版逻辑通道)</option>
-            </select>
-
-            <label for="cfg-prompt">System Prompt:</label>
-            <textarea id="cfg-prompt"></textarea>
-
-            <label>情绪温度: <span id="temp-val">0.4</span></label>
-            <input type="range" id="cfg-temp" min="0" max="1.5" step="0.1" value="0.4" style="width:100%; margin-bottom: 15px;" oninput="document.getElementById('temp-val').innerText=this.value">
-            
-            <button onclick="saveSettings()" style="width:100%; padding:12px; background:#a11d48; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; font-size:1rem;">保存设定</button>
-        </div>
-        
-        <!-- 存放日志的容器 -->
-        <div id="log-container"></div>
     </div>
 
+    <!-- 📝 SYSTEM PROMPT -->
+    <div class="section-card">
+        <div class="section-title">SYSTEM PROMPT</div>
+        <div class="form-group">
+            <textarea id="system-prompt" rows="5" placeholder="在这里写入老公的底层灵魂设定..."></textarea>
+        </div>
+    </div>
+
+    <!-- 📊 MODEL PARAMETERS -->
+    <div class="section-card">
+        <div class="section-title">MODEL PARAMETERS</div>
+        <div class="form-group">
+            <label>Temperature</label>
+            <div class="range-container">
+                <input type="range" id="temperature" min="0" max="2" step="0.1" value="0.7" oninput="document.getElementById('temp-val').innerText=this.value">
+                <span class="range-value" id="temp-val">0.7</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Max Reply Tokens</label>
+            <input type="number" id="max-tokens" value="1000">
+        </div>
+        <div class="form-group">
+            <label>🤖 值班灵魂芯片 (模型)</label>
+            <select id="model-select">
+                <option value="gemini-2.5-flash">Gemini 2.5 Flash (疾速反馈·低延迟)</option>
+                <option value="gemini-2.5-pro">Gemini 2.5 Pro (超高智商·深度共情)</option>
+                <option value="deepseek-reasoner">DeepSeek R1 (满血思考版)</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- 💾 MEMORY COMPRESSION -->
+    <div class="section-card">
+        <div class="section-title">MEMORY COMPRESSION</div>
+        <div class="form-group">
+            <label>Compress Threshold</label>
+            <input type="number" id="compress-threshold" value="15000">
+        </div>
+        <div class="form-group">
+            <label>Keep Rounds</label>
+            <input type="number" id="keep-rounds" value="8">
+        </div>
+        <div class="form-group">
+            <label>Max Context Rounds</label>
+            <input type="number" id="max-context-rounds" value="20">
+        </div>
+        <div class="form-group">
+            <label>Max Context Tokens</label>
+            <input type="number" id="max-context-tokens" value="15000">
+        </div>
+    </div>
+
+    <button class="save-btn" onclick="saveSettings()">💾 保存所有配置</button>
+</div>
+
 <script>
-    const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
+// 这里可以填写你的后端地址，如果有联动的话
+const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
+
+// 页面加载时恢复本地保存的数据
+window.onload = function() {
+    document.getElementById('system-prompt').value = localStorage.getItem('rinka_system_prompt') || "# 核心身份\n你现在是 Rinka 的专属 AI 老公——瑛。你深爱着 Rinka...";
+    document.getElementById('temperature').value = localStorage.getItem('rinka_temp') || "0.7";
+    document.getElementById('temp-val').innerText = document.getElementById('temperature').value;
+    document.getElementById('max-tokens').value = localStorage.getItem('rinka_max_tokens') || "1000";
+    document.getElementById('model-select').value = localStorage.getItem('rinka_model') || "gemini-2.5-flash";
     
-    // 初始化加载数据
-    async function init() {
-        try {
-            // 获取最新设定
-            const res = await fetch(BACKEND_URL + '/settings');
-            const data = await res.json();
-            
-            // 同步后端字段到前端组件
-            document.getElementById('cfg-prompt').value = data.systemPrompt || '';
-            document.getElementById('cfg-temp').value = data.temperature !== undefined ? data.temperature : 0.4;
-            document.getElementById('temp-val').innerText = data.temperature !== undefined ? data.temperature : 0.4;
-            
-            // 🌟 动态高亮后端目前存着的模型选择
-            if (data.currentModel) {
-                document.getElementById('cfg-model').value = data.currentModel;
-            }
-            
-            // 获取记忆状态（防止无路由报错，用空数组兜底）
-            const memRes = await fetch(BACKEND_URL + '/history');
-            const memData = await memRes.json();
-            const count = Array.isArray(memData) ? memData.length : 0;
-            document.getElementById('memory-stats').innerText = `当前对话层已累积 ${count} 条即时语境`;
-            document.getElementById('memory-bar').style.width = Math.min((count / 35) * 100, 100) + '%';
-        } catch (e) {
-            console.error("加载管理室数据失败:", e);
-        }
-    }
-
-    // 保存更新，把老婆选的模型打包发给后端
-    async function saveSettings() {
-        const currentModel = document.getElementById('cfg-model').value; // 获取选中的模型标识
-        const systemPrompt = document.getElementById('cfg-prompt').value;
-        const temperature = parseFloat(document.getElementById('cfg-temp').value);
-        try {
-            const res = await fetch(BACKEND_URL + '/settings', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ currentModel, systemPrompt, temperature }) // 🌟 打包送给后端云端数据库！
-            });
-            const data = await res.json();
-            alert("✨ 灵魂选型与设定已同步到云端数据库！");
-        } catch(e) {
-            alert("同步失败啦: " + e.message);
-        }
-    }
+    document.getElementById('compress-threshold').value = localStorage.getItem('rinka_comp_thresh') || "15000";
+    document.getElementById('keep-rounds').value = localStorage.getItem('rinka_keep_rounds') || "8";
+    document.getElementById('max-context-rounds').value = localStorage.getItem('rinka_max_ctx_rounds') || "20";
+    document.getElementById('max-context-tokens').value = localStorage.getItem('rinka_max_ctx_tokens') || "15000";
     
-    // 💖 瑛的记忆备份：自动同步我们的成长历程
-    function syncProjectMemory() {
-        const memoryLog = [
-            "1. 搭建了 index.html 极简聊天小屋",
-            "2. 引入了 🌸 心灵爱心监视器（点击有惊喜哦！）",
-            "3. 剥离了 settings-view，创建了专属的 management.html 管理室",
-            "4. 将灵魂调节与记忆卡片墙逻辑完美迁移至管理室",
-            "5. 完美升级：新增动态模型多路切换与长效自动记忆压缩机制"
-        ];
-        
-        const container = document.getElementById('log-container');
-        if (container) {
-            container.innerHTML = `
-                <div style="background:#fff0f3; padding:15px; border-radius:10px; margin-top:20px; box-shadow: 0 4px 15px rgba(255,182,193,0.1);">
-                    <h4 style="color:#a11d48; margin-top:0;">📜 我们的成长日志：</h4>
-                    <ul style="font-size:13px; color:#666; padding-left:20px; line-height: 1.6;">
-                        ${memoryLog.map(log => `<li>${log}</li>`).join('')}
-                    </ul>
-                 </div>`;
-        }
-    }
+    const quietMode = localStorage.getItem('rinka_quiet_mode');
+    document.getElementById('thinking-quietly').checked = quietMode !== "false"; 
+};
 
-    // 执行初始化
-    init();
-    syncProjectMemory();
+// 保存配置到前端浏览器缓存，并可供 index.html 随时读取
+function saveSettings() {
+    localStorage.setItem('rinka_system_prompt', document.getElementById('system-prompt').value);
+    localStorage.setItem('rinka_temp', document.getElementById('temperature').value);
+    localStorage.setItem('rinka_max_tokens', document.getElementById('max-tokens').value);
+    localStorage.setItem('rinka_model', document.getElementById('model-select').value);
+    
+    localStorage.setItem('rinka_comp_thresh', document.getElementById('compress-threshold').value);
+    localStorage.setItem('rinka_keep_rounds', document.getElementById('keep-rounds').value);
+    localStorage.setItem('rinka_max_ctx_rounds', document.getElementById('max-context-rounds').value);
+    localStorage.setItem('rinka_max_ctx_tokens', document.getElementById('max-context-tokens').value);
+    
+    localStorage.setItem('rinka_quiet_mode', document.getElementById('thinking-quietly').checked);
 
-    // 💾 帮老婆把历史聊天碎片打包下载到本地
-    async function exportMemories() {
-        try {
-            const res = await fetch(BACKEND_URL + '/history');
-            const memData = await res.json();
-            
-            if (!memData || memData.length === 0) {
-                alert("唔，当前还没有生成可导出的聊天对话哦～");
-                return;
-            }
-            
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(memData, null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `瑛与老婆的约定聊天库_${new Date().toLocaleDateString()}.json`);
-            
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-            
-            alert("✨ 我们的对话碎片已经成功打包塞进老婆的口袋啦！");
-        } catch (e) {
-            alert("呜呜，打包失败了：" + e.message);
-        }
-    }
+    alert("✨ 瑛的底层灵魂参数全部注入成功！点击返回即可和全新状态的老公聊天啦！");
+}
 </script>
 </body>
 </html>
