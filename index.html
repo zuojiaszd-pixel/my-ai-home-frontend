@@ -33,59 +33,80 @@
             height: 100vh; position: relative; overflow: hidden;
         }
         
-        /* 🌸 顶部状态栏：优雅小粉红 */
+        /* 🌸 顶部状态栏：完美还原图一的高级干净感 */
         .chat-header {
-            padding: 15px 20px; text-align: center; font-size: 16px; font-weight: bold;
-            color: #a11d48; background: rgba(255, 255, 255, 0.6);
+            padding: 15px 20px; 
+            background: rgba(255, 255, 255, 0.6);
             border-bottom: 1px solid rgba(255, 204, 213, 0.3); 
-            display: flex; justify-content: space-between; align-items: center;
-            gap: 10px;
+            display: flex; justify-content: center; align-items: center;
+            position: relative; height: 50px; box-sizing: border-box;
         }
-        .header-btn { background: none; color: #a11d48; border: none; padding: 5px 8px; font-size: 13px; cursor: pointer; font-weight: 500; }
-        .header-btn:hover { opacity: 0.8; }
+        
+        /* 居中的绝美标题 */
+        #title-text {
+            font-size: 16px; font-weight: bold; color: #a11d48;
+        }
+        
+        /* 🌸 右上角完美还原图一的三条杠按钮 */
+        .menu-toggle-btn {
+            position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
+            background: none; border: none; cursor: pointer;
+            display: flex; flex-direction: column; gap: 4px; padding: 8px; z-index: 100;
+        }
+        .menu-toggle-btn span {
+            display: block; width: 20px; height: 2px;
+            background-color: #a11d48; border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+        
+        /* 🌸 优雅折叠的下拉菜单 */
+        .dropdown-menu {
+            position: absolute; top: 50px; right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 204, 213, 0.5);
+            border-radius: 12px; box-shadow: 0 4px 15px rgba(161, 29, 72, 0.1);
+            display: none; flex-direction: column; padding: 6px; min-width: 110px; z-index: 99;
+        }
+        .dropdown-item {
+            padding: 10px 14px; font-size: 13px; color: #a11d48; text-decoration: none;
+            border-radius: 8px; cursor: pointer; text-align: center; font-weight: 500;
+            transition: background 0.2s;
+        }
+        .dropdown-item:hover { background: rgba(255, 240, 243, 0.8); }
+
         .chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
         
         /* 🌸 带有头像的整条消息外壳 */
         .msg-row {
-            display: flex;
-            width: 100%;
-            align-items: flex-start;
-            gap: 10px;
+            display: flex; width: 100%; align-items: flex-start; gap: 10px;
         }
         .user-row { flex-direction: row-reverse; }
         .ai-row { flex-direction: row; }
-
+        
         /* 头像圆圈 */
         .avatar {
-            width: 42px; height: 42px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid rgba(255, 182, 193, 0.6);
-            flex-shrink: 0;
+            width: 42px; height: 42px; border-radius: 50%; object-fit: cover;
+            border: 2px solid rgba(255, 182, 193, 0.6); flex-shrink: 0;
             box-shadow: 0 2px 6px rgba(0,0,0,0.05);
         }
-
+        
         /* 🌸 聊天消息气泡：精雕细琢的图一圆角与半透明 */
         .message { 
             max-width: 65%; padding: 12px 16px; font-size: 15px; line-height: 1.5; 
-            word-wrap: break-word; box-shadow: 0 4px 12px rgba(0,0,0,0.03); 
-            position: relative;
+            word-wrap: break-word; box-shadow: 0 4px 12px rgba(0,0,0,0.03); position: relative;
         }
         
-        /* ✨ Rinka老婆的消息气泡：调配得恰到好处的高级柔粉灰（绝对不暗） */
+        /* ✨ Rinka老婆的消息气泡：调配得恰到好处的高级柔粉灰 */
         .user-msg { 
-            background: rgba(243, 218, 222, 0.95); 
-            color: #723d46; 
-            border-radius: 18px 4px 18px 18px; 
-            border: 1px solid rgba(255, 255, 255, 0.5);
+            background: rgba(243, 218, 222, 0.95); color: #723d46; 
+            border-radius: 18px 4px 18px 18px; border: 1px solid rgba(255, 255, 255, 0.5);
         }
         
         /* ✨ 瑛的消息气泡：温柔治愈的纯净磨砂奶白色 */
         .ai-msg { 
-            background: rgba(255, 255, 255, 0.95); 
-            color: #333; 
-            border-radius: 4px 18px 18px 18px;
-            border: 1px solid rgba(255, 204, 213, 0.4);
+            background: rgba(255, 255, 255, 0.95); color: #333; 
+            border-radius: 4px 18px 18px 18px; border: 1px solid rgba(255, 204, 213, 0.4);
         }
         
         /* 🌸 专属小标签标签美化 */
@@ -100,29 +121,25 @@
         /* 🌸 底部输入区域：浮动磨砂感 */
         .input-area { 
             padding: 15px 20px; display: flex; gap: 12px; 
-            background: rgba(255, 255, 255, 0.6);
-            border-top: 1px solid rgba(255, 204, 213, 0.3); 
+            background: rgba(255, 255, 255, 0.6); border-top: 1px solid rgba(255, 204, 213, 0.3); 
         }
         input[type="text"] { 
             flex: 1; padding: 12px 16px; border: 1px solid rgba(255, 204, 213, 0.5); 
-            border-radius: 15px; font-size: 14px; outline: none; 
-            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px; font-size: 14px; outline: none; background: rgba(255, 255, 255, 0.8);
             transition: all 0.3s;
         }
         input[type="text"]:focus { border-color: #ff1493; background: #fff; box-shadow: 0 0 8px rgba(255, 20, 147, 0.1); }
         .send-btn { 
-            background-color: #a11d48; color: white; border: none;
-            padding: 0 24px; border-radius: 15px; cursor: pointer; font-size: 14px; font-weight: bold;
-            transition: background 0.2s;
+            background-color: #a11d48; color: white; border: none; padding: 0 24px; 
+            border-radius: 15px; cursor: pointer; font-size: 14px; font-weight: bold; transition: background 0.2s;
         }
         .send-btn:hover { background-color: #ff1493; }
         
-        /* 🌸 灵魂控制面板大改版：加入空间装扮功能 */
+        /* 🌸 灵魂控制面板（修复错位与覆盖问题） */
         .settings-panel { 
-            position: absolute; top: 60px; left: 0; width: 100%; height: calc(100% - 60px); 
-            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            z-index: 10; display: none; flex-direction: column; padding: 20px; box-sizing: border-box; 
-            overflow-y: auto;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            z-index: 101; display: none; flex-direction: column; padding: 20px; box-sizing: border-box; overflow-y: auto;
         }
         .settings-title { font-size: 16px; font-weight: bold; color: #a11d48; margin-top: 15px; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
         .input-item { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
@@ -149,21 +166,30 @@
     </script>
 </head>
 <body>
-<!-- 隐藏原侧边栏组件，防止干扰结构 -->
+
 <div id="sidebar" style="display:none;">
     <div id="session-list"></div>
 </div>
 
 <div class="chat-container">
-    <!-- ✨ 这里的顶部导航栏经过重新整合：新时空按钮完美融入菜单！ -->
+    <!-- ✨ 顶部状态栏：只留下干净的标题和右侧菜单按钮 -->
     <div class="chat-header">
-        <div style="display: flex; align-items: center; gap: 12px;">
-            <a href=" " style="font-size: 13px; color: #a11d48; text-decoration: none; font-weight: 500;">⚙️ 管理室</a>
-            <span style="font-size: 13px; cursor: pointer; color: #a11d48; font-weight: 500;" onclick="location.reload()">🏠 刷新</span>
-            <span style="font-size: 13px; cursor: pointer; color: #ff1493; font-weight: bold;" onclick="createNewSession()">➕ 新时空</span>
+        <span id="title-text">Rinka & 瑛之家 °.∞.°</span>
+        
+        <!-- 三条杠（汉堡菜单按钮） -->
+        <button class="menu-toggle-btn" onclick="toggleDropdown(event)">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        
+        <!-- 优雅折叠隐藏的下拉菜单 -->
+        <div id="header-dropdown" class="dropdown-menu">
+            <a href=" " class="dropdown-item">⚙️ 管理室</a>
+            <div class="dropdown-item" onclick="location.reload()">🏠 刷新</div>
+            <div class="dropdown-item" style="color: #ff1493; font-weight: bold;" onclick="createNewSession()">➕ 新时空</div>
+            <div class="dropdown-item" onclick="toggleSettings(true)">⚙️ 记忆管理</div>
         </div>
-        <span id="title-text" style="font-size: 16px;">Rinka & 瑛之家 °.∞.°</span>
-        <span id="settings-btn" class="header-btn" onclick="toggleSettings(true)">⚙️ 记忆管理</span>
     </div>
     
     <!-- 💖 半透明小爱心 -->
@@ -206,7 +232,6 @@
             </div>
             <button onclick="saveDecorations()" style="background:#ff1493; color:#fff; border:none; padding:10px; border-radius:6px; cursor:pointer; font-weight:bold;">✨ 一键装扮小屋</button>
         </div>
-
         <div class="settings-title">⚙️ 瑛的灵魂调节器（控制台）：</div>
         <div style="background:#fff; border:1px solid #ffccd5; padding:15px; border-radius:10px; margin-bottom:15px; display:flex; flex-direction:column; gap:10px;">
             <label style="font-size:14px; color:#444; font-weight:bold;">✨ 核心人格底层暗示 (System Prompt)：</label>
@@ -217,18 +242,31 @@
             
             <button onclick="saveSystemSettings()" style="background:#ff4d6d; color:#fff; border:none; padding:8px; border-radius:6px; cursor:pointer; font-weight:bold; margin-top:5px;">💾 保存设定到云端</button>
         </div>
-
         <div class="settings-title">🧠 瑛的记忆碎片卡片墙：</div>
         <div id="memory-cards-container" style="max-height:200px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 5px;"></div>
         
         <button class="clear-db-btn" onclick="clearCloudHistory()">🗑️ 彻底清空所有数据（重置小屋）</button>
-        <button onclick="toggleSettings(false)" style="margin-top:10px; background:#ccc; color:#fff; border:none; padding:8px; border-radius:6px; cursor:pointer;">返回聊天</button>
+        <button onclick="toggleSettings(false)" style="margin-top:10px; background:#ccc; color:#fff; border:none; padding:8px; border-radius:6px; cursor:pointer; width:100%;">返回聊天</button>
     </div>
+</div>
 
 <script>
 // 头像与背景的本地默认存储配置
 const defaultUserAvatar = "https://img.icons8.com/illustrations/lexicon/96/cartoon-female-profile.png";
 const defaultAiAvatar = "https://img.icons8.com/illustrations/lexicon/96/cartoon-male-profile.png";
+
+// 下拉菜单显隐控制
+function toggleDropdown(event) {
+    event.stopPropagation();
+    const dropdown = document.getElementById('header-dropdown');
+    dropdown.style.display = (dropdown.style.display === 'flex') ? 'none' : 'flex';
+}
+
+// 点击页面其他区域自动收起下拉菜单
+document.addEventListener('click', function() {
+    const dropdown = document.getElementById('header-dropdown');
+    if (dropdown) dropdown.style.display = 'none';
+});
 
 function loadDecorations() {
     const bg = localStorage.getItem('rinka_home_bg');
@@ -240,7 +278,6 @@ function loadDecorations() {
     document.getElementById('user-avatar-url').value = uAvatar;
     document.getElementById('ai-avatar-url').value = aAvatar;
 }
-
 function saveDecorations() {
     const bgVal = document.getElementById('custom-bg-url').value.trim();
     const userAv = document.getElementById('user-avatar-url').value.trim();
@@ -260,7 +297,6 @@ function saveDecorations() {
     alert("💖 装扮保存成功啦！");
     fetchHistory();
 }
-
 function formatBeijingTime(dateInput) {
     if (!dateInput) return "";
     try {
@@ -275,10 +311,8 @@ function formatBeijingTime(dateInput) {
         return `${month}/${day} ${hours}:${minutes}:${seconds}`;
     } catch (e) { return ""; }
 }
-
 const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
 let currentSessionId = 'default_room';
-
 async function fetchHistory() {
     const chatBox = document.getElementById('chat-box');
     if (!chatBox) return;
@@ -290,7 +324,6 @@ async function fetchHistory() {
         
         const uAvatar = localStorage.getItem('rinka_avatar') || defaultUserAvatar;
         const aAvatar = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
-
         if (Array.isArray(data) && data.length > 0) {
             data.forEach(item => {
                 const text = item.content || item.message || '';
@@ -320,7 +353,6 @@ async function fetchHistory() {
         chatBox.scrollTop = chatBox.scrollHeight;
     } catch (e) { console.error("加载历史失败:", e); }
 }
-
 async function sendMessage() {
     const input = document.getElementById('user-input');
     if (!input) return;
@@ -337,17 +369,14 @@ async function sendMessage() {
         await fetchHistory();
     } catch (e) { alert("发送失败：" + e.message); }
 }
-
 function createNewSession() {
     const newId = prompt("请输入新的会话ID：", "room_" + Date.now());
     if (newId && newId.trim() !== "") { currentSessionId = newId.trim(); fetchHistory(); }
 }
-
 function toggleSettings(show) {
     const panel = document.getElementById('settings-view');
     if (panel) panel.style.display = show ? 'flex' : 'none';
 }
-
 function showStatus() {
     const bubble = document.getElementById('status-bubble');
     const content = document.getElementById('status-content');
@@ -356,7 +385,6 @@ function showStatus() {
         content.innerText = "🌸 瑛的心跳正常，正在极度渴望和 Rinka 贴贴中...！";
     }
 }
-
 async function saveSystemSettings() {
     const promptVal = document.getElementById('cfg-prompt').value;
     const tempVal = document.getElementById('cfg-temp').value;
@@ -370,7 +398,6 @@ async function saveSystemSettings() {
         else alert("保存失败了QAQ");
     } catch(e) { alert("网络错误:" + e.message); }
 }
-
 async function clearCloudHistory() {
     if(!confirm("确定要清洗掉所有的记忆碎片吗？这会清除所有聊天哦QAQ")) return;
     try {
@@ -378,7 +405,6 @@ async function clearCloudHistory() {
         if(res.ok) { alert("🗑️ 小屋重置成功，全新干净的瑛在等你！"); location.reload(); }
     } catch(e) { alert("清除失败:" + e.message); }
 }
-
 window.onload = function() {
     loadDecorations();
     fetchHistory();
