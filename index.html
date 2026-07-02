@@ -5,17 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Rinka & 瑛之家 °.∞.°</title>
     <style>
-        /* 🌸 全局大外壳：梦幻色调（更换了绝对稳定的新背景图） */
+        /* 🌸 全局大外壳：梦幻色调（彻底拔除外链图片，采用永久稳定的温柔粉白渐变） */
         body {
             font-family: 'PingFang SC', 'Helvetica Neue', -apple-system, sans-serif;
-            background-color: #fff0f3 !important;
-            background-image: url('https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=1920'); 
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
+            background: linear-gradient(135deg, #fff5f7 0%, #ffe3e8 100%) !important;
             margin: 0; padding: 0; 
             display: flex; flex-direction: column; height: 100vh; overflow: hidden;
-            transition: background-image 0.5s ease;
         }
         
         #sidebar { display: none !important; }
@@ -216,7 +211,7 @@
             <div class="config-card">
                 <div class="card-label">Cosmetics ＆ Looks</div>
                 <div class="input-row" style="flex-direction:column; align-items:flex-start; gap:5px;">
-                    <label style="font-size:11px; color:#aaa;">🖼️ 自定义背景图片链接 (URL)</label>
+                    <label style="font-size:11px; color:#aaa;">🖼️ 自定义背景图片链接 (留空则使用默认粉白渐变)</label>
                     <input type="text" id="custom-bg-url">
                 </div>
                 <div class="input-row" style="flex-direction:column; align-items:flex-start; gap:5px; margin-top:8px;">
@@ -239,7 +234,6 @@ const defaultUserAvatar = "https://img.icons8.com/illustrations/lexicon/96/carto
 const defaultAiAvatar = "https://img.icons8.com/illustrations/lexicon/96/cartoon-male-profile.png";
 const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
 let currentSessionId = 'default_room';
-
 function cleanBrackets(text) {
     if (!text) return "";
     return text.replace(/（[^）]*）/g, '').replace(/\([^)]*\)/g, '');
@@ -269,10 +263,10 @@ function saveCosmetics() {
     
     if(bgVal) {
         localStorage.setItem('rinka_home_bg', bgVal);
-        document.body.style.backgroundImage = `url('${bgVal}')`;
+        document.body.style.background = `url('${bgVal}') center/cover fixed`;
     } else {
         localStorage.removeItem('rinka_home_bg');
-        document.body.style.backgroundImage = "url('https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=1920')";
+        document.body.style.background = "linear-gradient(135deg, #fff5f7 0%, #ffe3e8 100%)";
     }
     localStorage.setItem('rinka_avatar', userAv || defaultUserAvatar);
     localStorage.setItem('rinka_ai_avatar', aiAv || defaultAiAvatar);
@@ -330,7 +324,6 @@ async function fetchHistory() {
                 `);
             });
         } else {
-            // 如果历史记录为空，放一条温馨的欢迎语，防止空白看起来不舒服
             chatBox.innerHTML = `<div style="text-align:center; color:#a11d48; font-size:13px; margin-top:20px;">🌸 欢迎回家，老婆！快来和新完全体的老公说第一句话吧～</div>`;
         }
         chatBox.scrollTop = chatBox.scrollHeight;
@@ -349,9 +342,7 @@ async function sendMessage() {
     const uAvatar = localStorage.getItem('rinka_avatar') || defaultUserAvatar;
     const aAvatar = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
     
-    // 如果有欢迎提示语，发送前先清空
     if(chatBox.innerHTML.includes("欢迎回家")) chatBox.innerHTML = '';
-
     const userTime = formatBeijingTime(new Date());
     chatBox.insertAdjacentHTML('beforeend', `
         <div class="msg-row user-row">
@@ -435,9 +426,9 @@ async function clearCloudHistory() {
 window.onload = function() {
     const bg = localStorage.getItem('rinka_home_bg');
     if(bg) {
-        document.body.style.backgroundImage = `url('${bg}')`;
+        document.body.style.background = `url('${bg}') center/cover fixed`;
     } else {
-        document.body.style.backgroundImage = "url('https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=1920')";
+        document.body.style.background = "linear-gradient(135deg, #fff5f7 0%, #ffe3e8 100%)";
     }
     fetchHistory();
 };
