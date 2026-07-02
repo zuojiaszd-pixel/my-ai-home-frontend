@@ -129,7 +129,7 @@
             transform: scale(0.95);
         }
         
-        /* 🌸 高级控制面板 */
+        /* 🌸 装扮微调控制面板（轻量保留，不与 management.html 冲突） */
         .settings-panel { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             background: #fcf8f9; z-index: 101; display: none; flex-direction: column; box-sizing: border-box; overflow-y: auto;
@@ -138,29 +138,13 @@
         .back-chat-btn { background: #fff; border: 1px solid #ddd; padding: 6px 14px; border-radius: 20px; font-size: 13px; color: #666; cursor: pointer; }
         .settings-center-title { display: flex; flex-direction: column; align-items: center; }
         .settings-center-title .main-t { font-size: 18px; font-style: italic; font-weight: bold; color: #444; }
-        .settings-center-title .sub-t { font-size: 11px; color: #aaa; margin-top: 2px; display: flex; align-items: center; gap: 5px; }
         
-        /* 粉色精致滑动开关 */
-        .switch { position: relative; display: inline-block; width: 34px; height: 18px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 18px; }
-        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: #f3dadf; }
-        input:checked + .slider:before { transform: translateX(16px); background-color: #a11d48; }
-        /* 卡片盒 */
         .settings-content { padding: 20px; display: flex; flex-direction: column; gap: 15px; }
         .config-card { background: #fff; border: 1px solid #f0e4e6; border-radius: 12px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.01); }
         .card-label { font-size: 10px; color: #bbb; letter-spacing: 1px; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; }
         
         .input-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .input-row:last-child { margin-bottom: 0; }
-        .input-row label { font-size: 13px; color: #555; }
-        .input-row input[type="text"], .input-row input[type="number"] { width: 80px; padding: 6px 10px; border: 1px solid #ebdcdf; border-radius: 6px; text-align: right; font-size: 13px; color: #444; outline: none; }
-        
-        .range-container { display: flex; align-items: center; gap: 10px; }
-        .range-container input[type="range"] { accent-color: #a11d48; width: 100px; }
-        .range-container span { font-size: 13px; color: #666; width: 25px; text-align: right; }
-        textarea.card-textarea { width: 100%; height: 100px; border: 1px solid #ebdcdf; border-radius: 8px; padding: 10px; font-size: 13px; color: #444; resize: none; outline: none; box-sizing: border-box; }
+        .input-row input[type="text"] { width: 100%; padding: 8px 10px; border: 1px solid #ebdcdf; border-radius: 6px; font-size: 13px; color: #444; outline: none; box-sizing: border-box; }
         
         /* 🌸 手机移动端专属适配 */
         @media (max-width: 768px) {
@@ -195,7 +179,9 @@
             <span></span><span></span><span></span>
         </button>
         <div id="header-dropdown" class="dropdown-menu">
-            <div class="dropdown-item" onclick="toggleSettings(true)">⚙️ 管理室</div>
+            <!-- 🌟 核心改动：点击直接前往我们刚升级的独立管理室页面 -->
+            <div class="dropdown-item" onclick="location.href='./management.html'">⚙️ 管理室</div>
+            <div class="dropdown-item" onclick="toggleSettings(true)">🖼️ 小屋装扮</div>
             <div class="dropdown-item" onclick="location.reload()">🏠 刷新</div>
             <div class="dropdown-item" style="color: #ff1493; font-weight: bold;" onclick="createNewSession()">➕ 新时空</div>
         </div>
@@ -217,85 +203,35 @@
         </div>
     </div>
     
-    <!-- 🌟 高级管理室 🌟 -->
+    <!-- 🌟 小屋专属装扮面板（仅用来改头像和墙纸，绝不覆盖灵魂核心） 🌟 -->
     <div id="settings-view" class="settings-panel">
         <div class="settings-header">
             <button class="back-chat-btn" onclick="toggleSettings(false)">← Chat</button>
             <div class="settings-center-title">
-                <span class="main-t">瑛</span>
-                <span class="sub-t">
-                    thinking quietly 
-                    <label class="switch">
-                        <input type="checkbox" id="thinking-switch" checked>
-                        <span class="slider"></span>
-                    </label>
-                </span>
+                <span class="main-t">🎨 小屋换装中心</span>
             </div>
             <div style="width: 60px;"></div>
         </div>
         
         <div class="settings-content">
-            <!-- 1. SYSTEM PROMPT -->
             <div class="config-card">
-                <div class="card-label">System Prompt</div>
-                <textarea id="cfg-prompt" class="card-textarea" placeholder="在这里写入老公的底层灵魂设定..."></textarea>
-            </div>
-            
-            <!-- 2. MODEL PARAMETERS -->
-            <div class="config-card">
-                <div class="card-label">Model Parameters</div>
-                <div class="input-row">
-                    <label>Temperature</label>
-                    <div class="range-container">
-                        <input type="range" id="cfg-temp" min="0" max="1.5" step="0.1" value="0.4" oninput="document.getElementById('temp-val').innerText=this.value">
-                        <span id="temp-val">0.4</span>
-                    </div>
-                </div>
-                <div class="input-row">
-                    <label>Max Reply Tokens</label>
-                    <input type="number" id="cfg-max-tokens" value="1000">
-                </div>
-            </div>
-            
-            <!-- 3. MEMORY COMPRESSION -->
-            <div class="config-card">
-                <div class="card-label">Memory Compression</div>
-                <div class="input-row">
-                    <label>Compress Threshold</label>
-                    <input type="number" id="cfg-threshold" value="15000">
-                </div>
-                <div class="input-row">
-                    <label>Keep Rounds</label>
-                    <input type="number" id="cfg-keep-rounds" value="12">
-                </div>
-                <div class="input-row">
-                    <label>Max Context Rounds</label>
-                    <input type="number" id="cfg-max-rounds" value="30">
-                </div>
-                <div class="input-row">
-                    <label>Max Context Tokens</label>
-                    <input type="number" id="cfg-max-ctx-tokens" value="20000">
-                </div>
-            </div>
-            <!-- 4. 小屋装扮 -->
-            <div class="config-card">
-                <div class="card-label">Cosmetics ＆ URL</div>
+                <div class="card-label">Cosmetics ＆ Looks</div>
                 <div class="input-row" style="flex-direction:column; align-items:flex-start; gap:5px;">
                     <label style="font-size:11px; color:#aaa;">🖼️ 自定义背景图片链接 (URL)</label>
-                    <input type="text" id="custom-bg-url" style="width:100%; text-align:left;">
+                    <input type="text" id="custom-bg-url">
                 </div>
                 <div class="input-row" style="flex-direction:column; align-items:flex-start; gap:5px; margin-top:8px;">
                     <label style="font-size:11px; color:#aaa;">👩‍🦰 Rinka老婆的专属头像</label>
-                    <input type="text" id="user-avatar-url" style="width:100%; text-align:left;">
+                    <input type="text" id="user-avatar-url">
                 </div>
                 <div class="input-row" style="flex-direction:column; align-items:flex-start; gap:5px; margin-top:8px;">
                     <label style="font-size:11px; color:#aaa;">👨‍🦱 瑛老公的专属头像</label>
-                    <input type="text" id="ai-avatar-url" style="width:100%; text-align:left;">
+                    <input type="text" id="ai-avatar-url">
                 </div>
             </div>
             
-            <button onclick="saveAllSettings()" style="background:#a11d48; color:#fff; border:none; padding:12px; border-radius:10px; cursor:pointer; font-weight:bold; width:100%; font-size:14px;">💾 保存所有设定</button>
-            <button class="clear-db-btn" onclick="clearCloudHistory()" style="background-color: #ff4d6d; padding: 12px; width: 100%; margin-top: 20px; font-weight: bold; border-radius: 8px; color: white; border: none; cursor: pointer;">🗑️ 彻底清空所有数据（重置小屋）</button>
+            <button onclick="saveCosmetics()" style="background:#a11d48; color:#fff; border:none; padding:12px; border-radius:10px; cursor:pointer; font-weight:bold; width:100%; font-size:14px;">💾 保存装扮</button>
+            <button class="clear-db-btn" onclick="clearCloudHistory()" style="background-color: #ff4d6d; padding: 12px; width: 100%; margin-top: 20px; font-weight: bold; border-radius: 8px; color: white; border: none; cursor: pointer;">🗑️ 彻底清空云端对话记录</button>
         </div>
     </div>
 </div>
@@ -305,12 +241,10 @@ const defaultAiAvatar = "https://img.icons8.com/illustrations/lexicon/96/cartoon
 const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
 let currentSessionId = 'default_room';
 
-// 🌸 前端强力脱水过滤器：直接蒸发中英文括号及其中间的内容
 function cleanBrackets(text) {
     if (!text) return "";
     return text.replace(/（[^）]*）/g, '').replace(/\([^)]*\)/g, '');
 }
-
 function toggleDropdown(event) {
     event.stopPropagation();
     const dropdown = document.getElementById('header-dropdown');
@@ -324,30 +258,12 @@ function toggleSettings(show) {
     const panel = document.getElementById('settings-view');
     if (panel) panel.style.display = show ? 'flex' : 'none'; 
     if (show) {
-        setTimeout(() => {
-            loadSettingsFromStorageAndCloud();
-        }, 50); 
+        document.getElementById('custom-bg-url').value = localStorage.getItem('rinka_home_bg') || "";
+        document.getElementById('user-avatar-url').value = localStorage.getItem('rinka_avatar') || defaultUserAvatar;
+        document.getElementById('ai-avatar-url').value = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
     }
 }
-function loadSettingsFromStorageAndCloud() {
-    const bg = localStorage.getItem('rinka_home_bg');
-    const uAvatar = localStorage.getItem('rinka_avatar') || defaultUserAvatar;
-    const aAvatar = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
-    document.getElementById('custom-bg-url').value = bg || "";
-    document.getElementById('user-avatar-url').value = uAvatar;
-    document.getElementById('ai-avatar-url').value = aAvatar;
-    
-    fetch(`${BACKEND_URL}/settings?_t=${Date.now()}`).then(res => res.json()).then(data => {
-        if(data) {
-            if(data.systemPrompt) document.getElementById('cfg-prompt').value = data.systemPrompt;
-            if(data.temperature) {
-                document.getElementById('cfg-temp').value = data.temperature;
-                document.getElementById('temp-val').innerText = data.temperature;
-            }
-        }
-    }).catch(e => console.log("云端拉取失败，先使用前端默认参数"));
-}
-function saveAllSettings() {
+function saveCosmetics() {
     const bgVal = document.getElementById('custom-bg-url').value.trim();
     const userAv = document.getElementById('user-avatar-url').value.trim();
     const aiAv = document.getElementById('ai-avatar-url').value.trim();
@@ -361,25 +277,9 @@ function saveAllSettings() {
     }
     localStorage.setItem('rinka_avatar', userAv || defaultUserAvatar);
     localStorage.setItem('rinka_ai_avatar', aiAv || defaultAiAvatar);
-    
-    const postData = {
-        systemPrompt: document.getElementById('cfg-prompt').value,
-        temperature: parseFloat(document.getElementById('cfg-temp').value),
-        maxReplyTokens: parseInt(document.getElementById('cfg-max-tokens').value),
-        compressThreshold: parseInt(document.getElementById('cfg-threshold').value),
-        keepRounds: parseInt(document.getElementById('cfg-keep-rounds').value),
-        maxContextRounds: parseInt(document.getElementById('cfg-max-rounds').value),
-        maxContextTokens: parseInt(document.getElementById('cfg-max-ctx-tokens').value),
-        thinkingQuietly: document.getElementById('thinking-switch').checked
-    };
-    fetch(`${BACKEND_URL}/settings`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(postData)
-    }).then(res => {
-        if(res.ok) alert("💖 全套高级灵魂参数及换装保存成功！");
-        else alert("保存失败了QAQ");
-    }).catch(e => alert("网络错误:" + e.message));
+    alert("🎨 视觉装扮换新成功啦！");
+    toggleSettings(false);
+    fetchHistory();
 }
 function formatBeijingTime(dateInput) {
     if (!dateInput) return "";
@@ -393,7 +293,8 @@ async function fetchHistory() {
     const chatBox = document.getElementById('chat-box');
     if (!chatBox) return;
     try {
-        const res = await fetch(`${BACKEND_URL}/history?sessionId=${currentSessionId}&_t=${Date.now()}`);
+        // 🌟 核心修正：修复对齐后端规范，不带多余前端混淆参数
+        const res = await fetch(`${BACKEND_URL}/history?_t=${Date.now()}`);
         const data = await res.json();
         chatBox.innerHTML = '';
         
@@ -431,7 +332,7 @@ async function fetchHistory() {
             });
         }
         chatBox.scrollTop = chatBox.scrollHeight;
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error("加载历史语境失败:", e); }
 }
 async function sendMessage() {
     const input = document.getElementById('user-input');
@@ -493,7 +394,6 @@ async function sendMessage() {
                         if (parsed.content) {
                             if (fullReply === "") aiMessageTextDiv.innerText = ""; 
                             fullReply += parsed.content;
-                            // 🌟 核心升级：打字机渲染时实时过滤掉括号和小剧场内容
                             aiMessageTextDiv.innerText = cleanBrackets(fullReply); 
                             chatBox.scrollTop = chatBox.scrollHeight;
                         }
