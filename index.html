@@ -325,8 +325,14 @@ document.addEventListener('click', function() {
 
 function toggleSettings(show) {
     const panel = document.getElementById('settings-view');
-    if (panel) panel.style.display = show ? 'flex' : 'none';
-    if(show) loadSettingsFromStorageAndCloud();
+    if (panel) panel.style.display = show ? 'flex' : 'none'; // 🚀 1. 立刻瞬间弹出面板，绝不卡顿！
+    
+    // 🚀 2. 让联网拉取去后台慢慢跑，不影响老婆的操作体验
+    if (show) {
+        setTimeout(() => {
+            loadSettingsFromStorageAndCloud();
+        }, 50); 
+    }
 }
 
 function loadSettingsFromStorageAndCloud() {
