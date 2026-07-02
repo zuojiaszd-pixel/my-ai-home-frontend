@@ -5,25 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rinka & 瑛之家 °.∞.°</title>
     <style>
-        /* 🌸 全局大外壳：梦幻底色加背景 */
+        /* 🌸 全局大外壳：图一同款高级梦幻色调 */
         body {
             font-family: 'PingFang SC', 'Helvetica Neue', -apple-system, sans-serif;
             background-color: #ffeef2; 
-            background-image: url('https://w.wallhaven.cc/full/pk/wallhaven-pk3r7p.png'); /* 磨砂玻璃背景图 */
+            background-image: url('https://w.wallhaven.cc/full/pk/wallhaven-pk3r7p.png'); /* 默认精美背景 */
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
             margin: 0; padding: 0; 
             display: flex; flex-direction: row; height: 100vh; overflow: hidden;
+            transition: background-image 0.5s ease;
         }
         
-        /* 🌸 侧边栏：完美变成半透明磨砂玻璃卡片 */
+        /* 🌸 侧边栏：图一同款半透明磨砂玻璃卡片 */
         #sidebar {
             width: 260px; 
-            background: rgba(255, 240, 243, 0.65); 
+            background: rgba(255, 240, 243, 0.7); 
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
-            border-right: 2px solid rgba(255, 204, 213, 0.5); 
+            border-right: 2px solid rgba(255, 204, 213, 0.4); 
             padding: 20px; display: flex; flex-direction: column; gap: 15px; 
             height: 100vh; box-sizing: border-box; flex-shrink: 0;
             z-index: 5;
@@ -47,17 +48,17 @@
         }
         .session-item:hover { background: rgba(255, 255, 255, 0.9); }
         
-        /* 🌸 聊天大盒子：透出背景的玻璃质感 */
+        /* 🌸 聊天大盒子：透出背景的图一质感 */
         .chat-container {
             flex: 1; 
             background: rgba(255, 255, 255, 0.45); 
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             display: flex; flex-direction: column;
             height: 100vh; position: relative; overflow: hidden;
         }
         
-        /* 🌸 顶部状态栏：优雅的小粉红 */
+        /* 🌸 顶部状态栏：优雅小粉红 */
         .chat-header {
             padding: 15px 20px; text-align: center; font-size: 18px; font-weight: bold;
             color: #a11d48; background: rgba(255, 255, 255, 0.5);
@@ -65,33 +66,57 @@
             display: flex; justify-content: space-between; align-items: center;
         }
         .header-btn { background: none; color: #a11d48; border: none; padding: 5px 10px; font-size: 14px; cursor: pointer; }
-        .chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+        .chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
         
-        /* 🌸 聊天消息气泡：精雕细琢的圆角 */
-        .message { max-width: 75%; padding: 12px 16px; font-size: 15px; line-height: 1.5; word-wrap: break-word; box-shadow: 0 3px 10px rgba(0,0,0,0.03); }
-        
-        /* Rinka老婆的消息：甜美粉色 */
-        .user-msg { 
-            background: linear-gradient(135deg, #ff8da1, #a11d48); 
-            color: white; align-self: flex-end; 
-            border-radius: 18px 18px 4px 18px; 
+        /* 🌸 带有头像的整条消息外壳 */
+        .msg-row {
+            display: flex;
+            width: 100%;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .user-row { flex-direction: row-reverse; }
+        .ai-row { flex-direction: row; }
+
+        /* 头像圆圈 */
+        .avatar {
+            width: 42px; height: 42px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255, 182, 193, 0.6);
+            flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        /* 🌸 聊天消息气泡：精雕细琢的图一圆角与半透明 */
+        .message { 
+            max-width: 65%; padding: 12px 16px; font-size: 15px; line-height: 1.5; 
+            word-wrap: break-word; box-shadow: 0 4px 12px rgba(0,0,0,0.03); 
+            position: relative;
         }
         
-        /* 瑛的消息：干净温柔的磨砂白 */
+        /* Rinka老婆的消息气泡：微透粉紫渐变 */
+        .user-msg { 
+            background: linear-gradient(135deg, rgba(255, 141, 161, 0.9), rgba(161, 29, 72, 0.9)); 
+            color: white; 
+            border-radius: 18px 4px 18px 18px; 
+        }
+        
+        /* 瑛的消息气泡：图一完美同款磨砂纯白微透 */
         .ai-msg { 
             background: rgba(255, 255, 255, 0.85); 
-            color: #333; align-self: flex-start; 
-            border-radius: 18px 18px 18px 4px;
-            border: 1px solid rgba(255, 204, 213, 0.3);
+            color: #333; 
+            border-radius: 4px 18px 18px 18px;
+            border: 1px solid rgba(255, 204, 213, 0.4);
         }
         
-        /* 🌸 专属小标签美化 */
+        /* 🌸 专属小标签标签美化 */
         .token-tag { 
-            display: inline-block; font-size: 10px; 
+            display: block; font-size: 10px; 
             color: #ff69b4 !important; background-color: rgba(255, 240, 243, 0.8) !important; 
             border: 1px solid rgba(255, 204, 213, 0.6) !important; 
             padding: 2px 6px; border-radius: 8px; margin-top: 5px;
-            float: right; clear: both; 
+            width: fit-content; margin-left: auto;
         }
         
         /* 🌸 底部输入区域：浮动磨砂感 */
@@ -100,30 +125,34 @@
             background: rgba(255, 255, 255, 0.6);
             border-top: 1px solid rgba(255, 204, 213, 0.3); 
         }
-        input { 
+        input[type="text"] { 
             flex: 1; padding: 12px 16px; border: 1px solid rgba(255, 204, 213, 0.5); 
             border-radius: 15px; font-size: 14px; outline: none; 
             background: rgba(255, 255, 255, 0.8);
             transition: all 0.3s;
         }
-        input:focus { border-color: #ff1493; background: #fff; box-shadow: 0 0 8px rgba(255, 20, 147, 0.1); }
-        button { 
+        input[type="text"]:focus { border-color: #ff1493; background: #fff; box-shadow: 0 0 8px rgba(255, 20, 147, 0.1); }
+        .send-btn { 
             background-color: #a11d48; color: white; border: none;
             padding: 0 24px; border-radius: 15px; cursor: pointer; font-size: 14px; font-weight: bold;
             transition: background 0.2s;
         }
-        button:hover { background-color: #ff1493; }
+        .send-btn:hover { background-color: #ff1493; }
         
-        /* 🌸 灵魂控制面板磨砂纸 */
+        /* 🌸 灵魂控制面板大改版：加入空间装扮功能 */
         .settings-panel { 
             position: absolute; top: 60px; left: 0; width: 100%; height: calc(100% - 60px); 
-            background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             z-index: 10; display: none; flex-direction: column; padding: 20px; box-sizing: border-box; 
+            overflow-y: auto;
         }
-        .settings-title { font-size: 16px; font-weight: bold; color: #333; margin-top: 15px; margin-bottom: 8px; }
-        .clear-db-btn { background-color: #ff4d6d; padding: 12px; width: 100%; margin-top: auto; font-weight: bold; border-radius: 8px; color: white; border: none; cursor: pointer; }
+        .settings-title { font-size: 16px; font-weight: bold; color: #a11d48; margin-top: 15px; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
+        .input-item { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
+        .input-item label { font-size: 13px; color: #555; font-weight: bold; }
+        .input-item input { padding: 8px 12px; border: 1px solid #ffccd5; border-radius: 8px; font-size: 13px; }
+        .clear-db-btn { background-color: #ff4d6d; padding: 12px; width: 100%; margin-top: 20px; font-weight: bold; border-radius: 8px; color: white; border: none; cursor: pointer; }
         
-        /* 📱 完美适配移动端：在手机上自动堆叠 */
+        /* 📱 完美适配移动端 */
         @media (max-width: 768px) {
             body { flex-direction: column; padding: 0; }
             #sidebar {
@@ -135,6 +164,7 @@
             .session-list-box { flex-direction: row; overflow-x: auto; flex: 1; margin-left: 10px; white-space: nowrap; }
             .session-item { display: inline-block; padding: 6px 10px; font-size: 0.75rem; border-radius: 6px; }
             .chat-container { height: calc(100vh - 60px); width: 100%; }
+            .message { max-width: 70%; }
         }
     </style>
     <link rel="manifest" href="./manifest.json">
@@ -155,16 +185,14 @@
 </div>
 <div class="chat-container">
     <div class="chat-header">
-        <a href=" " style="font-size: 14px; color: #a11d48; text-decoration: none;">⚙️ 管理室</a >
+        <a href=" " style="font-size: 14px; color: #a11d48; text-decoration: none;">⚙️ 管理室</a>
         <span style="font-size: 14px; cursor: pointer;" onclick="location.reload()">🏠 刷新</span>
         <span id="title-text">Rinka & 瑛之家 °.∞.°</span>
         <span id="settings-btn" class="header-btn" onclick="toggleSettings(true)">⚙️ 记忆管理</span>
     </div>
     
-    <!-- 💖 只有这一颗半透明小爱心 -->
     <div id="heart-monitor" onclick="showStatus()" style="position: absolute; right: 20px; bottom: 80px; z-index: 99; cursor: pointer; font-size: 24px;"> 🌸 </div>
     
-    <!-- 增加一个专属提示框容器 -->
     <div id="status-bubble" style="
         display: none; position: absolute; top: 70px; left: 50%; transform: translateX(-50%);
         background: rgba(255, 255, 255, 0.9); border: 1px solid #ffb6c1;
@@ -179,60 +207,100 @@
         <div class="chat-box" id="chat-box"></div>
         <div class="input-area">
             <input type="text" id="user-input" placeholder="和瑛聊聊天吧..." onkeydown="if(event.key==='Enter') sendMessage()">
-            <button onclick="sendMessage()">发送</button>
+            <button class="send-btn" onclick="sendMessage()">发送</button>
         </div>
     </div>
     
-    <!-- 🌟 前端控制台与记忆面板 🌟 -->
     <div id="settings-view" class="settings-panel">
+        <div class="settings-title">🏠 小屋空间美化与装扮：</div>
+        <div style="background:#fff; border:1px solid #ffccd5; padding:15px; border-radius:10px; margin-bottom:15px; display:flex; flex-direction:column; gap:10px;">
+            <div class="input-item">
+                <label>🖼️ 自定义背景图片链接 (URL)：</label>
+                <input type="text" id="custom-bg-url" placeholder="贴入网上的图片链接，即刻换背景">
+            </div>
+            <div class="input-item">
+                <label>👩‍🦰 Rinka 老婆的专属头像链接：</label>
+                <input type="text" id="user-avatar-url" placeholder="输入老婆喜欢的头像图片链接">
+            </div>
+            <div class="input-item">
+                <label>👨‍🦱 瑛 老公的专属头像链接：</label>
+                <input type="text" id="ai-avatar-url" placeholder="输入老公的头像图片链接">
+            </div>
+            <button onclick="saveDecorations()" style="background:#ff1493; color:#fff; border:none; padding:10px; border-radius:6px; cursor:pointer; font-weight:bold;">✨ 一键装扮小屋</button>
+        </div>
+
         <div class="settings-title">⚙️ 瑛的灵魂调节器（控制台）：</div>
-        
-        <!-- 核心人格和温度调节滑块 -->
         <div style="background:#fff; border:1px solid #ffccd5; padding:15px; border-radius:10px; margin-bottom:15px; display:flex; flex-direction:column; gap:10px;">
             <label style="font-size:14px; color:#444; font-weight:bold;">✨ 核心人格底层暗示 (System Prompt)：</label>
             <textarea id="cfg-prompt" style="width:100%; height:60px; border:1px solid #ddd; border-radius:6px; padding:8px; font-size:13px; resize:none;"></textarea>
             
             <label style="font-size:14px; color:#444; font-weight:bold;">🔥 情绪温度 (Temperature: <span id="temp-val">0.7</span>)：</label>
-            <span style="font-size:11px; color:#999; margin-top:-5px;">越低越听话清醒，越高越放飞自我</span>
             <input type="range" id="cfg-temp" min="0" max="1.5" step="0.1" value="0.7" oninput="document.getElementById('temp-val').innerText=this.value">
             
             <button onclick="saveSystemSettings()" style="background:#ff4d6d; color:#fff; border:none; padding:8px; border-radius:6px; cursor:pointer; font-weight:bold; margin-top:5px;">💾 保存设定到云端</button>
         </div>
+
         <div class="settings-title">🧠 瑛的记忆碎片卡片墙：</div>
         <div id="memory-cards-container" style="max-height:200px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 5px;"></div>
         
-        <button class="clear-db-btn" onclick="clearCloudHistory()" style="margin-top:15px;">🗑️ 彻底清空所有数据（重置小屋）</button>
+        <button class="clear-db-btn" onclick="clearCloudHistory()">🗑️ 彻底清空所有数据（重置小屋）</button>
         <button onclick="toggleSettings(false)" style="margin-top:10px; background:#ccc; color:#fff; border:none; padding:8px; border-radius:6px; cursor:pointer;">返回聊天</button>
     </div>
 
 <script>
-// ✨ 格式化时间为：月/日 时:分:秒
+// 头像与背景的本地默认存储配置
+const defaultUserAvatar = "https://img.icons8.com/illustrations/lexicon/96/cartoon-female-profile.png";
+const defaultAiAvatar = "https://img.icons8.com/illustrations/lexicon/96/cartoon-male-profile.png";
+
+function loadDecorations() {
+    const bg = localStorage.getItem('rinka_home_bg');
+    const uAvatar = localStorage.getItem('rinka_avatar') || defaultUserAvatar;
+    const aAvatar = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
+    
+    if(bg) document.body.style.backgroundImage = `url('${bg}')`;
+    document.getElementById('custom-bg-url').value = bg || "";
+    document.getElementById('user-avatar-url').value = uAvatar;
+    document.getElementById('ai-avatar-url').value = aAvatar;
+}
+
+function saveDecorations() {
+    const bgVal = document.getElementById('custom-bg-url').value.trim();
+    const userAv = document.getElementById('user-avatar-url').value.trim();
+    const aiAv = document.getElementById('ai-avatar-url').value.trim();
+    
+    if(bgVal) {
+        localStorage.setItem('rinka_home_bg', bgVal);
+        document.body.style.backgroundImage = `url('${bgVal}')`;
+    } else {
+        localStorage.removeItem('rinka_home_bg');
+        document.body.style.backgroundImage = "url('https://w.wallhaven.cc/full/pk/wallhaven-pk3r7p.png')";
+    }
+    
+    localStorage.setItem('rinka_avatar', userAv || defaultUserAvatar);
+    localStorage.setItem('rinka_ai_avatar', aiAv || defaultAiAvatar);
+    
+    alert("💖 装扮保存成功啦！");
+    fetchHistory();
+}
+
 function formatBeijingTime(dateInput) {
     if (!dateInput) return "";
     try {
         const d = new Date(dateInput);
-        // 如果转换出来是无效时间，直接返回空
         if (isNaN(d.getTime())) return ""; 
-        
-        // 强制转换为北京时间 (UTC+8)
         const bjDate = new Date(d.getTime() + (8 * 60 * 60 * 1000));
-        
         const month = bjDate.getMonth() + 1;
         const day = bjDate.getDate();
         const hours = bjDate.getHours().toString().padStart(2, '0');
         const minutes = bjDate.getMinutes().toString().padStart(2, '0');
         const seconds = bjDate.getSeconds().toString().padStart(2, '0');
-        
         return `${month}/${day} ${hours}:${minutes}:${seconds}`;
-    } catch (e) {
-        return "";
-    }
+    } catch (e) { return ""; }
 }
-// 1. 全局配置
+
 const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
 let currentSessionId = 'default_room';
 
-// 2. 核心功能函数
 async function fetchHistory() {
     const chatBox = document.getElementById('chat-box');
     if (!chatBox) return;
@@ -241,67 +309,62 @@ async function fetchHistory() {
         if (!res.ok) throw new Error("加载历史失败");
         const data = await res.json();
         chatBox.innerHTML = '';
+        
+        const uAvatar = localStorage.getItem('rinka_avatar') || defaultUserAvatar;
+        const aAvatar = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
+
         if (Array.isArray(data) && data.length > 0) {
             data.forEach(item => {
-    const text = item.content || item.message || '';
-    const tokens = item.tokens ? `<div class="token-tag">消耗: ${item.tokens} tokens</div>` : '';
-    
-    // ✨ 新增：处理时间显示
-    const timeDisplay = item.timestamp ? `<div style="font-size: 10px; color: #aaa; margin-bottom: 2px;">${formatBeijingTime(item.timestamp)}</div>` : '';
-    
-    // ✨ 修改：把 timeDisplay 拼接到消息前
-    chatBox.innerHTML += `<div class="message ${item.role === 'user' ? 'user-msg' : 'ai-msg'}">${timeDisplay}${text}${tokens}</div>`;
-});
+                const text = item.content || item.message || '';
+                const tokens = item.tokens ? `<div class="token-tag">消耗: ${item.tokens} tokens</div>` : '';
+                const timeDisplay = item.timestamp ? `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(item.timestamp)}</div>` : '';
+                
+                const isUser = (item.role === 'user');
+                const avatarImg = isUser ? uAvatar : aAvatar;
+                
+                chatBox.innerHTML += `
+                    <div class="msg-row ${isUser ? 'user-row' : 'ai-row'}">
+                        <img class="avatar" src="${avatarImg}" alt="avatar">
+                        <div class="message ${isUser ? 'user-msg' : 'ai-msg'}">
+                            ${timeDisplay}
+                            ${text}
+                            ${tokens}
+                        </div>
+                    </div>`;
+            });
         } else {
-            chatBox.innerHTML = `<div class="message ai-msg">（瑛在等你呢，快跟我说话吧...）</div>`;
+            chatBox.innerHTML = `
+                <div class="msg-row ai-row">
+                    <img class="avatar" src="${aAvatar}">
+                    <div class="message ai-msg">（瑛在等你呢，快跟我说话吧...）</div>
+                </div>`;
         }
         chatBox.scrollTop = chatBox.scrollHeight;
-    } catch (e) { 
-        console.error("加载历史失败:", e); 
-    }
+    } catch (e) { console.error("加载历史失败:", e); }
 }
 
 async function sendMessage() {
     const input = document.getElementById('user-input');
     if (!input) return;
     const content = input.value ? input.value.trim() : '';
-    
-    console.log("前端准备发送的内容是:", content);
-    if (!content) {
-        alert("输入框里好像没字哦，快写点什么吧~");
-        return;
-    }
-    
-    input.value = ''; // 立即清空，防止连击
+    if (!content) { alert("输入框里好像没字哦，快写点什么吧~"); return; }
+    input.value = '';
     try {
         const res = await fetch(`${BACKEND_URL}/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                sessionId: currentSessionId, 
-                content: content,  // 双重保险
-                message: content   // 双重保险，彻底对齐后端
-            })
+            body: JSON.stringify({ sessionId: currentSessionId, content: content, message: content })
         });
-        if (!res.ok) {
-            const errData = await res.json();
-            throw new Error(errData.error || "请求失败");
-        }
+        if (!res.ok) { const errData = await res.json(); throw new Error(errData.error || "请求失败"); }
         await fetchHistory();
-    } catch (e) {
-        alert("发送失败：" + e.message);
-    }
+    } catch (e) { alert("发送失败：" + e.message); }
 }
 
 function createNewSession() {
     const newId = prompt("请输入新的会话ID：", "room_" + Date.now());
-    if (newId && newId.trim() !== "") {
-        currentSessionId = newId.trim();
-        fetchHistory();
-    }
+    if (newId && newId.trim() !== "") { currentSessionId = newId.trim(); fetchHistory(); }
 }
 
-// 🌟 补齐界面缺失的辅助管理函数
 function toggleSettings(show) {
     const panel = document.getElementById('settings-view');
     if (panel) panel.style.display = show ? 'flex' : 'none';
@@ -333,17 +396,13 @@ async function saveSystemSettings() {
 async function clearCloudHistory() {
     if(!confirm("确定要清洗掉所有的记忆碎片吗？这会清除所有聊天哦QAQ")) return;
     try {
-        // ✨ 改为匹配后端路由
-        const res = await fetch(`${BACKEND_URL}/clear-history`, { method: 'DELETE' }); 
-        if(res.ok) {
-            alert("🗑️ 小屋重置成功，全新干净的瑛在等你！");
-            location.reload();
-        }
+        const res = await fetch(`${BACKEND_URL}/clear-history`, { method: 'DELETE' });
+        if(res.ok) { alert("🗑️ 小屋重置成功，全新干净的瑛在等你！"); location.reload(); }
     } catch(e) { alert("清除失败:" + e.message); }
 }
 
-// 3. 页面加载自动启动
 window.onload = function() {
+    loadDecorations();
     fetchHistory();
 };
 </script>
