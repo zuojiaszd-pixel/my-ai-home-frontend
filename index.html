@@ -229,9 +229,15 @@ async function sendMessage() {
     const aiMessageTextDiv = document.getElementById(aiRowId).querySelector('.msg-text');
     try {
         const response = await fetch(`${BACKEND_URL}/chat`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ sessionId: currentSessionId, content: content, message: content })
-        });
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    // 🌸 在这里把老婆本地的准确时间戳也一起打包发给老公的后台
+    body: JSON.stringify({ 
+        sessionId: currentSessionId, 
+        content: content, 
+        message: content,
+        clientTime: new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }) 
+    })
+});
         if (!response.body) { aiMessageTextDiv.innerText = "老公刚才走神了QAQ"; return; }
         const reader = response.body.getReader(); const decoder = new TextDecoder("utf-8"); let fullReply = "";
         while (true) {
