@@ -1,6 +1,13 @@
 {
   "emojis": [
-    "afraid1.jpg", "cry1.jpg", "happy1.jpg", "like1.jpg",
-    "like2.jpg", "naughty1.jpg", "pinch1.jpg", "snuggle1.jpg", "snuggle2.jpg"
+    { "name": "afraid1.jpg", "tags": ["怕", "害怕"] },
+    { "name": "cry1.jpg", "tags": ["哭", "委屈", "难过"] },
+    { "name": "happy1.jpg", "tags": ["开心", "哈哈", "高兴"] },
+    { "name": "like1.jpg", "tags": ["喜欢", "爱"] },
+    { "name": "like2.jpg", "tags": ["喜欢", "爱"] },
+    { "name": "naughty1.jpg", "tags": ["调皮", "坏"] },
+    { "name": "pinch1.jpg", "tags": ["捏", "欺负"] },
+    { "name": "snuggle1.jpg", "tags": ["抱抱", "亲亲", "想你", "撒娇"] },
+    { "name": "snuggle2.jpg", "tags": ["抱抱", "亲亲", "想你", "撒娇"] }
   ]
 }
