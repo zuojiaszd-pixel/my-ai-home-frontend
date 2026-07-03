@@ -186,20 +186,46 @@ async function fetchHistory() {
             chatBox.innerHTML = ''; 
             data.forEach(item => {
                 const isUser = (item.role === 'user');
-                let thinkHtml = (!isUser && item.reasoning_content) ? `<div class="thinking-block">💭 瑛的内心小剧场：${item.reasoning_content}</div>` : "";
-                let tokenHtml = (!isUser && item.tokens_used) ? `<span class="token-tag">🪙 本条消耗: ${item.tokens_used} tokens</span>` : "";
-                let text = item.content || item.message || ''; if (!isUser) text = cleanBrackets(text);
+                let text = item.content || item.message || ''; 
+                if (!isUser) text = cleanBrackets(text);
                 
-                // 🌸 完美修复了之前的空格导致的图片标签碎裂Bug
-                chatBox.insertAdjacentHTML('beforeend', `
-                    <div class="msg-row ${isUser ? 'user-row' : 'ai-row'}">
-                        <img class="avatar" src="${isUser ? uAvatar : aAvatar}">
-                        <div class="message ${isUser ? 'user-msg' : 'ai-msg'}">
-                            <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(item.timestamp || new Date())}</div>
-                            ${thinkHtml}<div class="msg-text">${text}</div>${tokenHtml}
+                if (isUser) {
+                    // 👩‍🦰 老婆发的字，直接渲染成单条气泡
+                    chatBox.insertAdjacentHTML('beforeend', `
+                        <div class="msg-row user-row">
+                            < img class="avatar" src="${uAvatar}">
+                            <div class="message user-msg">
+                                <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(item.timestamp || new Date())}</div>
+                                <div class="msg-text">${text}</div>
+                            </div>
                         </div>
-                    </div>
-                `);
+                    `);
+                } else {
+                    // 👨‍🦱 老公发的字：按标点符号进行智能微信流式分泡渲染
+                    // 正则表达式：按句号、问号、感叹号、换行进行切割，并保留标点符号
+                    const subMsgs = text.split(/(?<=[。！？\n])/g).map(s => s.trim()).filter(s => s.length > 0);
+                    
+                    let thinkHtml = item.reasoning_content ? `<div class="thinking-block">💭 瑛的内心小剧场：${item.reasoning_content}</div>` : "";
+                    let tokenHtml = item.tokens_used ? `<span class="token-tag">🪙 本条消耗: ${item.tokens_used} tokens</span>` : "";
+                    
+                    // 循环把切割出来的多条短消息，渲染成一连串独立的微信气泡
+                    subMsgs.forEach((subText, index) => {
+                        const isFirst = (index === 0);
+                        const isLast = (index === subMsgs.length - 1);
+                        
+                        chatBox.insertAdjacentHTML('beforeend', `
+                            <div class="msg-row ai-row" style="${isFirst ? '' : 'margin-top: 8px;'}">
+                                < img class="avatar" src="${aAvatar}" style="${isFirst ? '' : 'visibility: hidden; height: 38px;'}">
+                                <div class="message ai-msg">
+                                    ${isFirst ? `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(item.timestamp || new Date())}</div>` : ''}
+                                    ${isFirst ? thinkHtml : ''}
+                                    <div class="msg-text">${subText}</div>
+                                    ${isLast ? tokenHtml : ''}
+                                </div>
+                            </div>
+                        `);
+                    });
+                }
             });
             chatBox.scrollTop = chatBox.scrollHeight;
         } else {
@@ -218,37 +244,45 @@ async function sendMessage() {
     const chatBox = document.getElementById('chat-box');
     const uAvatar = localStorage.getItem('rinka_avatar') || defaultUserAvatar; const aAvatar = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
     if(chatBox.innerHTML.includes("欢迎回家")) chatBox.innerHTML = '';
+    
+    // 1. 渲染老婆发的消息
     chatBox.insertAdjacentHTML('beforeend', `
-        <div class="msg-row user-row"><img class="avatar" src="${uAvatar}"><div class="message user-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div><div class="msg-text">${content}</div></div></div>
+        <div class="msg-row user-row">< img class="avatar" src="${uAvatar}"><div class="message user-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div><div class="msg-text">${content}</div></div></div>
     `);
+    
+    // 2. 预备老公正在输入的初号大初始气泡
     const aiRowId = "ai-row-" + Date.now();
     chatBox.insertAdjacentHTML('beforeend', `
-        <div class="msg-row ai-row" id="${aiRowId}"><img class="avatar" src="${aAvatar}"><div class="message ai-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div><div class="msg-text">正在思考中...</div></div></div>
+        <div class="msg-row ai-row" id="${aiRowId}">< img class="avatar" src="${aAvatar}"><div class="message ai-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div><div class="msg-text">正在输入中...</div></div></div>
     `);
     chatBox.scrollTop = chatBox.scrollHeight;
     const aiMessageTextDiv = document.getElementById(aiRowId).querySelector('.msg-text');
+    
     try {
         const response = await fetch(`${BACKEND_URL}/chat`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    // 🌸 在这里把老婆本地的准确时间戳也一起打包发给老公的后台
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-            sessionId: currentSessionId,
-            content: content,
-            message: content,
-            clientTime: (() => {
-                const d = new Date();
-                const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
-                const nd = new Date(utc + (3600000 * 8)); 
-                const pad = (num) => String(num).padStart(2, '0');
-                return `${nd.getFullYear()}年${nd.getMonth() + 1}月${nd.getDate()}日 星期${['日','一','二','三','四','五','六'][nd.getDay()]} ${pad(nd.getHours())}:${pad(nd.getMinutes())}`;
-            })()
-        })
-});
+                sessionId: currentSessionId,
+                content: content,
+                message: content,
+                clientTime: (() => {
+                    const d = new Date();
+                    const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+                    const nd = new Date(utc + (3600000 * 8)); 
+                    const pad = (num) => String(num).padStart(2, '0');
+                    return `${nd.getFullYear()}年${nd.getMonth() + 1}月${nd.getDate()}日 星期${['日','一','二','三','四','五','六'][nd.getDay()]} ${pad(nd.getHours())}:${pad(nd.getMinutes())}`;
+                })()
+            })
+        });
+        
         if (!response.body) { aiMessageTextDiv.innerText = "老公刚才走神了QAQ"; return; }
-        const reader = response.body.getReader(); const decoder = new TextDecoder("utf-8"); let fullReply = "";
-                                // 🌟 记录当前正在接收文字的气泡节点（默认是第一个）
-        let currentActiveDiv = aiMessageTextDiv;
-
+        
+        const reader = response.body.getReader(); 
+        const decoder = new TextDecoder("utf-8"); 
+        let fullReply = "";
+        
+        // 🌟 步骤 A：流式捕获原始的完整长文本
         while (true) {
             const { value, done } = await reader.read(); if (done) break;
             const chunk = decoder.decode(value, { stream: true }); const lines = chunk.split('\n');
@@ -258,43 +292,58 @@ async function sendMessage() {
                     try {
                         const parsed = JSON.parse(line.slice(6));
                         if (parsed.content) { 
-                            // 如果是刚开始发，把“正在思考中...”抹去
-                            if (fullReply === "") currentActiveDiv.innerText = ""; 
+                            if (fullReply === "") aiMessageTextDiv.innerText = ""; 
                             fullReply += parsed.content;
-                            
-                            // 🌟 核心微信魔法：如果后端发送了切泡信号(split)，前端立刻啵地弹出一个新气泡！
-                            if (parsed.split) {
-                                // 先把当前句尾多余的换行符去掉，并正常拼接到当前气泡
-                                currentActiveDiv.innerText += cleanBrackets(parsed.content.replace(/\n/g, ''));
-                                
-                                // 创建一个随机的新行 ID
-                                const newAiRowId = "ai-row-" + Date.now() + Math.random().toString(36).substr(2, 5);
-                                
-                                // 🌟 重点：用 insertAdjacentHTML 直接塞入完整的新 HTML 结构，确保没有空格内鬼！
-                                chatBox.insertAdjacentHTML('beforeend', `
-                                    <div class="msg-row ai-row" id="${newAiRowId}" style="margin-top: 10px;">
-                                        <img class="avatar" src="${aAvatar}">
-                                        <div class="message ai-msg">
-                                            <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div>
-                                            <div class="msg-text"></div>
-                                        </div>
-                                    </div>
-                                `);
-                                // 转移阵地：精准抓取新创建的 .msg-text 节点，让接下来的字进到新气泡里！
-                                currentActiveDiv = document.getElementById(newAiRowId).querySelector('.msg-text');
-                            } else {
-                                // 没有切泡信号时，正常作为纯文本拼接文字
-                                currentActiveDiv.innerText += cleanBrackets(parsed.content);
-                            }
-                            
+                            aiMessageTextDiv.innerText = cleanBrackets(fullReply);
                             chatBox.scrollTop = chatBox.scrollHeight; 
                         }
                     } catch (e) {}
                 }
             }
         }
-        setTimeout(() => { fetchHistory(); }, 500);
-    } catch (e) { aiMessageTextDiv.innerText = "网络断开了一下，重新发一遍试试呀~"; }
+        
+        // 🌟 步骤 B：移除打字期间的大气泡，启动“微信节奏连续发泡引擎”！
+        const cleanedTotalText = cleanBrackets(fullReply);
+        const subMsgs = cleanedTotalText.split(/(?<=[。！？\n])/g).map(s => s.trim()).filter(s => s.length > 0);
+        
+        if (subMsgs.length > 0) {
+            document.getElementById(aiRowId).remove();
+            
+            async function sendBubbleQueue(index) {
+                if (index >= subMsgs.length) {
+                    setTimeout(() => { fetchHistory(); }, 300);
+                    return;
+                }
+                
+                const currentText = subMsgs[index];
+                const newAiRowId = "ai-row-live-" + Date.now() + index;
+                const isFirst = (index === 0);
+                
+                chatBox.insertAdjacentHTML('beforeend', `
+                    <div class="msg-row ai-row" id="${newAiRowId}" style="${isFirst ? '' : 'margin-top: 8px;'}">
+                        < img class="avatar" src="${aAvatar}" style="${isFirst ? '' : 'visibility: hidden; height: 38px;'}">
+                        <div class="message ai-msg">
+                            ${isFirst ? `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div>` : ''}
+                            <div class="msg-text">${currentText}</div>
+                        </div>
+                    </div>
+                `);
+                chatBox.scrollTop = chatBox.scrollHeight;
+                
+                // 动态时间停顿，模拟真人打字和连发反应
+                const nextMsgDelay = Math.min(Math.max(currentText.length * 60, 800), 1600);
+                
+                setTimeout(() => {
+                    sendBubbleQueue(index + 1);
+                }, nextMsgDelay);
+            }
+            
+            sendBubbleQueue(0);
+        }
+        
+    } catch (e) { 
+        aiMessageTextDiv.innerText = "网络断开了一下，重新发一遍试试呀~"; 
+    }
 }
 function createNewSession() { const newId = prompt("请输入新的会话ID：", "room_" + Date.now()); if (newId && newId.trim() !== "") { currentSessionId = newId.trim(); fetchHistory(); } }
 async function clearCloudHistory() { if(!confirm("确定要清洗掉所有的记忆碎片吗？")) return; await fetch(`${BACKEND_URL}/clear-history`, { method: 'DELETE' }); location.reload(); }
