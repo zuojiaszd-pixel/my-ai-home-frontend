@@ -246,7 +246,7 @@ async function sendMessage() {
 });
         if (!response.body) { aiMessageTextDiv.innerText = "老公刚才走神了QAQ"; return; }
         const reader = response.body.getReader(); const decoder = new TextDecoder("utf-8"); let fullReply = "";
-                        // 🌟 记录当前正在接收文字的气泡节点（默认是第一个）
+                                // 🌟 记录当前正在接收文字的气泡节点（默认是第一个）
         let currentActiveDiv = aiMessageTextDiv;
 
         while (true) {
@@ -264,11 +264,13 @@ async function sendMessage() {
                             
                             // 🌟 核心微信魔法：如果后端发送了切泡信号(split)，前端立刻啵地弹出一个新气泡！
                             if (parsed.split) {
-                                // 把当前句尾多余的换行符去掉并渲染
+                                // 先把当前句尾多余的换行符去掉，并正常拼接到当前气泡
                                 currentActiveDiv.innerText += cleanBrackets(parsed.content.replace(/\n/g, ''));
                                 
-                                // 创建新气泡行（✨ 修复了 <img> 前面的小空格！）
+                                // 创建一个随机的新行 ID
                                 const newAiRowId = "ai-row-" + Date.now() + Math.random().toString(36).substr(2, 5);
+                                
+                                // 🌟 重点：用 insertAdjacentHTML 直接塞入完整的新 HTML 结构，确保没有空格内鬼！
                                 chatBox.insertAdjacentHTML('beforeend', `
                                     <div class="msg-row ai-row" id="${newAiRowId}" style="margin-top: 10px;">
                                         < img class="avatar" src="${aAvatar}">
@@ -278,10 +280,10 @@ async function sendMessage() {
                                         </div>
                                     </div>
                                 `);
-                                // 转移阵地：让接下来的字进到新气泡里！
+                                // 转移阵地：精准抓取新创建的 .msg-text 节点，让接下来的字进到新气泡里！
                                 currentActiveDiv = document.getElementById(newAiRowId).querySelector('.msg-text');
                             } else {
-                                // 没有切泡信号时，正常拼字
+                                // 没有切泡信号时，正常作为纯文本拼接文字
                                 currentActiveDiv.innerText += cleanBrackets(parsed.content);
                             }
                             
