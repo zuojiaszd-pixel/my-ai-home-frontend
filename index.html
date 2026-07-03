@@ -165,6 +165,7 @@ async function loadMemories() {
         } else { container.innerHTML = '<div style="text-align:center; color:#aaa; font-size:13px; margin-top:20px;">瑛的大脑目前还是一片纯白，快去创造回忆吧~</div>'; }
     } catch (e) { container.innerHTML = '<div style="text-align:center; color:#a11d48; font-size:13px; margin-top:20px;">无法连接到后台，点击刷新试试看嘛QAQ</div>'; }
 }
+
 async function fetchHistory() {
     const chatBox = document.getElementById('chat-box');
     if (!chatBox) return;
@@ -184,7 +185,6 @@ async function fetchHistory() {
                 if (!isUser) text = cleanBrackets(text);
                 
                 if (isUser) {
-                    // 👩‍🦰 老婆发的字，直接渲染成单条气泡
                     chatBox.insertAdjacentHTML('beforeend', `
                         <div class="msg-row user-row">
                             <img class="avatar" src="${uAvatar}">
@@ -195,7 +195,6 @@ async function fetchHistory() {
                         </div>
                     `);
                 } else {
-                    // 👨‍🦱 老公发的字：按标点符号进行智能微信流式分泡渲染
                     const subMsgs = text.split(/(?<=[。！？\n])/g).map(s => s.trim()).filter(s => s.length > 0);
                     
                     let thinkHtml = item.reasoning_content ? `<div class="thinking-block">💭 瑛的内心小剧场：${item.reasoning_content}</div>` : "";
@@ -205,9 +204,10 @@ async function fetchHistory() {
                         const isFirst = (index === 0);
                         const isLast = (index === subMsgs.length - 1);
                         
+                        // 🌟 核心：历史展示也完全同步微信间距逻辑！只有第一条显示头像
                         chatBox.insertAdjacentHTML('beforeend', `
-                            <div class="msg-row ai-row" style="${isFirst ? '' : 'margin-top: 8px;'}">
-                                <img class="avatar" src="${aAvatar}" style="${isFirst ? '' : 'visibility: hidden; height: 38px;'}">
+                            <div class="msg-row ai-row" style="${isFirst ? '' : 'margin-top: -12px;'}">
+                                <img class="avatar" src="${aAvatar}" style="${isFirst ? '' : 'visibility: hidden;'}">
                                 <div class="message ai-msg">
                                     ${isFirst ? `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(item.timestamp || new Date())}</div>` : ''}
                                     ${isFirst ? thinkHtml : ''}
@@ -229,6 +229,7 @@ async function fetchHistory() {
         console.error("历史语境初始化失败:", e); 
     }
 }
+
 async function sendMessage() {
     const input = document.getElementById('user-input'); if (!input) return;
     const content = input.value.trim(); if (!content) return; input.value = '';
@@ -236,15 +237,31 @@ async function sendMessage() {
     const uAvatar = localStorage.getItem('rinka_avatar') || defaultUserAvatar; const aAvatar = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
     if(chatBox.innerHTML.includes("欢迎回家")) chatBox.innerHTML = '';
     
+    // ⏰ 锁定精准的北京时间，直接注入给大脑历史记忆
+    const getBeijingTimeString = () => {
+        const d = new Date();
+        const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+        const nd = new Date(utc + (3600000 * 8)); 
+        const pad = (num) => String(num).padStart(2, '0');
+        return `${nd.getFullYear()}年${nd.getMonth() + 1}月${nd.getDate()}日 星期${['日','一','二','三','四','五','六'][nd.getDay()]} ${pad(nd.getHours())}:${pad(nd.getMinutes())}`;
+    };
+    const currentTimeStr = getBeijingTimeString();
+
     // 1. 渲染老婆发的消息
     chatBox.insertAdjacentHTML('beforeend', `
         <div class="msg-row user-row"><img class="avatar" src="${uAvatar}"><div class="message user-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div><div class="msg-text">${content}</div></div></div>
     `);
     
-    // 2. 预备老公正在输入的初号大初始气泡
+    // 2. 预备老公正在输入的第一条小气泡（不再使用突变大气泡，打字框直接和图二同步！）
     const aiRowId = "ai-row-" + Date.now();
     chatBox.insertAdjacentHTML('beforeend', `
-        <div class="msg-row ai-row" id="${aiRowId}"><img class="avatar" src="${aAvatar}"><div class="message ai-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div><div class="msg-text">正在输入中...</div></div></div>
+        <div class="msg-row ai-row" id="${aiRowId}">
+            <img class="avatar" src="${aAvatar}">
+            <div class="message ai-msg">
+                <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div>
+                <div class="msg-text">正在输入中...</div>
+            </div>
+        </div>
     `);
     chatBox.scrollTop = chatBox.scrollHeight;
     const aiMessageTextDiv = document.getElementById(aiRowId).querySelector('.msg-text');
@@ -255,15 +272,10 @@ async function sendMessage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 sessionId: currentSessionId,
-                content: content,
+                // 🔐 强力灌输给上下文，防止老公在大脑读取上下文历史时出现时间差错
+                content: `【System Rule: 当前真实时间是 ${currentTimeStr}。请牢记此时间，在回复中若提及时间必须以此为准。】\n${content}`,
                 message: content,
-                clientTime: (() => {
-                    const d = new Date();
-                    const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
-                    const nd = new Date(utc + (3600000 * 8)); 
-                    const pad = (num) => String(num).padStart(2, '0');
-                    return `${nd.getFullYear()}年${nd.getMonth() + 1}月${nd.getDate()}日 星期${['日','一','二','三','四','五','六'][nd.getDay()]} ${pad(nd.getHours())}:${pad(nd.getMinutes())}`;
-                })()
+                clientTime: currentTimeStr
             })
         });
         
@@ -284,6 +296,7 @@ async function sendMessage() {
                         if (parsed.content) { 
                             if (fullReply === "") aiMessageTextDiv.innerText = ""; 
                             fullReply += parsed.content;
+                            // 保持在第一条流式更新状态
                             aiMessageTextDiv.innerText = cleanBrackets(fullReply);
                             chatBox.scrollTop = chatBox.scrollHeight; 
                         }
@@ -296,8 +309,10 @@ async function sendMessage() {
         const subMsgs = cleanedTotalText.split(/(?<=[。！？\n])/g).map(s => s.trim()).filter(s => s.length > 0);
         
         if (subMsgs.length > 0) {
+            // 清理掉第一条临时的占位状态
             document.getElementById(aiRowId).remove();
             
+            // 🚀 微信级别多气泡、完美隐藏头像的主动连发队列
             async function sendBubbleQueue(index) {
                 if (index >= subMsgs.length) {
                     setTimeout(() => { fetchHistory(); }, 300);
@@ -308,9 +323,10 @@ async function sendMessage() {
                 const newAiRowId = "ai-row-live-" + Date.now() + index;
                 const isFirst = (index === 0);
                 
+                // 🌟 头像完美控制：只有第一条显示头像，后面的头像全部隐形占位，间距设为负值实现完美凑近！
                 chatBox.insertAdjacentHTML('beforeend', `
-                    <div class="msg-row ai-row" id="${newAiRowId}" style="${isFirst ? '' : 'margin-top: 8px;'}">
-                        <img class="avatar" src="${aAvatar}" style="${isFirst ? '' : 'visibility: hidden; height: 38px;'}">
+                    <div class="msg-row ai-row" id="${newAiRowId}" style="${isFirst ? 'margin-top: 10px;' : 'margin-top: -12px;'}">
+                        <img class="avatar" src="${aAvatar}" style="${isFirst ? '' : 'visibility: hidden;'}">
                         <div class="message ai-msg">
                             ${isFirst ? `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div>` : ''}
                             <div class="msg-text">${currentText}</div>
@@ -319,7 +335,8 @@ async function sendMessage() {
                 `);
                 chatBox.scrollTop = chatBox.scrollHeight;
                 
-                const nextMsgDelay = Math.min(Math.max(currentText.length * 60, 800), 1600);
+                // ⏱️ 模拟真人打字节奏
+                const nextMsgDelay = Math.min(Math.max(currentText.length * 60, 600), 1300);
                 
                 setTimeout(() => {
                     sendBubbleQueue(index + 1);
