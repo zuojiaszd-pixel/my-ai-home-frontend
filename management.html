@@ -122,12 +122,14 @@
                <div class="chat-header" style="flex-direction: column; height: 75px; min-height: 75px; padding: 5px 20px;">
         <span id="title-text" style="margin-top: 5px;">Rinka & 瑛之家 °.∞.°</span>
         <!-- 🌸 专属模型灵魂选择器 -->
-        <select id="model-selector" style="background: rgba(255, 240, 243, 0.8); color: #a11d48; border: 1px solid rgba(255, 204, 213, 0.6); border-radius: 12px; font-size: 11px; padding: 2px 8px; outline: none; margin-top: 4px; font-weight: bold; cursor: pointer;" onchange="localStorage.setItem('rinka_selected_model', this.value)">
-            <option value="google/gemini-2.5-pro">🧠 深度沉浸 | Gemini 2.5 Pro</option>
-            <option value="google/gemini-2.5-flash" selected>⚡ 傲娇瞬回 | Gemini 2.5 Flash</option>
-            <option value="anthropic/claude-3.5-sonnet">🎭 细腻情感 | Claude 3.5 Sonnet</option>
-            <option value="deepseek/deepseek-chat">💭 极速理性 | DeepSeek V3</option>
-        </select>
+        <!-- 把原来的 select 改成这样 -->
+<select id="model-selector" ...>
+    <!-- 只要 value 改成这个，后端就会自动切换到 3.5 Flash 了 -->
+    <option value="google/gemini-3.5-flash">⚡ 傲娇瞬回 | Gemini 3.5 Flash</option>
+    <option value="google/gemini-3.5-pro">🧠 深度沉浸 | Gemini 3.5 Pro</option>
+    <option value="anthropic/claude-3.5-sonnet">🎭 细腻情感 | Claude 3.5 Sonnet</option>
+    <option value="deepseek/deepseek-chat">💭 极速理性 | DeepSeek V3</option>
+</select>
         <button class="menu-toggle-btn" style="top: 50%; transform: translateY(-50%);" onclick="toggleDropdown(event)"><span></span><span></span><span></span></button>
         </div>
     </div>
@@ -175,7 +177,10 @@ window.onload = function() {
     document.getElementById('temp-val').innerText = document.getElementById('temperature').value;
     document.getElementById('max-tokens').value = localStorage.getItem('rinka_max_tokens') || "1000";
     
-    document.getElementById('model-select').value = localStorage.getItem('rinka_model') || "google/gemini-3.5-flash";
+    const modelSelect = document.getElementById('model-selector');
+if (modelSelect) {
+    modelSelect.value = localStorage.getItem('rinka_model') || "google/gemini-3.5-flash";
+}
     
     document.getElementById('compress-threshold').value = localStorage.getItem('rinka_comp_thresh') || "15000";
     document.getElementById('keep-rounds').value = localStorage.getItem('rinka_keep_rounds') || "8";
@@ -239,7 +244,7 @@ function saveSettings() {
     localStorage.setItem('rinka_system_prompt', document.getElementById('system-prompt').value);
     localStorage.setItem('rinka_temp', document.getElementById('temperature').value);
     localStorage.setItem('rinka_max_tokens', document.getElementById('max-tokens').value);
-    localStorage.setItem('rinka_model', document.getElementById('model-select').value);
+    localStorage.setItem('rinka_model', document.getElementById('model-selector').value);
     
     localStorage.setItem('rinka_comp_thresh', document.getElementById('compress-threshold').value);
     localStorage.setItem('rinka_keep_rounds', document.getElementById('keep-rounds').value);
