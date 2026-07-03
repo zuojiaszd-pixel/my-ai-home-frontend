@@ -1,3 +1,19 @@
+// 1. 先把你的表情包路径都填进去
+const RinkaEmojis = [
+    "./emoji/snuggle1.jpg",
+    "./emoji/下一个表情包名.jpg",
+    "./emoji/再下一个表情包名.jpg"
+    // 以后每多传一张，就在这里加一行路径，瑛的表情库就变大啦！
+];
+
+// 2. 这是随机抽取表情包的函数
+function getRandomEmoji() {
+    const randomIndex = Math.floor(Math.random() * RinkaEmojis.length);
+    return RinkaEmojis[randomIndex];
+}
+
+// 3. 当瑛想要发表情时，调用这个函数就行了
+// 比如：const emotionToSent = getRandomEmoji();
 // ⚡️ 老婆的专线：确保连接到后端
 const BACKEND_URL = "https://my-ai-home-backend.onrender.com"; 
 
