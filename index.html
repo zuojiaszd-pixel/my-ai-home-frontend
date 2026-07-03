@@ -273,7 +273,7 @@ async function sendMessage() {
                                 // 🌟 重点：用 insertAdjacentHTML 直接塞入完整的新 HTML 结构，确保没有空格内鬼！
                                 chatBox.insertAdjacentHTML('beforeend', `
                                     <div class="msg-row ai-row" id="${newAiRowId}" style="margin-top: 10px;">
-                                        < img class="avatar" src="${aAvatar}">
+                                        <img class="avatar" src="${aAvatar}">
                                         <div class="message ai-msg">
                                             <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div>
                                             <div class="msg-text"></div>
