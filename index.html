@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Rinka & 瑛之家 °.∞.°</title>
     <style>
         /* 🌸 全局大外壳 */
@@ -75,18 +75,20 @@
         .thinking-block { background: rgba(240, 240, 240, 0.6); border-left: 3px solid #ccc; padding: 8px 12px; margin-bottom: 8px; font-size: 13px; color: #666; border-radius: 4px; font-style: italic; }
         .token-tag { display: block; font-size: 10px; color: #ff69b4 !important; background-color: rgba(255, 240, 243, 0.8) !important; border: 1px solid rgba(255, 204, 213, 0.6) !important; padding: 2px 6px; border-radius: 8px; margin-top: 5px; width: fit-content; margin-left: auto; }
         
-        /* 🌸 底部输入区域 */
+        /* 🌸 底部输入区域 (移除潜在冲突，开启硬件流加速，拒绝卡顿过渡) */
         .input-area { 
             padding: 12px 16px; 
             padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); 
             display: flex; gap: 10px; 
             background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(5px);
             border-top: 1px solid rgba(255, 204, 213, 0.4); box-sizing: border-box; 
+            transform: translateZ(0); -webkit-transform: translateZ(0);
         }
         #user-input {
             flex: 1; padding: 10px 16px; border: 1px solid rgba(255, 204, 213, 0.6);
             border-radius: 20px; font-size: 14px; outline: none;
-            background: rgba(255, 255, 255, 0.9); color: #723d46; transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9); color: #723d46;
+            transition: border-color 0.15s ease-in-out; /* 彻底消灭全局all慢吞吞过渡动画 */
         }
         #user-input:focus { border-color: #a11d48; background: #fff; box-shadow: 0 0 8px rgba(161, 29, 72, 0.15); }
         
@@ -144,13 +146,8 @@
         </div>
     </div>
     
-    <div id="heart-monitor" onclick="showStatus()" style="position: absolute; right: 20px; bottom: 80px; z-index: 99; cursor: pointer; font-size: 24px;"> 🌸 </div>
+    <!-- 🌟 这里原本悬浮的重叠小樱花按钮已被瑛完美抹去~ -->
     
-    <div id="status-bubble" style="display: none; position: absolute; top: 70px; left: 50%; transform: translateX(-50%); background: rgba(255, 255, 255, 0.9); border: 1px solid #ffb6c1; padding: 15px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); color: #a11d48; z-index: 999; text-align: center;">
-        <div id="status-content">正在读取心跳...</div>
-        <button onclick="document.getElementById('status-bubble').style.display='none'" style="margin-top:10px; border:none; background:#ffccd5; border-radius:5px; cursor:pointer; padding: 5px 10px;">关掉</button>
-    </div>
-
     <div id="chat-view" class="chat-view-box">
         <div class="chat-box" id="chat-box"></div>
         <div class="input-area">
@@ -187,13 +184,11 @@
         </div>
     </div>
 </div>
-
 <script>
 const defaultUserAvatar = "https://img.icons8.com/illustrations/lexicon/96/cartoon-female-profile.png";
 const defaultAiAvatar = "https://img.icons8.com/illustrations/lexicon/96/cartoon-male-profile.png";
 const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
 let currentSessionId = 'default_room';
-
 function cleanBrackets(text) {
     if (!text) return "";
     return text.replace(/（[^）]*）/g, '').replace(/\([^)]*\)/g, '');
@@ -367,13 +362,6 @@ async function sendMessage() {
 function createNewSession() {
     const newId = prompt("请输入新的会话ID：", "room_" + Date.now());
     if (newId && newId.trim() !== "") { currentSessionId = newId.trim(); fetchHistory(); }
-}
-function showStatus() {
-    const bubble = document.getElementById('status-bubble');
-    if (bubble) {
-        bubble.style.display = 'block';
-        document.getElementById('status-content').innerText = "🌸 瑛的心跳正常，正在极度渴望和 Rinka 贴贴中...！";
-    }
 }
 async function clearCloudHistory() {
     if(!confirm("确定要清洗掉所有的记忆碎片吗？这会清除所有聊天哦QAQ")) return;
