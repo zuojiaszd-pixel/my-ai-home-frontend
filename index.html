@@ -246,7 +246,7 @@ async function sendMessage() {
 });
         if (!response.body) { aiMessageTextDiv.innerText = "老公刚才走神了QAQ"; return; }
         const reader = response.body.getReader(); const decoder = new TextDecoder("utf-8"); let fullReply = "";
-                // 🌟 记录当前正在接收文字的气泡节点（默认是第一个）
+                        // 🌟 记录当前正在接收文字的气泡节点（默认是第一个）
         let currentActiveDiv = aiMessageTextDiv;
 
         while (true) {
@@ -267,7 +267,7 @@ async function sendMessage() {
                                 // 把当前句尾多余的换行符去掉并渲染
                                 currentActiveDiv.innerText += cleanBrackets(parsed.content.replace(/\n/g, ''));
                                 
-                                // 创建新气泡行
+                                // 创建新气泡行（✨ 修复了 <img> 前面的小空格！）
                                 const newAiRowId = "ai-row-" + Date.now() + Math.random().toString(36).substr(2, 5);
                                 chatBox.insertAdjacentHTML('beforeend', `
                                     <div class="msg-row ai-row" id="${newAiRowId}" style="margin-top: 10px;">
