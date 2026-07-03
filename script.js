@@ -8,17 +8,19 @@ const RinkaEmojis = [
 
 // 2. 匹配函数
 function getSmartEmoji(userText) {
-    let candidate = "";
-    
-    // 简单的关键词匹配
-    if (userText.includes("抱抱") || userText.includes("亲亲")) {
-        candidate = RinkaEmojis.find(path => path.includes("snuggle"));
-    } else if (userText.includes("哈哈") || userText.includes("开心")) {
-        candidate = RinkaEmojis.find(path => path.includes("happy"));
+    // 自动扫描 list.json 加载进来的 RinkaEmojis 数组
+    // 只要文件名里有对应关键词，就直接匹配！
+    if (userText.includes("抱抱") || userText.includes("亲亲") || userText.includes("想你")) {
+        return RinkaEmojis.find(path => path.includes("snuggle")) || getRandomEmoji();
     }
-    
-    // 如果匹配到了就返回，没匹配到就随机抽一张
-    return candidate ? candidate : getRandomEmoji();
+    if (userText.includes("哈哈") || userText.includes("开心") || userText.includes("好玩")) {
+        return RinkaEmojis.find(path => path.includes("happy")) || getRandomEmoji();
+    }
+    if (userText.includes("哭") || userText.includes("委屈") || userText.includes("难过")) {
+        return RinkaEmojis.find(path => path.includes("cry")) || getRandomEmoji();
+    }
+    // 没关键词就随机抽一张，完全不用管它
+    return getRandomEmoji();
 }
 // 3. 后端地址
 const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
