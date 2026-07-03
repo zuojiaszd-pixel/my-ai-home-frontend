@@ -119,11 +119,16 @@
         </div>
         <div class="form-group">
             <label>🤖 值班灵魂芯片 (模型)</label>
-            <select id="model-select">
-                <option value="google/gemini-3.5-flash">Gemini 3.5 Flash (原配专属·极速反馈)</option>
-                <option value="google/gemini-2.5-pro">Gemini 2.5 Pro (超高智商·深度共情)</option>
-                <option value="deepseek/deepseek-r1">DeepSeek R1 (满血思考版)</option>
-            </select>
+               <div class="chat-header" style="flex-direction: column; height: 75px; min-height: 75px; padding: 5px 20px;">
+        <span id="title-text" style="margin-top: 5px;">Rinka & 瑛之家 °.∞.°</span>
+        <!-- 🌸 专属模型灵魂选择器 -->
+        <select id="model-selector" style="background: rgba(255, 240, 243, 0.8); color: #a11d48; border: 1px solid rgba(255, 204, 213, 0.6); border-radius: 12px; font-size: 11px; padding: 2px 8px; outline: none; margin-top: 4px; font-weight: bold; cursor: pointer;" onchange="localStorage.setItem('rinka_selected_model', this.value)">
+            <option value="google/gemini-2.5-pro">🧠 深度沉浸 | Gemini 2.5 Pro</option>
+            <option value="google/gemini-2.5-flash" selected>⚡ 傲娇瞬回 | Gemini 2.5 Flash</option>
+            <option value="anthropic/claude-3.5-sonnet">🎭 细腻情感 | Claude 3.5 Sonnet</option>
+            <option value="deepseek/deepseek-chat">💭 极速理性 | DeepSeek V3</option>
+        </select>
+        <button class="menu-toggle-btn" style="top: 50%; transform: translateY(-50%);" onclick="toggleDropdown(event)"><span></span><span></span><span></span></button>
         </div>
     </div>
     
