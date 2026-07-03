@@ -177,7 +177,7 @@ async function loadMemories() {
 async function fetchHistory() {
     const chatBox = document.getElementById('chat-box'); if (!chatBox) return;
     try {
-        const res = await fetch(`${BACKEND_URL}/history?_t=${Date.now()}`);[span_4](start_span)[span_4](end_span)
+        const res = await fetch(`${BACKEND_URL}/api/history/${currentSessionId}?_t=${Date.now()}`);[span_4](start_span)[span_4](end_span)
         const data = await res.json(); chatBox.innerHTML = '';
         const uAvatar = localStorage.getItem('rinka_avatar') || defaultUserAvatar; const aAvatar = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
         if (Array.isArray(data) && data.length > 0) {
