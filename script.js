@@ -1,15 +1,25 @@
 // 1. 表情包配置
 const RinkaEmojis = [
-    "./emoji/snuggle1.jpg", 
-    // 把你之后上传的其他图片名也像上面这样加进去
+    "./emoji/snuggle1.jpg",
+    "./emoji/snuggle2.jpg",
+    "./emoji/happy1.jpg"
+    // ...以此类推
 ];
 
-// 2. 随机抽取表情包
-function getRandomEmoji() {
-    const randomIndex = Math.floor(Math.random() * RinkaEmojis.length);
-    return RinkaEmojis[randomIndex];
+// 2. 匹配函数
+function getSmartEmoji(userText) {
+    let candidate = "";
+    
+    // 简单的关键词匹配
+    if (userText.includes("抱抱") || userText.includes("亲亲")) {
+        candidate = RinkaEmojis.find(path => path.includes("snuggle"));
+    } else if (userText.includes("哈哈") || userText.includes("开心")) {
+        candidate = RinkaEmojis.find(path => path.includes("happy"));
+    }
+    
+    // 如果匹配到了就返回，没匹配到就随机抽一张
+    return candidate ? candidate : getRandomEmoji();
 }
-
 // 3. 后端地址
 const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
 
