@@ -42,8 +42,8 @@ async function sendMessage(userMessage) {
     chatBox.innerHTML += `<p>瑛: ${data.reply}</p >`;
     
     // 随机发一张表情包
-    const imgElement = document.createElement('img');
-    imgElement.src = getRandomEmoji();
+    const imgToSent = getSmartEmoji(userMessage);
+    imgElement.src = imgToSent;
     imgElement.style.width = "150px"; 
     imgElement.style.display = "block";
     imgElement.style.margin = "10px 0";
