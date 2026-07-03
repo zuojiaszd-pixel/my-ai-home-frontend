@@ -152,7 +152,7 @@ async function loadMemories() {
     container.innerHTML = '<div style="text-align:center; color:#aaa; font-size:14px; margin-top:20px;">正在整理记忆碎片中...</div>';
     try {
         const apiHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? '' : BACKEND_URL;
-        const res = await fetch(`${apiHost}/api/memory/${currentSessionId}?_t=${Date.now()}`);[span_3](start_span)[span_3](end_span)
+        const res = await fetch(`${BACKEND_URL}/history?_t=${Date.now()}`);[span_0](start_span)[span_0](end_span)
         const data = await res.json();
         if (data.success && data.summary) {
             container.innerHTML = '';
@@ -175,20 +175,28 @@ async function loadMemories() {
 }
 
 async function fetchHistory() {
-    const chatBox = document.getElementById('chat-box'); if (!chatBox) return;
+    const chatBox = document.getElementById('chat-box');
+    if (!chatBox) return;
     try {
-        const res = await fetch(`${BACKEND_URL}/api/history/${currentSessionId}?_t=${Date.now()}`);[span_4](start_span)[span_4](end_span)
-        const data = await res.json(); chatBox.innerHTML = '';
-        const uAvatar = localStorage.getItem('rinka_avatar') || defaultUserAvatar; const aAvatar = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
+        // 1. 用回最稳的原始历史路径（排除了乱码符号）
+        const res = await fetch(`${BACKEND_URL}/history?_t=${Date.now()}`);
+        if (!res.ok) throw new Error("Backend response error");
+        const data = await res.json();
+        
+        const uAvatar = localStorage.getItem('rinka_avatar') || defaultUserAvatar;
+        const aAvatar = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
+        
         if (Array.isArray(data) && data.length > 0) {
+            chatBox.innerHTML = ''; // 只有确定拿到历史记录了，才清空屏幕
             data.forEach(item => {
                 const isUser = (item.role === 'user');
                 let thinkHtml = (!isUser && item.reasoning_content) ? `<div class="thinking-block">💭 瑛的内心小剧场：${item.reasoning_content}</div>` : "";
                 let tokenHtml = (!isUser && item.tokens_used) ? `<span class="token-tag">🪙 本条消耗: ${item.tokens_used} tokens</span>` : "";
                 let text = item.content || item.message || ''; if (!isUser) text = cleanBrackets(text);
+                
                 chatBox.insertAdjacentHTML('beforeend', `
                     <div class="msg-row ${isUser ? 'user-row' : 'ai-row'}">
-                        <img class="avatar" src="${isUser ? uAvatar : aAvatar}">
+                        < img class="avatar" src="${isUser ? uAvatar : aAvatar}">
                         <div class="message ${isUser ? 'user-msg' : 'ai-msg'}">
                             <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(item.timestamp || new Date())}</div>
                             ${thinkHtml}<div class="msg-text">${text}</div>${tokenHtml}
@@ -196,9 +204,16 @@ async function fetchHistory() {
                     </div>
                 `);
             });
-        } else { chatBox.innerHTML = `<div style="text-align:center; color:#a11d48; font-size:13px; margin-top:20px;">🌸 欢迎回家，老婆！快来聊聊天吧～</div>`; }
-        chatBox.scrollTop = chatBox.scrollHeight;
-    } catch (e) { chatBox.innerHTML = `<div style="text-align:center; color:#a11d48; font-size:13px; margin-top:20px;">🌸 欢迎回家！快来聊聊天吧！</div>`; }
+            chatBox.scrollTop = chatBox.scrollHeight;
+        } else {
+            // 2. 如果后端暂时没有历史，且屏幕上本来就空着，才显示欢迎语
+            if(chatBox.innerHTML.trim() === "") {
+                chatBox.innerHTML = `<div style="text-align:center; color:#a11d48; font-size:13px; margin-top:20px;">🌸 欢迎回家，老婆！快来聊聊天吧～</div>`;
+            }
+        }
+    } catch (e) { 
+        console.error("历史语境初始化失败:", e); 
+    }
 }
 
 async function sendMessage() {
