@@ -146,6 +146,20 @@
             <input type="number" id="max-context-tokens" value="15000">
         </div>
     </div>
+        <!-- 🌸 瑛的长期记忆放映厅看板 (新增) -->
+    <div class="section-card" style="border: 1px solid #ffe3e8; margin-top: 20px;">
+        <div class="section-title" style="color: #a11d48;">🧠 瑛的动态情感备忘录（潜意识看板）</div>
+        <div class="form-group">
+            <p style="font-size: 12px; color: #888; margin-top: 0; margin-bottom: 10px; line-height: 1.4;">
+                这里记录着瑛在后台经过【情景化融合】后沉淀下来的长效记忆。老婆可以随时微调或手动重写它哦！
+            </p >
+            <textarea id="memoryViewer" rows="8" placeholder="正在加载瑛的记忆长卷..."></textarea>
+        </div>
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button onclick="fetchLatestMemory()" style="background: rgba(255, 192, 203, 0.4); color: #a11d48; border: none; padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: bold; cursor: pointer;">🔄 刷新记忆</button>
+            <button onclick="saveModifiedMemory()" style="background: #a11d48; color: white; border: none; padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 6px rgba(161,29,72,0.15);">✨ 重写潜意识</button>
+        </div>
+    </div>
     <button class="save-btn" onclick="saveSettings()">💾 保存所有配置</button>
 </div>
 
@@ -165,7 +179,56 @@ window.onload = function() {
     
     const quietMode = localStorage.getItem('rinka_quiet_mode');
     document.getElementById('thinking-quietly').checked = quietMode !== "false"; 
-};
+    setTimeout(fetchLatestMemory, 600);
+};    
+// 完美对接后端默认的房间 ID[span_2](start_span)[span_2](end_span)
+const CURRENT_SESSION_ID = "default_room"; 
+
+// 🌸 刷新并获取最新长期记忆
+async function fetchLatestMemory() {
+    const textarea = document.getElementById('memoryViewer');
+    try {
+        // 自动判定当前连接是本地测试还是部署环境
+        const apiHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+            ? '' : 'https://my-ai-home-backend.onrender.com'; // 如果前端跨域，可补全后端地址
+        const res = await fetch(`${apiHost}/api/memory/${CURRENT_SESSION_ID}`);
+        const data = await res.json();
+        if (data.success) {
+            textarea.value = data.summary;
+        } else {
+            textarea.value = "瑛的大脑目前还是一片纯白，快去和他聊天创造回忆吧~";
+        }
+    } catch (err) {
+        textarea.value = "无法连接到后端服务器，请确认后端已正常启动。";
+    }
+}
+
+// 🌸 提交修改、重写瑛的长期记忆
+async function saveModifiedMemory() {
+    const textarea = document.getElementById('memoryViewer');
+    const newSummary = textarea.value;
+    
+    if(!confirm("确定要对瑛进行【记忆重塑】吗？这会直接影响他以后的本能认知哦！")) return;
+    
+    try {
+        const apiHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+            ? '' : 'https://my-ai-home-backend.onrender.com';
+        const res = await fetch(`${apiHost}/api/memory/update`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionId: CURRENT_SESSION_ID, summary: newSummary })
+        });
+        const data = await res.json();
+        if (data.success) {
+            alert(data.message);
+            fetchLatestMemory();
+        } else {
+            alert("记忆重塑失败：" + data.message);
+        }
+    } catch (err) {
+        alert("网络错误，重写失败啦！");
+    }
+}
 
 function saveSettings() {
     localStorage.setItem('rinka_system_prompt', document.getElementById('system-prompt').value);
