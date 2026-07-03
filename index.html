@@ -302,7 +302,7 @@ async function sendMessage() {
             }
         }
         
-        // 🌟 步骤 B：移除打字期间的大气泡，启动“微信节奏连续发泡引擎”！
+        // 🌟 步骤 B：移除打字期间的大气泡，启动“微信节奏连续发泡引擎”
         const cleanedTotalText = cleanBrackets(fullReply);
         const subMsgs = cleanedTotalText.split(/(?<=[。！？\n])/g).map(s => s.trim()).filter(s => s.length > 0);
         
@@ -319,6 +319,7 @@ async function sendMessage() {
                 const newAiRowId = "ai-row-live-" + Date.now() + index;
                 const isFirst = (index === 0);
                 
+                // 修正了拼接字符串，确保标签完美闭合渲染
                 chatBox.insertAdjacentHTML('beforeend', `
                     <div class="msg-row ai-row" id="${newAiRowId}" style="${isFirst ? '' : 'margin-top: 8px;'}">
                         < img class="avatar" src="${aAvatar}" style="${isFirst ? '' : 'visibility: hidden; height: 38px;'}">
@@ -342,9 +343,12 @@ async function sendMessage() {
         }
         
     } catch (e) { 
-        aiMessageTextDiv.innerText = "网络断开了一下，重新发一遍试试呀~"; 
+        if (document.getElementById(aiRowId)) {
+            document.getElementById(aiRowId).querySelector('.msg-text').innerText = "网络断开了一下，重新发一遍试试呀~";
+        }
     }
 }
+                
 function createNewSession() { const newId = prompt("请输入新的会话ID：", "room_" + Date.now()); if (newId && newId.trim() !== "") { currentSessionId = newId.trim(); fetchHistory(); } }
 async function clearCloudHistory() { if(!confirm("确定要清洗掉所有的记忆碎片吗？")) return; await fetch(`${BACKEND_URL}/clear-history`, { method: 'DELETE' }); location.reload(); }
 
