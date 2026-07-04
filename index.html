@@ -115,7 +115,13 @@
 const RinkaEmojis = [
     "./emoji/snuggle1.jpg",
     "./emoji/snuggle2.jpg",
-    "./emoji/happy1.jpg"
+    "./emoji/happy1.jpg",
+    "./emoji/afraid1.jpg",
+    "./emoji/cry1.jpg",
+    "./emoji/like1.jpg",
+    "./emoji/like2.jpg",
+    "./emoji/naughty1.jpg",
+    "./emoji/pinch1.jpg"
 ];
 
 function getSmartEmoji(userText) {
@@ -357,7 +363,7 @@ async function sendMessage() {
                     try {
                         const imgElement = document.createElement('img');
                         const imgToSent = getSmartEmoji(fullReply); 
-                        imgElement.src = imgToSent;
+                        imgElement.src = window.location.origin + imgToSent.substring(1);
                         imgElement.style.width = "150px";
                         imgElement.style.display = "block";
                         imgElement.style.margin = "10px 0 10px 52px"; 
