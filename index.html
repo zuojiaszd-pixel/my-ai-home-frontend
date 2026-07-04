@@ -180,7 +180,7 @@ async function fetchHistory() {
         if (Array.isArray(data) && data.length > 0) {
             chatBox.innerHTML = ''; 
             data.forEach(item => {
-                const isUser = (item.role === 'user');
+                const isUser = (item.role && item.role.toLowerCase() === 'user');
                 let text = item.content || item.message || ''; 
                 if (!isUser) text = cleanBrackets(text);
                 
