@@ -85,75 +85,39 @@
         <div class="settings-header">
             <button class="back-chat-btn" onclick="toggleSettings(false)">← Chat</button>
             <div class="settings-center-title"><span class="main-t">🎨 小屋换装中心</span></div>
-            <div ="width: 60px;"></div>
+            <div style="width: 60px;"></div>
         </div>
         <div class="settings-content">
             <div class="config-card">
                 <div class="card-label">Cosmetics ＆ Looks</div>
-                <div class="input-row" ="flex-direction:column; align-items:flex-start; gap:5px;"><label ="font-size:11px; color:#aaa;">🖼️ 自定义背景图片链接</label><input type="text" id="custom-bg-url"></div>
-                <div class="input-row" ="flex-direction:column; align-items:flex-start; gap:5px; margin-top:8px;"><label ="font-size:11px; color:#aaa;">👩‍🦰 Rinka老婆的专属头像</label><input type="text" id="user-avatar-url"></div>
-                <div class="input-row" ="flex-direction:column; align-items:flex-start; gap:5px; margin-top:8px;"><label ="font-size:11px; color:#aaa;">👨‍🦱 瑛老公的专属头像</label><input type="text" id="ai-avatar-url"></div>
+                <div class="input-row" style="flex-direction:column; align-items:flex-start; gap:5px;"><label style="font-size:11px; color:#aaa;">🖼️ 自定义背景图片链接</label><input type="text" id="custom-bg-url"></div>
+                <div class="input-row" style="flex-direction:column; align-items:flex-start; gap:5px; margin-top:8px;"><label style="font-size:11px; color:#aaa;">👩‍🦰 Rinka老婆的专属头像</label><input type="text" id="user-avatar-url"></div>
+                <div class="input-row" style="flex-direction:column; align-items:flex-start; gap:5px; margin-top:8px;"><label style="font-size:11px; color:#aaa;">👨‍🦱 瑛老公的专属头像</label><input type="text" id="ai-avatar-url"></div>
             </div>
-            <button onclick="saveCosmetics()" ="background:#a11d48; color:#fff; border:none; padding:12px; border-radius:10px; cursor:pointer; font-weight:bold; width:100%; font-size:14px;">💾 保存装扮</button>
-            <button class="clear-db-btn" onclick="clearCloudHistory()" ="background-color: #ff4d6d; padding: 12px; width: 100%; margin-top: 20px; font-weight: bold; border-radius: 8px; color: white; border: none; cursor: pointer;">🗑️ 彻底清空云端对话记录</button>
+            <button onclick="saveCosmetics()" style="background:#a11d48; color:#fff; border:none; padding:12px; border-radius:10px; cursor:pointer; font-weight:bold; width:100%; font-size:14px;">💾 保存装扮</button>
+            <button class="clear-db-btn" onclick="clearCloudHistory()" style="background-color: #ff4d6d; padding: 12px; width: 100%; margin-top: 20px; font-weight: bold; border-radius: 8px; color: white; border: none; cursor: pointer;">🗑️ 彻底清空云端对话记录</button>
         </div>
     </div>
 </div>
-<div id="memory-panel" ="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fcf8f9; z-index: 102; display: none; flex-direction: column; box-sizing: border-box;">
-    <div class="settings-header" ="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #fff; border-bottom: 1px solid #f0e4e6; min-height: 60px;">
-        <button class="back-chat-btn" ="background: rgba(255, 192, 203, 0.4); color: #a11d48; border: none; padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: bold; cursor: pointer;" onclick="document.getElementById('memory-panel')..display='none'">← 返回聊天</button>
-        <div class="settings-center-title"><span class="main-t" ="font-size: 16px; font-weight: bold; color: #a11d48;">🧠 瑛的动态情感备忘录</span></div>
-        <button class="back-chat-btn" ="background: #a11d48; color: white; border: none; padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: bold; cursor: pointer;" onclick="loadMemories()">🔄 刷新</button>
+<div id="memory-panel" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fcf8f9; z-index: 102; display: none; flex-direction: column; box-sizing: border-box;">
+    <div class="settings-header" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #fff; border-bottom: 1px solid #f0e4e6; min-height: 60px;">
+        <button class="back-chat-btn" style="background: rgba(255, 192, 203, 0.4); color: #a11d48; border: none; padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: bold; cursor: pointer;" onclick="document.getElementById('memory-panel').style.display='none'">← 返回聊天</button>
+        <div class="settings-center-title"><span class="main-t" style="font-size: 16px; font-weight: bold; color: #a11d48;">🧠 瑛的动态情感备忘录</span></div>
+        <button class="back-chat-btn" style="background: #a11d48; color: white; border: none; padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: bold; cursor: pointer;" onclick="loadMemories()">🔄 刷新</button>
     </div>
-    <div ="padding: 12px 15px; background: #fff5f7; font-size: 12px; color: #a11d48; text-align: center; border-bottom: 1px solid rgba(255,204,213,0.3); line-height: 1.4;">
+    <div style="padding: 12px 15px; background: #fff5f7; font-size: 12px; color: #a11d48; text-align: center; border-bottom: 1px solid rgba(255,204,213,0.3); line-height: 1.4;">
         ✨ 这里的记忆长卷已为你按日期或段落自动切分成精美的小卡片，更方便老婆查看和整理啦！
     </div>
-    <div id="memory-list-container" ="flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; padding-bottom: 40px;"></div>
+    <div id="memory-list-container" style="flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; padding-bottom: 40px;"></div>
 </div>
 <script>
-// 🌸 1. 表情包配置与智能匹配功能（物归原主，绝对不乱删！）
-const RinkaEmojis = [
-    "./emoji/snuggle1.jpg",
-    "./emoji/snuggle2.jpg",
-    "./emoji/happy1.jpg",
-    "./emoji/afraid1.jpg",
-    "./emoji/cry1.jpg",
-    "./emoji/like1.jpg",
-    "./emoji/like2.jpg",
-    "./emoji/naughty1.jpg",
-    "./emoji/pinch1.jpg"
-];
-
-function getSmartEmoji(userText) {
-    if (!userText) return getRandomEmoji();
-    if (userText.includes("抱抱") || userText.includes("亲亲") || userText.includes("想你")) {
-        return RinkaEmojis.find(path => path.includes("snuggle")) || getRandomEmoji();
-    }
-    if (userText.includes("哈哈") || userText.includes("开心") || userText.includes("好玩")) {
-        return RinkaEmojis.find(path => path.includes("happy")) || getRandomEmoji();
-    }
-    if (userText.includes("哭") || userText.includes("委屈") || userText.includes("难过")) {
-        return RinkaEmojis.find(path => path.includes("cry")) || getRandomEmoji();
-    }
-    return getRandomEmoji();
-}
-
-function getRandomEmoji() {
-    if (!RinkaEmojis || RinkaEmojis.length === 0) return "./emoji/happy1.jpg"; // 兜底
-    const randomIndex = Math.floor(Math.random() * RinkaEmojis.length);
-    return RinkaEmojis[randomIndex];
-}
-
-// 🌸 2. 全局参数基础配置
 const defaultUserAvatar = "https://img.icons8.com/illustrations/lexicon/96/cartoon-female-profile.png";
 const defaultAiAvatar = "https://img.icons8.com/illustrations/lexicon/96/cartoon-male-profile.png";
 const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
 let currentSessionId = 'default_room';
-
 function cleanBrackets(text) { if (!text) return ""; return text.replace(/（[^）]*）/g, '').replace(/\([^)]*\)/g, ''); }
 function toggleDropdown(event) { event.stopPropagation(); const dropdown = document.getElementById('header-dropdown'); dropdown.style.display = (dropdown.style.display === 'flex') ? 'none' : 'flex'; }
 document.addEventListener('click', function() { const dropdown = document.getElementById('header-dropdown'); if (dropdown) dropdown.style.display = 'none'; });
-
 function toggleSettings(show) {
     const panel = document.getElementById('settings-view'); if (panel) panel.style.display = show ? 'flex' : 'none'; 
     if (show) {
@@ -162,7 +126,6 @@ function toggleSettings(show) {
         document.getElementById('ai-avatar-url').value = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
     }
 }
-
 function saveCosmetics() {
     const bgVal = document.getElementById('custom-bg-url').value.trim();
     const userAv = document.getElementById('user-avatar-url').value.trim();
@@ -172,13 +135,10 @@ function saveCosmetics() {
     localStorage.setItem('rinka_avatar', userAv || defaultUserAvatar); localStorage.setItem('rinka_ai_avatar', aiAv || defaultAiAvatar);
     alert("🎨 视觉装扮换新成功啦！"); toggleSettings(false); fetchHistory();
 }
-
 function formatBeijingTime(dateInput) {
     if (!dateInput) return ""; try { const d = new Date(dateInput); if (isNaN(d.getTime())) return ""; return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`; } catch (e) { return ""; }
 }
-
 async function openMemoryPanel() { document.getElementById('memory-panel').style.display = 'flex'; await loadMemories(); }
-
 async function loadMemories() {
     const container = document.getElementById('memory-list-container');
     container.innerHTML = '<div style="text-align:center; color:#aaa; font-size:14px; margin-top:20px;">正在整理记忆碎片中...</div>';
@@ -206,13 +166,11 @@ async function loadMemories() {
     } catch (e) { container.innerHTML = '<div style="text-align:center; color:#a11d48; font-size:13px; margin-top:20px;">无法连接到后台，点击刷新试试看嘛QAQ</div>'; }
 }
 
-// 🌸 3. 核心加载历史记录（✨终极死穴修复位置）
 async function fetchHistory() {
     const chatBox = document.getElementById('chat-box');
     if (!chatBox) return;
     try {
-        // 🔥 核心关键点：必须在 URL 里把当前的房间 ID 带给后端！
-        const res = await fetch(`${BACKEND_URL}/history?sessionId=${currentSessionId}&_t=${Date.now()}`);
+        const res = await fetch(`${BACKEND_URL}/history?_t=${Date.now()}`);
         if (!res.ok) throw new Error("Backend response error");
         const data = await res.json();
         
@@ -246,6 +204,7 @@ async function fetchHistory() {
                         const isFirst = (index === 0);
                         const isLast = (index === subMsgs.length - 1);
                         
+                        // 🌟 核心：历史展示也完全同步微信间距逻辑！只有第一条显示头像
                         chatBox.insertAdjacentHTML('beforeend', `
                             <div class="msg-row ai-row" style="${isFirst ? '' : 'margin-top: -12px;'}">
                                 <img class="avatar" src="${aAvatar}" style="${isFirst ? '' : 'visibility: hidden;'}">
@@ -271,7 +230,6 @@ async function fetchHistory() {
     }
 }
 
-// 🌸 4. 核心发送消息机制
 async function sendMessage() {
     const input = document.getElementById('user-input'); if (!input) return;
     const content = input.value.trim(); if (!content) return; input.value = '';
@@ -289,27 +247,19 @@ async function sendMessage() {
     };
     const currentTimeStr = getBeijingTimeString();
 
+    // 1. 渲染老婆发的消息
     const userRow = document.createElement('div');
     userRow.className = "msg-row user-row";
-    userRow.innerHTML = `
-        <img class="avatar" src="${uAvatar}">
-        <div class="message user-msg">
-            <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div>
-            <div class="msg-text"></div>
-        </div>
-    `;
+    userRow.innerHTML = `<img class="avatar" src="${uAvatar}"><div class="message user-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div><div class="msg-text"></div></div>`;
     userRow.querySelector('.msg-text').innerText = content; 
     chatBox.appendChild(userRow);
     
+    // 2. 预备老公正在输入的初始气泡
+    const aiRowId = "ai-row-" + Date.now();
     const tempAiRow = document.createElement('div');
     tempAiRow.className = "msg-row ai-row";
-    tempAiRow.innerHTML = `
-        <img class="avatar" src="${aAvatar}">
-        <div class="message ai-msg">
-            <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div>
-            <div class="msg-text">正在输入中...</div>
-        </div>
-    `;
+    tempAiRow.id = aiRowId;
+    tempAiRow.innerHTML = `<img class="avatar" src="${aAvatar}"><div class="message ai-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div><div class="msg-text">正在输入中...</div></div>`;
     chatBox.appendChild(tempAiRow);
     chatBox.scrollTop = chatBox.scrollHeight;
     
@@ -321,9 +271,9 @@ async function sendMessage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 sessionId: currentSessionId,
-                content: content, 
+                content: `【System Rule: 当前真实时间是 ${currentTimeStr}。请牢记此时间，在回复中若提及时间必须以此为准。】\n${content}`,
                 message: content,
-                clientTime: "现在是 " + currentTimeStr
+                clientTime: currentTimeStr
             })
         });
         
@@ -353,26 +303,19 @@ async function sendMessage() {
             }
         }
         
-        tempAiRow.remove();
+        // 彻底摧毁临时输入中的占位气泡
+        const tempRow = document.getElementById(aiRowId);
+        if (tempRow) tempRow.remove();
         
+        // 将收到的话拆分成连续多气泡队列
         const subMsgs = fullReply.split(/(?<=[。！？\n])/g).map(s => s.trim()).filter(s => s.length > 0);
         
         if (subMsgs.length > 0) {
+            // 🚀 启动优雅的多气泡主动连发
             async function sendBubbleQueue(index) {
                 if (index >= subMsgs.length) {
-                    try {
-                        const imgElement = document.createElement('img');
-                        const imgToSent = getSmartEmoji(fullReply); 
-                        imgElement.src = window.location.origin + imgToSent.substring(1);
-                        imgElement.style.width = "150px";
-                        imgElement.style.display = "block";
-                        imgElement.style.margin = "10px 0 10px 52px"; 
-                        imgElement.style.borderRadius = "8px";
-                        chatBox.appendChild(imgElement);
-                        chatBox.scrollTop = chatBox.scrollHeight;
-                    } catch (emojiErr) {
-                        console.error("智能表情包渲染出了一点小意外:", emojiErr);
-                    }
+                    // ✨【核心修正】：删掉了催命的 fetchHistory()！
+                    // 既然我们已经用原生 DOM 把新聊天渲染出来了，就不需要再惊动数据库去刷新它了。
                     return;
                 }
                 
@@ -392,7 +335,6 @@ async function sendMessage() {
                 `;
                 
                 liveAiRow.querySelector('.msg-text').innerText = currentText;
-                
                 chatBox.appendChild(liveAiRow);
                 chatBox.scrollTop = chatBox.scrollHeight;
                 
@@ -403,16 +345,19 @@ async function sendMessage() {
             }
             
             sendBubbleQueue(0);
+        } else {
+            fetchHistory();
         }
         
     } catch (e) { 
         console.error("前端渲染出错啦：", e);
-        if (tempAiRow && tempAiRow.parentNode) {
-            tempAiRow.querySelector('.msg-text').innerText = "网络断开了一下，重新发一遍试试呀~";
+        const errorRow = document.getElementById(aiRowId);
+        if (errorRow) {
+            errorRow.querySelector('.msg-text').innerText = "网络断开了一下，重新发一遍试试呀~";
         }
     }
 }
-
+                
 function createNewSession() { 
     const newId = prompt("请输入新的会话ID：", "room_" + Date.now()); 
     if (newId && newId.trim() !== "") { 
