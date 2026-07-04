@@ -344,19 +344,35 @@ async function sendMessage() {
             sendBubbleQueue(0);
         }
         
-    } catch (e) { 
+        } catch (e) { 
         console.error("前端渲染出错啦：", e);
         if (document.getElementById(aiRowId)) {
             document.getElementById(aiRowId).querySelector('.msg-text').innerText = "网络断开了一下，重新发一遍试试呀~";
         }
     }
+}
                 
-function createNewSession() { const newId = prompt("请输入新的会话ID：", "room_" + Date.now()); if (newId && newId.trim() !== "") { currentSessionId = newId.trim(); fetchHistory(); } }
-async function clearCloudHistory() { if(!confirm("确定要清洗掉所有的记忆碎片吗？")) return; await fetch(`${BACKEND_URL}/clear-history`, { method: 'DELETE' }); location.reload(); }
+function createNewSession() { 
+    const newId = prompt("请输入新的会话ID：", "room_" + Date.now()); 
+    if (newId && newId.trim() !== "") { 
+        currentSessionId = newId.trim(); 
+        fetchHistory(); 
+    } 
+}
+
+async function clearCloudHistory() { 
+    if(!confirm("确定要清洗掉所有的记忆碎片吗？")) return; 
+    await fetch(`${BACKEND_URL}/clear-history`, { method: 'DELETE' }); 
+    location.reload(); 
+}
+
 window.onload = function() {
     const bg = localStorage.getItem('rinka_home_bg');
-    if(bg) { document.body.style.background = `url('${bg}') center/cover fixed`; } 
-    else { document.body.style.background = "linear-gradient(135deg, #fff5f7 0%, #ffe3e8 100%)"; }
+    if(bg) { 
+        document.body.style.background = `url('${bg}') center/cover fixed`; 
+    } else { 
+        document.body.style.background = "linear-gradient(135deg, #fff5f7 0%, #ffe3e8 100%)"; 
+    }
     fetchHistory();
 };
 </script>
