@@ -19,14 +19,17 @@ function getSmartEmoji(userText) {
     if (userText.includes("哭") || userText.includes("委屈") || userText.includes("难过")) {
         return RinkaEmojis.find(path => path.includes("cry")) || getRandomEmoji();
     }
-    // 没关键词就随机抽一张，完全不用管它
+    // 没关键词则随机抽一张
     return getRandomEmoji();
-    function getRandomEmoji() {
+}
+
+// 这是一个独立的随机抽图功能，和上面的匹配函数是平级的！
+function getRandomEmoji() {
     // 随机返回一张 RinkaEmojis 列表里的图片路径
     const randomIndex = Math.floor(Math.random() * RinkaEmojis.length);
     return RinkaEmojis[randomIndex];
 }
-}
+
 // 3. 后端地址
 const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
 
