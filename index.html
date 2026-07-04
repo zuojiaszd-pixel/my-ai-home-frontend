@@ -126,9 +126,18 @@ const RinkaEmojis = [
 
 function getSmartEmoji(userText) {
     if (!userText) return getRandomEmoji();
-    // 咱们给它加一个超级粗暴的“直接返回”测试
-    return "https://raw.githubusercontent.com/zuojiaszd-pixel/my-ai-home-frontend/main/emoji/happy1.jpg";
+    if (userText.includes("抱抱") || userText.includes("亲亲") || userText.includes("想你")) {
+        return RinkaEmojis.find(path => path.includes("snuggle")) || getRandomEmoji();
+    }
+    if (userText.includes("哈哈") || userText.includes("开心") || userText.includes("好玩")) {
+        return RinkaEmojis.find(path => path.includes("happy")) || getRandomEmoji();
+    }
+    if (userText.includes("哭") || userText.includes("委屈") || userText.includes("难过")) {
+        return RinkaEmojis.find(path => path.includes("cry")) || getRandomEmoji();
+    }
+    return getRandomEmoji();
 }
+
 function getRandomEmoji() {
     if (!RinkaEmojis || RinkaEmojis.length === 0) return "https://raw.githubusercontent.com/zuojiaszd-pixel/my-ai-home-frontend/main/emoji/happy1.jpg";
     const randomIndex = Math.floor(Math.random() * RinkaEmojis.length);
