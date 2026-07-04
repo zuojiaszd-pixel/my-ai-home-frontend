@@ -41,7 +41,7 @@ async function sendMessage(userMessage) {
     const data = await response.json();
     
     // 显示瑛的回复
-    chatBox.innerHTML += `<p>瑛: ${data.reply}</p >`;
+    chatBox.innerHTML += `<p>瑛: ${cleanReply}</p >`;
     
     // 随机发一张表情包
     const imgElement = document.createElement('img');
