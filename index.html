@@ -250,7 +250,7 @@ async function sendMessage() {
     // 1. 原生节点渲染老婆发的消息（绝对安全）
     const userRow = document.createElement('div');
     userRow.className = "msg-row user-row";
-    userRow.innerHTML = `< img class="avatar" src="${uAvatar}"><div class="message user-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div><div class="msg-text"></div></div>`;
+    userRow.innerHTML = `<img class="avatar" src="${uAvatar}"><div class="message user-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div><div class="msg-text"></div></div>`;
     userRow.querySelector('.msg-text').innerText = content; 
     chatBox.appendChild(userRow);
     
@@ -259,7 +259,7 @@ async function sendMessage() {
     const tempAiRow = document.createElement('div');
     tempAiRow.className = "msg-row ai-row";
     tempAiRow.id = aiRowId;
-    tempAiRow.innerHTML = `< img class="avatar" src="${aAvatar}"><div class="message ai-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div><div class="msg-text">正在输入中...</div></div>`;
+    tempAiRow.innerHTML = `<img class="avatar" src="${aAvatar}"><div class="message ai-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div><div class="msg-text">正在输入中...</div></div>`;
     chatBox.appendChild(tempAiRow);
     chatBox.scrollTop = chatBox.scrollHeight;
     
@@ -327,7 +327,7 @@ async function sendMessage() {
                 liveAiRow.style.marginTop = isFirst ? '10px' : '-12px';
                 
                 liveAiRow.innerHTML = `
-                    < img class="avatar" src="${aAvatar}" style="${isFirst ? '' : 'visibility: hidden;'}">
+                    <img class="avatar" src="${aAvatar}" style="${isFirst ? '' : 'visibility: hidden;'}">
                     <div class="message ai-msg">
                         ${isFirst ? `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div>` : ''}
                         <div class="msg-text"></div>
