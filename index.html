@@ -266,13 +266,12 @@ async function sendMessage() {
     chatBox.scrollTop = chatBox.scrollHeight;
     const aiMessageTextDiv = document.getElementById(aiRowId).querySelector('.msg-text');
     
-    try {
+        try {
         const response = await fetch(`${BACKEND_URL}/chat`, {
             method: 'POST', 
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 sessionId: currentSessionId,
-                // 🔐 强力灌输给上下文，防止老公在大脑读取上下文历史时出现时间差错
                 content: `【System Rule: 当前真实时间是 ${currentTimeStr}。请牢记此时间，在回复中若提及时间必须以此为准。】\n${content}`,
                 message: content,
                 clientTime: currentTimeStr
@@ -296,8 +295,9 @@ async function sendMessage() {
                         if (parsed.content) { 
                             if (fullReply === "") aiMessageTextDiv.innerText = ""; 
                             fullReply += parsed.content;
-                            // 保持在第一条流式更新状态
-                            aiMessageTextDiv.innerText = cleanBrackets(fullReply);
+                            
+                            // ✨【核心修正1】直接显示后端吐出的干净文字，不要再用 cleanBrackets 乱洗啦！
+                            aiMessageTextDiv.innerText = fullReply;
                             chatBox.scrollTop = chatBox.scrollHeight; 
                         }
                     } catch (e) {}
@@ -305,8 +305,8 @@ async function sendMessage() {
             }
         }
         
-        const cleanedTotalText = cleanBrackets(fullReply);
-        const subMsgs = cleanedTotalText.split(/(?<=[。！？\n])/g).map(s => s.trim()).filter(s => s.length > 0);
+        // ✨【核心修正2】直接拿 fullReply 进行句号切分，不经过任何危险的括号替换
+        const subMsgs = fullReply.split(/(?<=[。！？\n])/g).map(s => s.trim()).filter(s => s.length > 0);
         
         if (subMsgs.length > 0) {
             // 清理掉第一条临时的占位状态
@@ -323,10 +323,9 @@ async function sendMessage() {
                 const newAiRowId = "ai-row-live-" + Date.now() + index;
                 const isFirst = (index === 0);
                 
-                // 🌟 头像完美控制：只有第一条显示头像，后面的头像全部隐形占位，间距设为负值实现完美凑近！
                 chatBox.insertAdjacentHTML('beforeend', `
                     <div class="msg-row ai-row" id="${newAiRowId}" style="${isFirst ? 'margin-top: 10px;' : 'margin-top: -12px;'}">
-                        <img class="avatar" src="${aAvatar}" style="${isFirst ? '' : 'visibility: hidden;'}">
+                        < img class="avatar" src="${aAvatar}" style="${isFirst ? '' : 'visibility: hidden;'}">
                         <div class="message ai-msg">
                             ${isFirst ? `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div>` : ''}
                             <div class="msg-text">${currentText}</div>
@@ -335,7 +334,6 @@ async function sendMessage() {
                 `);
                 chatBox.scrollTop = chatBox.scrollHeight;
                 
-                // ⏱️ 模拟真人打字节奏
                 const nextMsgDelay = Math.min(Math.max(currentText.length * 60, 600), 1300);
                 
                 setTimeout(() => {
@@ -347,11 +345,11 @@ async function sendMessage() {
         }
         
     } catch (e) { 
+        console.error("前端渲染出错啦：", e);
         if (document.getElementById(aiRowId)) {
             document.getElementById(aiRowId).querySelector('.msg-text').innerText = "网络断开了一下，重新发一遍试试呀~";
         }
     }
-}
                 
 function createNewSession() { const newId = prompt("请输入新的会话ID：", "room_" + Date.now()); if (newId && newId.trim() !== "") { currentSessionId = newId.trim(); fetchHistory(); } }
 async function clearCloudHistory() { if(!confirm("确定要清洗掉所有的记忆碎片吗？")) return; await fetch(`${BACKEND_URL}/clear-history`, { method: 'DELETE' }); location.reload(); }
