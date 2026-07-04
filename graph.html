@@ -46,6 +46,19 @@
         location.reload(); // 简单粗暴刷新
     }
     initGraph();
+    // 新增这个函数，点击删除键时调用
+async function deleteFact(id) {
+    if (!confirm("确定要让瑛忘记这个记忆碎片吗？")) return;
+    try {
+        const res = await fetch(`${BACKEND_URL}/api/atomic_facts/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+            alert("已删除！");
+            // 删除后自动刷新当前列表
+            location.reload(); 
+        }
+    } catch (err) { alert("删除失败，瑛的记忆很顽固呢..."); }
+}
 </script>
 </body>
 </html>
