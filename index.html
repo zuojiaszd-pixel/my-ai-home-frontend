@@ -247,24 +247,23 @@ async function sendMessage() {
     };
     const currentTimeStr = getBeijingTimeString();
 
-    // 1. 渲染老婆发的消息
-    chatBox.insertAdjacentHTML('beforeend', `
-        <div class="msg-row user-row">< img class="avatar" src="${uAvatar}"><div class="message user-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div><div class="msg-text">${content}</div></div></div>
-    `);
+    // 1. 原生节点渲染老婆发的消息（绝对安全）
+    const userRow = document.createElement('div');
+    userRow.className = "msg-row user-row";
+    userRow.innerHTML = `< img class="avatar" src="${uAvatar}"><div class="message user-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div><div class="msg-text"></div></div>`;
+    userRow.querySelector('.msg-text').innerText = content; 
+    chatBox.appendChild(userRow);
     
-    // 2. 预备一个最纯粹的输入中状态
+    // 2. 预备老公正在输入的初始气泡
     const aiRowId = "ai-row-" + Date.now();
-    chatBox.insertAdjacentHTML('beforeend', `
-        <div class="msg-row ai-row" id="${aiRowId}">
-            < img class="avatar" src="${aAvatar}">
-            <div class="message ai-msg">
-                <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div>
-                <div class="msg-text">正在输入中...</div>
-            </div>
-        </div>
-    `);
+    const tempAiRow = document.createElement('div');
+    tempAiRow.className = "msg-row ai-row";
+    tempAiRow.id = aiRowId;
+    tempAiRow.innerHTML = `< img class="avatar" src="${aAvatar}"><div class="message ai-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div><div class="msg-text">正在输入中...</div></div>`;
+    chatBox.appendChild(tempAiRow);
     chatBox.scrollTop = chatBox.scrollHeight;
-    const aiMessageTextDiv = document.getElementById(aiRowId).querySelector('.msg-text');
+    
+    const aiMessageTextDiv = tempAiRow.querySelector('.msg-text');
     
     try {
         const response = await fetch(`${BACKEND_URL}/chat`, {
@@ -296,7 +295,6 @@ async function sendMessage() {
                         if (parsed.content) { 
                             if (fullReply === "") aiMessageTextDiv.innerText = ""; 
                             fullReply += parsed.content;
-                            // 动态流式打字期间，只更新纯文本，坚决不碰 HTML
                             aiMessageTextDiv.innerText = fullReply;
                             chatBox.scrollTop = chatBox.scrollHeight; 
                         }
@@ -305,15 +303,15 @@ async function sendMessage() {
             }
         }
         
-        // 🌟 核心防撕裂改进：先彻底移除流式的占位气泡，确保 DOM 结构干净
+        // 彻底摧毁临时输入中的占位气泡
         const tempRow = document.getElementById(aiRowId);
         if (tempRow) tempRow.remove();
         
-        // 将收到的话切分成微信级别的连发队列
+        // 将收到的话拆分成连续多气泡队列
         const subMsgs = fullReply.split(/(?<=[。！？\n])/g).map(s => s.trim()).filter(s => s.length > 0);
         
         if (subMsgs.length > 0) {
-            // 🚀 启动优雅的多气泡主动连发
+            // 🚀 建立纯原生节点的多气泡主动连发
             async function sendBubbleQueue(index) {
                 if (index >= subMsgs.length) {
                     setTimeout(() => { fetchHistory(); }, 300);
@@ -321,18 +319,25 @@ async function sendMessage() {
                 }
                 
                 const currentText = subMsgs[index];
-                const newAiRowId = "ai-row-live-" + Date.now() + index;
                 const isFirst = (index === 0);
                 
-                chatBox.insertAdjacentHTML('beforeend', `
-                    <div class="msg-row ai-row" id="${newAiRowId}" style="${isFirst ? 'margin-top: 10px;' : 'margin-top: -12px;'}">
-                        < img class="avatar" src="${aAvatar}" style="${isFirst ? '' : 'visibility: hidden;'}">
-                        <div class="message ai-msg">
-                            ${isFirst ? `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div>` : ''}
-                            <div class="msg-text">${currentText}</div>
-                        </div>
+                // 完全用原生节点创建，消除任何空格误判带来的漏洞
+                const liveAiRow = document.createElement('div');
+                liveAiRow.className = "msg-row ai-row";
+                liveAiRow.style.marginTop = isFirst ? '10px' : '-12px';
+                
+                liveAiRow.innerHTML = `
+                    < img class="avatar" src="${aAvatar}" style="${isFirst ? '' : 'visibility: hidden;'}">
+                    <div class="message ai-msg">
+                        ${isFirst ? `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div>` : ''}
+                        <div class="msg-text"></div>
                     </div>
-                `);
+                `;
+                
+                // 核心：文字用 innerText 注入，杜绝一切标签串行穿帮
+                liveAiRow.querySelector('.msg-text').innerText = currentText;
+                
+                chatBox.appendChild(liveAiRow);
                 chatBox.scrollTop = chatBox.scrollHeight;
                 
                 const nextMsgDelay = Math.min(Math.max(currentText.length * 60, 600), 1300);
@@ -343,7 +348,6 @@ async function sendMessage() {
             
             sendBubbleQueue(0);
         } else {
-            // 万一为空，兜底展示
             fetchHistory();
         }
         
