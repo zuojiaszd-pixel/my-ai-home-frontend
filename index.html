@@ -247,10 +247,10 @@ async function sendMessage() {
     };
     const currentTimeStr = getBeijingTimeString();
 
-    // 1. 原生节点渲染老婆发的消息（绝对安全）
+    // 1. 渲染老婆发的消息
     const userRow = document.createElement('div');
     userRow.className = "msg-row user-row";
-    userRow.innerHTML = `<img class="avatar" src="${uAvatar}"><div class="message user-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div><div class="msg-text"></div></div>`;
+    userRow.innerHTML = `< img class="avatar" src="${uAvatar}"><div class="message user-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div><div class="msg-text"></div></div>`;
     userRow.querySelector('.msg-text').innerText = content; 
     chatBox.appendChild(userRow);
     
@@ -259,7 +259,7 @@ async function sendMessage() {
     const tempAiRow = document.createElement('div');
     tempAiRow.className = "msg-row ai-row";
     tempAiRow.id = aiRowId;
-    tempAiRow.innerHTML = `<img class="avatar" src="${aAvatar}"><div class="message ai-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div><div class="msg-text">正在输入中...</div></div>`;
+    tempAiRow.innerHTML = `< img class="avatar" src="${aAvatar}"><div class="message ai-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div><div class="msg-text">正在输入中...</div></div>`;
     chatBox.appendChild(tempAiRow);
     chatBox.scrollTop = chatBox.scrollHeight;
     
@@ -311,32 +311,30 @@ async function sendMessage() {
         const subMsgs = fullReply.split(/(?<=[。！？\n])/g).map(s => s.trim()).filter(s => s.length > 0);
         
         if (subMsgs.length > 0) {
-            // 🚀 建立纯原生节点的多气泡主动连发
+            // 🚀 启动优雅的多气泡主动连发
             async function sendBubbleQueue(index) {
                 if (index >= subMsgs.length) {
-                    setTimeout(() => { fetchHistory(); }, 300);
+                    // ✨【核心修正】：删掉了催命的 fetchHistory()！
+                    // 既然我们已经用原生 DOM 把新聊天渲染出来了，就不需要再惊动数据库去刷新它了。
                     return;
                 }
                 
                 const currentText = subMsgs[index];
                 const isFirst = (index === 0);
                 
-                // 完全用原生节点创建，消除任何空格误判带来的漏洞
                 const liveAiRow = document.createElement('div');
                 liveAiRow.className = "msg-row ai-row";
                 liveAiRow.style.marginTop = isFirst ? '10px' : '-12px';
                 
                 liveAiRow.innerHTML = `
-                    <img class="avatar" src="${aAvatar}" style="${isFirst ? '' : 'visibility: hidden;'}">
+                    < img class="avatar" src="${aAvatar}" style="${isFirst ? '' : 'visibility: hidden;'}">
                     <div class="message ai-msg">
                         ${isFirst ? `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div>` : ''}
                         <div class="msg-text"></div>
                     </div>
                 `;
                 
-                // 核心：文字用 innerText 注入，杜绝一切标签串行穿帮
                 liveAiRow.querySelector('.msg-text').innerText = currentText;
-                
                 chatBox.appendChild(liveAiRow);
                 chatBox.scrollTop = chatBox.scrollHeight;
                 
