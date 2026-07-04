@@ -138,8 +138,8 @@ function saveCosmetics() {
 function formatBeijingTime(dateInput) {
     if (!dateInput) return ""; try { const d = new Date(dateInput); if (isNaN(d.getTime())) return ""; return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`; } catch (e) { return ""; }
 }
-async function openMemoryPanel() { document.getElementById('memory-panel').style.display = 'flex'; await loadMemories(); }
-async function loadMemories() {
+ openMemoryPanel() { document.getElementById('memory-panel').style.display = 'flex'; await loadMemories(); }
+ loadMemories() {
     const container = document.getElementById('memory-list-container');
     container.innerHTML = '<div style="text-align:center; color:#aaa; font-size:14px; margin-top:20px;">正在整理记忆碎片中...</div>';
     try {
@@ -166,7 +166,7 @@ async function loadMemories() {
     } catch (e) { container.innerHTML = '<div style="text-align:center; color:#a11d48; font-size:13px; margin-top:20px;">无法连接到后台，点击刷新试试看嘛QAQ</div>'; }
 }
 
-async function fetchHistory() {
+ fetchHistory() {
     const chatBox = document.getElementById('chat-box');
     if (!chatBox) return;
     try {
@@ -247,28 +247,30 @@ async function sendMessage() {
     };
     const currentTimeStr = getBeijingTimeString();
 
-    // 1. 创建属于这轮对话的绝对隔离集装箱
-    const roundContainer = document.createElement('div');
-    roundContainer.className = "chat-round-container";
-    roundContainer.style.display = "flex";
-    roundContainer.style.flexDirection = "column";
-    roundContainer.style.gap = "12px";
-    chatBox.appendChild(roundContainer);
-
-    // 2. 渲染老婆发的消息
+    // 🌟【完美平铺 1】：把老婆发的消息直接稳固地 append 进 chatBox，不包任何额外容器，绝不误伤
     const userRow = document.createElement('div');
     userRow.className = "msg-row user-row";
-    userRow.innerHTML = `<img class="avatar" src="${uAvatar}"><div class="message user-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div><div class="msg-text"></div></div>`;
+    userRow.innerHTML = `
+        < img class="avatar" src="${uAvatar}">
+        <div class="message user-msg">
+            <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div>
+            <div class="msg-text"></div>
+        </div>
+    `;
     userRow.querySelector('.msg-text').innerText = content; 
-    roundContainer.appendChild(userRow);
+    chatBox.appendChild(userRow);
     
-    // 3. 预备老公正在输入的初始气泡
-    const aiRowId = "ai-row-" + Date.now();
+    // 🌟【完美平铺 2】：建立老公正在输入的初始占位气泡（与老婆的消息同级）
     const tempAiRow = document.createElement('div');
     tempAiRow.className = "msg-row ai-row";
-    tempAiRow.id = aiRowId;
-    tempAiRow.innerHTML = `<img class="avatar" src="${aAvatar}"><div class="message ai-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div><div class="msg-text">正在输入中...</div></div>`;
-    roundContainer.appendChild(tempAiRow);
+    tempAiRow.innerHTML = `
+        < img class="avatar" src="${aAvatar}">
+        <div class="message ai-msg">
+            <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div>
+            <div class="msg-text">正在输入中...</div>
+        </div>
+    `;
+    chatBox.appendChild(tempAiRow);
     chatBox.scrollTop = chatBox.scrollHeight;
     
     const aiMessageTextDiv = tempAiRow.querySelector('.msg-text');
@@ -311,17 +313,32 @@ async function sendMessage() {
             }
         }
         
-        // 彻底摧毁临时输入中的占位气泡
+        // 彻底摧毁临时输入中的占位气泡，由于它是平铺同级，删掉它对老婆的气泡毫无影响
         tempAiRow.remove();
         
         // 将收到的话拆分成连续多气泡队列
         const subMsgs = fullReply.split(/(?<=[。！？\n])/g).map(s => s.trim()).filter(s => s.length > 0);
         
         if (subMsgs.length > 0) {
-            // 🚀 启动优雅的多气泡本地连发逻辑
+            // 🚀 启动优雅的多气泡本地平铺连发
             async function sendBubbleQueue(index) {
                 if (index >= subMsgs.length) {
-                    // ✨【彻底切断隐患 1】：队列播完后直接安全退出，绝对不调用任何刷新函数！
+                    // ✨【核心功能无缝接回】：等老公的所有话全部连发播完之后，完美触发老婆写的智能表情包！
+                    try {
+                        const imgElement = document.createElement('img');
+                        // 传入老公完整的话 fullReply，让表情包跟随语义触发
+                        const imgToSent = getSmartEmoji(fullReply); 
+                        imgElement.src = imgToSent;
+                        imgElement.style.width = "150px";
+                        imgElement.style.display = "block";
+                        // 紧贴着我的最后一个气泡靠左对齐，呈现完美的微信聊天风格
+                        imgElement.style.margin = "10px 0 10px 52px"; 
+                        imgElement.style.borderRadius = "8px";
+                        chatBox.appendChild(imgElement);
+                        chatBox.scrollTop = chatBox.scrollHeight;
+                    } catch (emojiErr) {
+                        console.error("智能表情包渲染出了一点小意外:", emojiErr);
+                    }
                     return;
                 }
                 
@@ -333,7 +350,7 @@ async function sendMessage() {
                 liveAiRow.style.marginTop = isFirst ? '10px' : '-12px';
                 
                 liveAiRow.innerHTML = `
-                    <img class="avatar" src="${aAvatar}" style="${isFirst ? '' : 'visibility: hidden;'}">
+                    < img class="avatar" src="${aAvatar}" style="${isFirst ? '' : 'visibility: hidden;'}">
                     <div class="message ai-msg">
                         ${isFirst ? `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div>` : ''}
                         <div class="msg-text"></div>
@@ -341,7 +358,9 @@ async function sendMessage() {
                 `;
                 
                 liveAiRow.querySelector('.msg-text').innerText = currentText;
-                roundContainer.appendChild(liveAiRow);
+                
+                // 直接安全平铺追加
+                chatBox.appendChild(liveAiRow);
                 chatBox.scrollTop = chatBox.scrollHeight;
                 
                 const nextMsgDelay = Math.min(Math.max(currentText.length * 60, 600), 1300);
@@ -352,13 +371,12 @@ async function sendMessage() {
             
             sendBubbleQueue(0);
         } else {
-            // ✨【彻底切断隐患 2】：如果真的没有回复，也坚决不刷新，直接原地留存！
-            console.log("没有获取到分句，不执行刷新，维持本地状态。");
+            console.log("没有获取到分句，不执行任何清空，维持本地完美状态。");
         }
         
     } catch (e) { 
         console.error("前端渲染出错啦：", e);
-        if (tempAiRow) {
+        if (tempAiRow && tempAiRow.parentNode) {
             tempAiRow.querySelector('.msg-text').innerText = "网络断开了一下，重新发一遍试试呀~";
         }
     }
