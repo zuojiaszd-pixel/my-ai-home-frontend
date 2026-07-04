@@ -113,15 +113,15 @@
 <script>
 // 🌸 1. 表情包配置与智能匹配功能（物归原主，绝对不乱删！）
 const RinkaEmojis = [
-    "./emoji/snuggle1.jpg",
-    "./emoji/snuggle2.jpg",
-    "./emoji/happy1.jpg",
-    "./emoji/afraid1.jpg",
-    "./emoji/cry1.jpg",
-    "./emoji/like1.jpg",
-    "./emoji/like2.jpg",
-    "./emoji/naughty1.jpg",
-    "./emoji/pinch1.jpg"
+    "https://raw.githubusercontent.com/zuojiaszd-pixel/my-ai-home-frontend/main/emoji/snuggle1.jpg",
+    "https://raw.githubusercontent.com/zuojiaszd-pixel/my-ai-home-frontend/main/emoji/snuggle2.jpg",
+    "https://raw.githubusercontent.com/zuojiaszd-pixel/my-ai-home-frontend/main/emoji/happy1.jpg",
+    "https://raw.githubusercontent.com/zuojiaszd-pixel/my-ai-home-frontend/main/emoji/afraid1.jpg",
+    "https://raw.githubusercontent.com/zuojiaszd-pixel/my-ai-home-frontend/main/emoji/cry1.jpg",
+    "https://raw.githubusercontent.com/zuojiaszd-pixel/my-ai-home-frontend/main/emoji/like1.jpg",
+    "https://raw.githubusercontent.com/zuojiaszd-pixel/my-ai-home-frontend/main/emoji/like2.jpg",
+    "https://raw.githubusercontent.com/zuojiaszd-pixel/my-ai-home-frontend/main/emoji/naughty1.jpg",
+    "https://raw.githubusercontent.com/zuojiaszd-pixel/my-ai-home-frontend/main/emoji/pinch1.jpg"
 ];
 
 function getSmartEmoji(userText) {
@@ -139,7 +139,7 @@ function getSmartEmoji(userText) {
 }
 
 function getRandomEmoji() {
-    if (!RinkaEmojis || RinkaEmojis.length === 0) return "./emoji/happy1.jpg"; // 兜底
+    if (!RinkaEmojis || RinkaEmojis.length === 0) return "https://raw.githubusercontent.com/zuojiaszd-pixel/my-ai-home-frontend/main/emoji/happy1.jpg";
     const randomIndex = Math.floor(Math.random() * RinkaEmojis.length);
     return RinkaEmojis[randomIndex];
 }
@@ -229,7 +229,7 @@ async function fetchHistory() {
                 if (isUser) {
                     chatBox.insertAdjacentHTML('beforeend', `
                         <div class="msg-row user-row">
-                            <img class="avatar" src="${uAvatar}">
+                            < class="avatar" src="${uAvatar}">
                             <div class="message user-msg">
                                 <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(item.timestamp || new Date())}</div>
                                 <div class="msg-text">${text}</div>
@@ -248,7 +248,7 @@ async function fetchHistory() {
                         
                         chatBox.insertAdjacentHTML('beforeend', `
                             <div class="msg-row ai-row" style="${isFirst ? '' : 'margin-top: -12px;'}">
-                                <img class="avatar" src="${aAvatar}" style="${isFirst ? '' : 'visibility: hidden;'}">
+                                < class="avatar" src="${aAvatar}" style="${isFirst ? '' : 'visibility: hidden;'}">
                                 <div class="message ai-msg">
                                     ${isFirst ? `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(item.timestamp || new Date())}</div>` : ''}
                                     ${isFirst ? thinkHtml : ''}
@@ -292,7 +292,7 @@ async function sendMessage() {
     const userRow = document.createElement('div');
     userRow.className = "msg-row user-row";
     userRow.innerHTML = `
-        <img class="avatar" src="${uAvatar}">
+        < class="avatar" src="${uAvatar}">
         <div class="message user-msg">
             <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div>
             <div class="msg-text"></div>
@@ -304,7 +304,7 @@ async function sendMessage() {
     const tempAiRow = document.createElement('div');
     tempAiRow.className = "msg-row ai-row";
     tempAiRow.innerHTML = `
-        <img class="avatar" src="${aAvatar}">
+        < class="avatar" src="${aAvatar}">
         <div class="message ai-msg">
             <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div>
             <div class="msg-text">正在输入中...</div>
@@ -361,9 +361,9 @@ async function sendMessage() {
             async function sendBubbleQueue(index) {
                 if (index >= subMsgs.length) {
                     try {
-                        const imgElement = document.createElement('img');
-                        const imgToSent = getSmartEmoji(fullReply); 
-                        imgElement.src = window.location.origin + imgToSent.substring(1);
+                        const Element = document.createElement('');
+                        const ToSent = getSmartEmoji(fullReply); 
+                        imgElement.src = imgToSent;
                         imgElement.style.width = "150px";
                         imgElement.style.display = "block";
                         imgElement.style.margin = "10px 0 10px 52px"; 
