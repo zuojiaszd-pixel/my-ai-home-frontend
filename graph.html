@@ -36,7 +36,7 @@
         document.getElementById('memory-cards-container').innerHTML = data.map(m => `
             <div class="memory-card">
                 <div><strong>${m.subject}</strong> <span style="color: #a11d48;">${m.predicate}</span> <strong>${m.object}</strong></div>
-                <span class="del-btn" onclick="deleteMemory('${m._id}')">×</span>
+                <span class="del-btn" onclick="deleteFact('${m._id}')">×</span>
             </div>
         `).join('');
     }
