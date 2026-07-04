@@ -21,6 +21,11 @@ function getSmartEmoji(userText) {
     }
     // 没关键词就随机抽一张，完全不用管它
     return getRandomEmoji();
+    function getRandomEmoji() {
+    // 随机返回一张 RinkaEmojis 列表里的图片路径
+    const randomIndex = Math.floor(Math.random() * RinkaEmojis.length);
+    return RinkaEmojis[randomIndex];
+}
 }
 // 3. 后端地址
 const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
