@@ -272,7 +272,7 @@ async function sendMessage() {
     await executeSendAction(content);
 }
 
-// 🛠️ 核心执行器（终极安全版：完美切泡且绝不卡死白屏）
+// 🛠️ 核心执行器（实时动态切泡终极完美版：打字机动态生成，告别闪烁生硬）
 async function executeSendAction(contentText) {
     const chatBox = document.getElementById('chat-box');
     const uAvatar = localStorage.getItem('rinka_avatar') || defaultUserAvatar; 
@@ -282,7 +282,7 @@ async function executeSendAction(contentText) {
     // 自动适配你的时间函数，防止报错
     const getTimeStr = () => {
         try { return formatBeijingTime(new Date()); } catch(e) {
-            try { return getBeijingTimeString(); } catch(err) { return "7/6 00:28"; }
+            try { return getBeijingTimeString(); } catch(err) { return "7/6 01:42"; }
         }
     };
     const currentTimeStr = getTimeStr();
@@ -290,17 +290,39 @@ async function executeSendAction(contentText) {
     // 1. 渲染用户发送的消息
     const userRow = document.createElement('div');
     userRow.className = "msg-row user-row";
-    userRow.innerHTML = `<img class="avatar" src="${uAvatar}"><div class="message user-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div>`;
+    userRow.innerHTML = `< img class="avatar" src="${uAvatar}"><div class="message user-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div>`;
     chatBox.appendChild(userRow);
     
-    // 2. 创建 AI 正在输入的临时气泡
-    const aiRowId = "ai-row-" + Date.now();
-    const tempAiRow = document.createElement('div');
-    tempAiRow.className = "msg-row ai-row";
-    tempAiRow.id = aiRowId;
-    tempAiRow.innerHTML = `<img class="avatar" src="${aAvatar}"><div class="message ai-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${currentTimeStr}</div><div class="msg-text">正在输入中...</div></div>`;
-    chatBox.appendChild(tempAiRow);
-    chatBox.scrollTop = chatBox.scrollHeight;
+    // 状态追踪变量
+    let currentBubbleText = ""; 
+    let currentBubbleElement = null;
+    let isFirstAiBubble = true;
+
+    // 内部闭包：用来动态创建瑛的新小气泡
+    const createNewAiBubble = () => {
+        const aiRowId = "ai-row-" + Date.now() + "-" + Math.random().toString(36).substr(2, 5);
+        const aiRow = document.createElement('div');
+        aiRow.className = "msg-row ai-row";
+        aiRow.id = aiRowId;
+        aiRow.style.marginTop = isFirstAiBubble ? '10px' : '-12px';
+        
+        aiRow.innerHTML = `
+            < img class="avatar" src="${aAvatar}" style="${isFirstAiBubble ? '' : 'visibility: hidden;'}">
+            <div class="message ai-msg">
+                ${isFirstAiBubble ? `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${currentTimeStr}</div>` : ''}
+                <div class="msg-text"></div>
+            </div>
+        `;
+        chatBox.appendChild(aiRow);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        
+        isFirstAiBubble = false;
+        currentBubbleText = ""; // 清空当前气泡里的文本缓冲
+        return aiRow.querySelector('.msg-text');
+    };
+
+    // 初始化创造第一个接收文字的小气泡
+    currentBubbleElement = createNewAiBubble();
     
     try {
         const apiHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? '' : BACKEND_URL;
@@ -318,20 +340,38 @@ async function executeSendAction(contentText) {
         if (!response.body) return;
         const reader = response.body.getReader(); 
         const decoder = new TextDecoder("utf-8"); 
-        let fullReply = "";
+        let textBuffer = ""; // 用于处理流碎片的临时缓冲区
         
         while (true) {
             const { value, done } = await reader.read(); if (done) break;
             const chunk = decoder.decode(value, { stream: true }); 
             const lines = chunk.split('\n');
+            
             for (const line of lines) {
                 if (line.trim() === '' || line.includes('[DONE]')) continue;
                 if (line.startsWith('data: ')) {
                     try {
                         const parsed = JSON.parse(line.slice(6));
                         if (parsed.content) { 
-                            fullReply += parsed.content;
-                            tempAiRow.querySelector('.msg-text').innerText = fullReply;
+                            let newChar = parsed.content;
+                            textBuffer += newChar;
+                            
+                            // 🔍 实时检查：如果撞到句号、感叹号、换行符，或者是图片链接的前兆(http)
+                            if (/[。！？\n]/.test(newChar) || (textBuffer.includes('http') && !currentBubbleText.includes('http'))) {
+                                currentBubbleText += textBuffer;
+                                textBuffer = ""; 
+                                
+                                // 把当前切好的气泡固定渲染（如果是链接会自动在这里转成图片标签）
+                                currentBubbleElement.innerHTML = renderTextOrImage(currentBubbleText.trim());
+                                
+                                // 啪！立刻原地新建一个气泡去接收后面的话
+                                currentBubbleElement = createNewAiBubble();
+                            } else {
+                                // 正常的逐字打字状态
+                                currentBubbleText += textBuffer;
+                                textBuffer = "";
+                                currentBubbleElement.innerText = currentBubbleText;
+                            }
                             chatBox.scrollTop = chatBox.scrollHeight; 
                         }
                     } catch (e) {}
@@ -339,51 +379,23 @@ async function executeSendAction(contentText) {
             }
         }
         
-        // 🔮 【核心安全改造】提取文本中所有的图片链接并切分气泡
-        const imgRegex = /(https?:\/\/[^\s]+?\.(?:jpg|jpeg|png|gif|webp))/gi;
-        const tokens = fullReply.split(imgRegex);
-        let finalBlocks = [];
-        
-        tokens.forEach(token => {
-            if (!token) return;
-            if (token.match(imgRegex)) {
-                finalBlocks.push(token.trim());
-            } else {
-                const subPhrases = token.split(/(?<=[。！？\n])/g).map(s => s.trim()).filter(s => s.length > 0);
-                finalBlocks.push(...subPhrases);
-            }
-        });
-        
-        // 只有成功切出了新块，才移除旧气泡并渲染新气泡，防止白屏
-        if (finalBlocks.length > 0) {
-            const tempNode = document.getElementById(aiRowId);
-            if (tempNode) tempNode.remove(); // 安全删除旧气泡
-
-            finalBlocks.forEach((blockText, index) => {
-                const isFirst = (index === 0);
-                chatBox.insertAdjacentHTML('beforeend', `
-                    <div class="msg-row ai-row" style="${isFirst ? 'margin-top: 10px;' : 'margin-top: -12px;'}">
-                        <img class="avatar" src="${aAvatar}" style="${isFirst ? '' : 'visibility: hidden;'}">
-                        <div class="message ai-msg">
-                            ${isFirst ? `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${currentTimeStr}</div>` : ''}
-                            <div class="msg-text">${renderTextOrImage(blockText)}</div>
-                        </div>
-                    </div>
-                `);
-            });
-            chatBox.scrollTop = chatBox.scrollHeight;
-        } else { 
-            // 兜底方案：如果切泡失败，直接调用你的历史刷新，保证绝对不白屏
-            fetchHistory(); 
+        // 当流全部传输结束时，收尾残存的最后一句
+        if (currentBubbleText.trim() || textBuffer.trim()) {
+            currentBubbleText += textBuffer;
+            currentBubbleElement.innerHTML = renderTextOrImage(currentBubbleText.trim());
+        } else {
+            // 如果最后一个开出的气泡里没字（比如刚好最后落了个句号），就删掉这个空框防止留白
+            const emptyRow = currentBubbleElement.closest('.ai-row');
+            if (emptyRow) emptyRow.remove();
         }
-        
+        chatBox.scrollTop = chatBox.scrollHeight;
+
     } catch (e) { 
         console.error(e);
-        // 发生任何未知错误时直接调用刷新，做终极兜底
+        // 终极安全网：有任何报错、连不上 Render 都会自动刷新重载历史，绝对不白屏卡死！
         fetchHistory();
     }
 }
-
 window.onload = function() {
     const bg = localStorage.getItem('rinka_home_bg');
     if(bg) { document.body.style.background = `url('${bg}') center/cover fixed`; }
