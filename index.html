@@ -273,6 +273,7 @@ async function sendMessage() {
 }
 
 // 🛠️ 核心执行器
+// 🛠️ 核心执行器（重构版：完美支持图文混排、瞬间切泡）
 async function executeSendAction(contentText) {
     const chatBox = document.getElementById('chat-box');
     const uAvatar = localStorage.getItem('rinka_avatar') || defaultUserAvatar; 
@@ -287,17 +288,18 @@ async function executeSendAction(contentText) {
         return `${nd.getFullYear()}年${nd.getMonth() + 1}月${nd.getDate()}日 星期${['日','一','二','三','四','五','六'][nd.getDay()]} ${pad(nd.getHours())}:${pad(nd.getMinutes())}`;
     };
     
+    // 1. 渲染用户发送的消息
     const userRow = document.createElement('div');
     userRow.className = "msg-row user-row";
-    userRow.innerHTML = `<img class="avatar" src="${uAvatar}"><div class="message user-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div><div class="msg-text"></div></div>`;
-    userRow.querySelector('.msg-text').innerHTML = renderTextOrImage(contentText); 
+    userRow.innerHTML = `< img class="avatar" src="${uAvatar}"><div class="message user-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div>`;
     chatBox.appendChild(userRow);
     
+    // 2. 创建 AI 正在输入的临时气泡
     const aiRowId = "ai-row-" + Date.now();
     const tempAiRow = document.createElement('div');
     tempAiRow.className = "msg-row ai-row";
     tempAiRow.id = aiRowId;
-    tempAiRow.innerHTML = `<img class="avatar" src="${aAvatar}"><div class="message ai-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div><div class="msg-text">正在输入中...</div></div>`;
+    tempAiRow.innerHTML = `< img class="avatar" src="${aAvatar}"><div class="message ai-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div><div class="msg-text">正在输入中...</div></div>`;
     chatBox.appendChild(tempAiRow);
     chatBox.scrollTop = chatBox.scrollHeight;
     
@@ -338,37 +340,46 @@ async function executeSendAction(contentText) {
             }
         }
         
+        // 移除正在输入状态的临时单气泡
         document.getElementById(aiRowId).remove();
         
-        if (fullReply.trim().startsWith('http') && (fullReply.includes('.jpg') || fullReply.includes('.gif') || fullReply.includes('.png'))) {
-            chatBox.insertAdjacentHTML('beforeend', `
-                <div class="msg-row ai-row">
-                    <img class="avatar" src="${aAvatar}">
-                    <div class="message ai-msg">
-                        <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div>
-                        <div class="msg-text">${renderTextOrImage(fullReply)}</div>
-                    </div>
-                </div>
-            `);
-        } else {
-            const subMsgs = fullReply.split(/(?<=[。！？\n])/g).map(s => s.trim()).filter(s => s.length > 0);
-                    // 🚀 替换原本慢吞吞的队列，改为瞬间全量并发气泡
-        if (subMsgs.length > 0) {
-            subMsgs.forEach((currentText, index) => {
+        // 🔮 【核心魔改】提取文本中所有的图片链接，并把它们前后的文字切分成独立气泡
+        // 这个正则可以精准把 https://...jpg 剥离出来
+        const imgRegex = /(https?:\/\/[^\s]+?\.(?:jpg|jpeg|png|gif|webp))/gi;
+        
+        // 先按图片链接把整段话拆开
+        const tokens = fullReply.split(imgRegex);
+        let finalBlocks = [];
+        
+        tokens.forEach(token => {
+            if (!token) return;
+            if (token.match(imgRegex)) {
+                // 如果是图片链接，直接作为独立气泡
+                finalBlocks.push(token.trim());
+            } else {
+                // 如果是普通文本，再按照标点符号切成短句
+                const subPhrases = token.split(/(?<=[。！？\n])/g).map(s => s.trim()).filter(s => s.length > 0);
+                finalBlocks.push(...subPhrases);
+            }
+        });
+        
+        // 一瞬间把所有的气泡渲染出来
+        if (finalBlocks.length > 0) {
+            finalBlocks.forEach((blockText, index) => {
                 const isFirst = (index === 0);
                 chatBox.insertAdjacentHTML('beforeend', `
                     <div class="msg-row ai-row" style="${isFirst ? 'margin-top: 10px;' : 'margin-top: -12px;'}">
                         < img class="avatar" src="${aAvatar}" style="${isFirst ? '' : 'visibility: hidden;'}">
                         <div class="message ai-msg">
                             ${isFirst ? `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div>` : ''}
-                            <div class="msg-text">${renderTextOrImage(currentText)}</div>
+                            <div class="msg-text">${renderTextOrImage(blockText)}</div>
                         </div>
                     </div>
                 `);
             });
             chatBox.scrollTop = chatBox.scrollHeight;
         } else { fetchHistory(); }
-        }
+        
     } catch (e) { console.error(e); }
 }
 
