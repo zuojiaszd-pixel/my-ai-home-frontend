@@ -50,15 +50,26 @@
         ).join('');
     }
     async function loadMemories(predicate) {
-        const res = await fetch(`${BACKEND_URL}/api/memory-by-tag/${predicate}`);
-        const data = await res.json();
-        document.getElementById('memory-cards-container').innerHTML = data.map(m => `
+    const res = await fetch(`${BACKEND_URL}/api/memory-by-tag/${predicate}`);
+    const data = await res.json();
+    document.getElementById('memory-cards-container').innerHTML = data.map(m => {
+        // ✨ 处理时间：如果存在 created_at 就格式化，否则显示空
+        const date = m.created_at ? new Date(m.created_at).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' }) : '';
+        
+        return `
             <div class="memory-card">
-                <div><strong>${m.subject}</strong> <span style="color: #a11d48;">${m.predicate}</span> <strong>${m.object}</strong></div>
+                <div style="flex: 1;">
+                    <strong>${m.subject}</strong> 
+                    <span style="color: #a11d48;">${m.predicate}</span> 
+                    <strong>${m.object}</strong>
+                    <br>
+                    <small style="color: #888; font-size: 10px;">${date}</small> <!-- 👈 时间在这里显示 -->
+                </div>
                 <span class="del-btn" onclick="deleteFact('${m._id}')">×</span>
             </div>
-        `).join('');
-    }
+        `;
+    }).join('');
+}
     async function deleteMemory(id) {
         if(!confirm("确定要删除这条记忆吗？")) return;
         await fetch(`${BACKEND_URL}/api/memory/delete/${id}`, { method: 'POST' });
