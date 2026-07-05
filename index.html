@@ -290,7 +290,7 @@ async function executeSendAction(contentText) {
     // 1. 渲染用户发送的消息
     const userRow = document.createElement('div');
     userRow.className = "msg-row user-row";
-    userRow.innerHTML = `< img class="avatar" src="${uAvatar}"><div class="message user-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div>`;
+    userRow.innerHTML = `<img class="avatar" src="${uAvatar}"><div class="message user-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div>`;
     chatBox.appendChild(userRow);
     
     // 状态追踪变量
@@ -307,7 +307,7 @@ async function executeSendAction(contentText) {
         aiRow.style.marginTop = isFirstAiBubble ? '10px' : '-12px';
         
         aiRow.innerHTML = `
-            < img class="avatar" src="${aAvatar}" style="${isFirstAiBubble ? '' : 'visibility: hidden;'}">
+            <img class="avatar" src="${aAvatar}" style="${isFirstAiBubble ? '' : 'visibility: hidden;'}">
             <div class="message ai-msg">
                 ${isFirstAiBubble ? `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${currentTimeStr}</div>` : ''}
                 <div class="msg-text"></div>
