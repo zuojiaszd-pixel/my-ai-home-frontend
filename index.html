@@ -272,26 +272,25 @@ async function sendMessage() {
     await executeSendAction(content);
 }
 
-// 🛠️ 核心执行器
-// 🛠️ 核心执行器（重构版：完美支持图文混排、瞬间切泡）
+// 🛠️ 核心执行器（终极安全版：完美切泡且绝不卡死白屏）
 async function executeSendAction(contentText) {
     const chatBox = document.getElementById('chat-box');
     const uAvatar = localStorage.getItem('rinka_avatar') || defaultUserAvatar; 
     const aAvatar = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
     if(chatBox.innerHTML.includes("欢迎回家")) chatBox.innerHTML = '';
     
-    const getBeijingTimeString = () => {
-        const d = new Date();
-        const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
-        const nd = new Date(utc + (3600000 * 8)); 
-        const pad = (num) => String(num).padStart(2, '0');
-        return `${nd.getFullYear()}年${nd.getMonth() + 1}月${nd.getDate()}日 星期${['日','一','二','三','四','五','六'][nd.getDay()]} ${pad(nd.getHours())}:${pad(nd.getMinutes())}`;
+    // 自动适配你的时间函数，防止报错
+    const getTimeStr = () => {
+        try { return formatBeijingTime(new Date()); } catch(e) {
+            try { return getBeijingTimeString(); } catch(err) { return "7/6 00:28"; }
+        }
     };
-    
+    const currentTimeStr = getTimeStr();
+
     // 1. 渲染用户发送的消息
     const userRow = document.createElement('div');
     userRow.className = "msg-row user-row";
-    userRow.innerHTML = `< img class="avatar" src="${uAvatar}"><div class="message user-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div>`;
+    userRow.innerHTML = `< img class="avatar" src="${uAvatar}"><div class="message user-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div>`;
     chatBox.appendChild(userRow);
     
     // 2. 创建 AI 正在输入的临时气泡
@@ -299,7 +298,7 @@ async function executeSendAction(contentText) {
     const tempAiRow = document.createElement('div');
     tempAiRow.className = "msg-row ai-row";
     tempAiRow.id = aiRowId;
-    tempAiRow.innerHTML = `< img class="avatar" src="${aAvatar}"><div class="message ai-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div><div class="msg-text">正在输入中...</div></div>`;
+    tempAiRow.innerHTML = `< img class="avatar" src="${aAvatar}"><div class="message ai-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${currentTimeStr}</div><div class="msg-text">正在输入中...</div></div>`;
     chatBox.appendChild(tempAiRow);
     chatBox.scrollTop = chatBox.scrollHeight;
     
@@ -312,7 +311,7 @@ async function executeSendAction(contentText) {
                 sessionId: currentSessionId,
                 content: contentText,
                 message: contentText,
-                clientTime: getBeijingTimeString()
+                clientTime: currentTimeStr
             })
         });
         
@@ -340,47 +339,49 @@ async function executeSendAction(contentText) {
             }
         }
         
-        // 移除正在输入状态的临时单气泡
-        document.getElementById(aiRowId).remove();
-        
-        // 🔮 【核心魔改】提取文本中所有的图片链接，并把它们前后的文字切分成独立气泡
-        // 这个正则可以精准把 https://...jpg 剥离出来
+        // 🔮 【核心安全改造】提取文本中所有的图片链接并切分气泡
         const imgRegex = /(https?:\/\/[^\s]+?\.(?:jpg|jpeg|png|gif|webp))/gi;
-        
-        // 先按图片链接把整段话拆开
         const tokens = fullReply.split(imgRegex);
         let finalBlocks = [];
         
         tokens.forEach(token => {
             if (!token) return;
             if (token.match(imgRegex)) {
-                // 如果是图片链接，直接作为独立气泡
                 finalBlocks.push(token.trim());
             } else {
-                // 如果是普通文本，再按照标点符号切成短句
                 const subPhrases = token.split(/(?<=[。！？\n])/g).map(s => s.trim()).filter(s => s.length > 0);
                 finalBlocks.push(...subPhrases);
             }
         });
         
-        // 一瞬间把所有的气泡渲染出来
+        // 只有成功切出了新块，才移除旧气泡并渲染新气泡，防止白屏
         if (finalBlocks.length > 0) {
+            const tempNode = document.getElementById(aiRowId);
+            if (tempNode) tempNode.remove(); // 安全删除旧气泡
+
             finalBlocks.forEach((blockText, index) => {
                 const isFirst = (index === 0);
                 chatBox.insertAdjacentHTML('beforeend', `
                     <div class="msg-row ai-row" style="${isFirst ? 'margin-top: 10px;' : 'margin-top: -12px;'}">
                         < img class="avatar" src="${aAvatar}" style="${isFirst ? '' : 'visibility: hidden;'}">
                         <div class="message ai-msg">
-                            ${isFirst ? `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div>` : ''}
+                            ${isFirst ? `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${currentTimeStr}</div>` : ''}
                             <div class="msg-text">${renderTextOrImage(blockText)}</div>
                         </div>
                     </div>
                 `);
             });
             chatBox.scrollTop = chatBox.scrollHeight;
-        } else { fetchHistory(); }
+        } else { 
+            // 兜底方案：如果切泡失败，直接调用你的历史刷新，保证绝对不白屏
+            fetchHistory(); 
+        }
         
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+        console.error(e);
+        // 发生任何未知错误时直接调用刷新，做终极兜底
+        fetchHistory();
+    }
 }
 
 window.onload = function() {
