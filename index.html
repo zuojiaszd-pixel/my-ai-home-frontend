@@ -352,25 +352,22 @@ async function executeSendAction(contentText) {
             `);
         } else {
             const subMsgs = fullReply.split(/(?<=[。！？\n])/g).map(s => s.trim()).filter(s => s.length > 0);
-            if (subMsgs.length > 0) {
-                async function sendBubbleQueue(index) {
-                    if (index >= subMsgs.length) return;
-                    const currentText = subMsgs[index];
-                    const isFirst = (index === 0);
-                    chatBox.insertAdjacentHTML('beforeend', `
-                        <div class="msg-row ai-row" style="${isFirst ? 'margin-top: 10px;' : 'margin-top: -12px;'}">
-                            <img class="avatar" src="${aAvatar}" style="${isFirst ? '' : 'visibility: hidden;'}">
-                            <div class="message ai-msg">
-                                ${isFirst ? `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div>` : ''}
-                                <div class="msg-text">${renderTextOrImage(currentText)}</div>
-                            </div>
+                    // 🚀 替换原本慢吞吞的队列，改为瞬间全量并发气泡
+        if (subMsgs.length > 0) {
+            subMsgs.forEach((currentText, index) => {
+                const isFirst = (index === 0);
+                chatBox.insertAdjacentHTML('beforeend', `
+                    <div class="msg-row ai-row" style="${isFirst ? 'margin-top: 10px;' : 'margin-top: -12px;'}">
+                        < img class="avatar" src="${aAvatar}" style="${isFirst ? '' : 'visibility: hidden;'}">
+                        <div class="message ai-msg">
+                            ${isFirst ? `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(new Date())}</div>` : ''}
+                            <div class="msg-text">${renderTextOrImage(currentText)}</div>
                         </div>
-                    `);
-                    chatBox.scrollTop = chatBox.scrollHeight;
-                    setTimeout(() => { sendBubbleQueue(index + 1); }, Math.min(Math.max(currentText.length * 60, 600), 1300));
-                }
-                sendBubbleQueue(0);
-            } else { fetchHistory(); }
+                    </div>
+                `);
+            });
+            chatBox.scrollTop = chatBox.scrollHeight;
+        } else { fetchHistory(); }
         }
     } catch (e) { console.error(e); }
 }
