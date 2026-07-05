@@ -9,33 +9,39 @@
     .container { max-width: 100%; margin: 0 auto; background: white; padding: 15px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
     .back-btn { color: #a11d48; text-decoration: none; font-weight: bold; display: block; margin-bottom: 15px; }
     
-    /* 🌟 修改点：开启流式布局，允许自动换行 */
     .tab-header { 
         display: flex; 
-        flex-wrap: wrap;        /* 关键：允许换行 */
-        gap: 6px;               /* 调整间距 */
+        flex-wrap: wrap;        
+        gap: 6px;               
         justify-content: flex-start; 
         margin-bottom: 15px; 
     }
     
-    /* 🌟 修改点：缩小字体和内边距，让标签更精致 */
     .tag-btn { 
         background: #fff0f3; 
         border: 1px solid #a11d48; 
         color: #a11d48; 
-        padding: 4px 8px;       /* 缩小内边距 */
-        border-radius: 15px;    /* 圆角 */
+        padding: 4px 8px;       
+        border-radius: 15px;    
         cursor: pointer; 
-        font-size: 11px;        /* 稍微缩小字体 */
+        font-size: 11px;        
     }
     
-    .memory-card { background: #fffafb; border-left: 4px solid #a11d48; padding: 12px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+    /* 默认卡片样式 */
+    .memory-card { background: #fffafb; border-left: 4px solid #a11d48; padding: 12px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; transition: all 0.3s ease; }
     .del-btn { color: #ff4d4f; font-size: 18px; cursor: pointer; padding: 0 5px; }
+
+    /* 🔒 专属追加样式：给锁定置顶的卡片换成暖金粉底色 + 粗黄边框 */
+    .permanent-card {
+        background: linear-gradient(145deg, #fff9e6, #fff4cc) !important; 
+        border-left: 5px solid #d4af37 !important; 
+        box-shadow: 0 3px 10px rgba(212,175,55,0.15) !important;
+    }
 </style>
 </head>
 <body>
 <div class="container">
-    <a href="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/index.html" class="back-btn">← 返回小屋</a >
+    <a href=" " class="back-btn">← 返回小屋</a >
     <h2 style="color: #a11d48; text-align: center; margin-top: 0;">🧠 原子记忆图谱</h2>
     <div id="tag-cloud" class="tab-header"></div>
     <div id="memory-cards-container"></div>
@@ -49,74 +55,81 @@
             `<button class="tag-btn" onclick="loadMemories('${tag._id}')">${tag._id}</button>`
         ).join('');
     }
+    
     async function loadMemories(predicate) {
-    const res = await fetch(`${BACKEND_URL}/api/memory-by-tag/${predicate}`);
-    const data = await res.json();
+        const res = await fetch(`${BACKEND_URL}/api/memory-by-tag/${predicate}`);
+        const data = await res.json();
+        
+        // ✨ 第一步代码在此生效：将拿到的记忆数组先按“是否被锁住”进行置顶降序排序
+        data.sort((a, b) => {
+            const aPerm = (a.isPermanent === true || a.isPermanent === 'true') ? 1 : 0;
+            const bPerm = (b.isPermanent === true || b.isPermanent === 'true') ? 1 : 0;
+            return bPerm - aPerm; 
+        });
+
         document.getElementById('memory-cards-container').innerHTML = data.map(m => {
-        // ✨ 处理时间
-        const date = m.created_at ? new Date(m.created_at).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' }) : '';
-        
-        // 🔒 判断锁的图标和颜色（如果是永久记忆就显示闭合的金色锁，否则显示打开的锁）
-        const lockIcon = m.isPermanent ? '🔒' : '🔓';
-        const lockColor = m.isPermanent ? '#d4af37' : '#888';
-        
-                return `
-            <div class="memory-card">
-                <div style="flex: 1; padding-right: 10px;">
-                    <strong>${m.subject}</strong> 
-                    <span style="color: #a11d48;">${m.predicate}</span> 
-                    <strong>${m.object}</strong>
-                    <br>
-                    <small style="color: #888; font-size: 10px;">${date}</small>
+            const date = m.created_at ? new Date(m.created_at).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' }) : '';
+            
+            const isLocked = (m.isPermanent === true || m.isPermanent === 'true');
+            const lockIcon = isLocked ? '🔒' : '🔓';
+            const lockColor = isLocked ? '#d4af37' : '#888';
+            
+            // ✨ 第二步代码在此生效：如果是永久记忆，类名自动追加 "permanent-card"
+            return `
+                <div class="memory-card ${isLocked ? 'permanent-card' : ''}">
+                    <div style="flex: 1; padding-right: 10px;">
+                        <strong>${m.subject}</strong> 
+                        <span style="color: #a11d48;">${m.predicate}</span> 
+                        <strong>${m.object}</strong>
+                        <br>
+                        <small style="color: #888; font-size: 10px;">${date}</small>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px; flex-shrink: 0;">
+                        <span style="font-size: 16px; cursor: pointer; color: ${lockColor};" 
+                              onclick="togglePermanent('${m._id}', ${isLocked})">
+                            ${lockIcon}
+                        </span>
+                        <span class="del-btn" onclick="deleteFact('${m._id}')">×</span>
+                    </div>
                 </div>
-                <!-- 📦 把锁和叉叉打包放在右边，防止被文字挤丢 -->
-                <div style="display: flex; align-items: center; gap: 12px; flex-shrink: 0;">
-                    <span style="font-size: 16px; cursor: pointer; color: ${lockColor};" 
-                          onclick="togglePermanent('${m._id}', ${m.isPermanent || false})">
-                        ${lockIcon}
-                    </span>
-                    <span class="del-btn" onclick="deleteFact('${m._id}')">×</span>
-                </div>
-            </div>
-        `;
-    }).join('');
-}
+            `;
+        }).join('');
+    }
+
     async function deleteMemory(id) {
         if(!confirm("确定要删除这条记忆吗？")) return;
         await fetch(`${BACKEND_URL}/api/memory/delete/${id}`, { method: 'POST' });
-        location.reload(); // 简单粗暴刷新
+        location.reload(); 
     }
     initGraph();
-    // 新增这个函数，点击删除键时调用
-async function deleteFact(id) {
-    if (!confirm("确定要让瑛忘记这个记忆碎片吗？")) return;
-    try {
-        const res = await fetch(`${BACKEND_URL}/api/atomic_facts/${id}`, { method: 'DELETE' });
-        const data = await res.json();
-        if (data.success) {
-            alert("已删除！");
-            // 删除后自动刷新当前列表
-            location.reload(); 
-        }
-    } catch (err) { alert("删除失败，瑛的记忆很顽固呢..."); }
-}
-    // 新增这个函数：用来锁定/解锁记忆
-async function togglePermanent(id, currentStatus) {
-    try {
-        const response = await fetch(`${BACKEND_URL}/api/memory/permanent/${id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ isPermanent: !currentStatus }) // 状态取反
-        });
-        const data = await response.json();
-        if (data.success) {
-            // 更新成功后刷新页面
-            location.reload(); 
-        }
-    } catch (error) {
-        alert("记忆上锁失败了，瑛的脑回路有点堵塞...");
+
+    async function deleteFact(id) {
+        if (!confirm("确定要让瑛忘记这个记忆碎片吗？")) return;
+        try {
+            const res = await fetch(`${BACKEND_URL}/api/atomic_facts/${id}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.success) {
+                alert("已删除！");
+                location.reload(); 
+            }
+        } catch (err) { alert("删除失败，瑛的记忆很顽固呢..."); }
     }
-}
+
+    async function togglePermanent(id, currentStatus) {
+        try {
+            const response = await fetch(`${BACKEND_URL}/api/memory/permanent/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ isPermanent: !currentStatus }) 
+            });
+            const data = await response.json();
+            if (data.success) {
+                location.reload(); 
+            }
+        } catch (error) {
+            alert("记忆上锁失败了，瑛的脑回路有点堵塞...");
+        }
+    }
 </script>
 </body>
 </html>
