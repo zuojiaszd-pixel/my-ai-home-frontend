@@ -290,7 +290,7 @@ async function executeSendAction(contentText) {
     // 1. 渲染用户发送的消息
     const userRow = document.createElement('div');
     userRow.className = "msg-row user-row";
-    userRow.innerHTML = `< img class="avatar" src="${uAvatar}"><div class="message user-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div>`;
+    userRow.innerHTML = `<img class="avatar" src="${uAvatar}"><div class="message user-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div>`;
     chatBox.appendChild(userRow);
     
     // 2. 创建 AI 正在输入的临时气泡
@@ -298,7 +298,7 @@ async function executeSendAction(contentText) {
     const tempAiRow = document.createElement('div');
     tempAiRow.className = "msg-row ai-row";
     tempAiRow.id = aiRowId;
-    tempAiRow.innerHTML = `< img class="avatar" src="${aAvatar}"><div class="message ai-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${currentTimeStr}</div><div class="msg-text">正在输入中...</div></div>`;
+    tempAiRow.innerHTML = `<img class="avatar" src="${aAvatar}"><div class="message ai-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${currentTimeStr}</div><div class="msg-text">正在输入中...</div></div>`;
     chatBox.appendChild(tempAiRow);
     chatBox.scrollTop = chatBox.scrollHeight;
     
@@ -363,7 +363,7 @@ async function executeSendAction(contentText) {
                 const isFirst = (index === 0);
                 chatBox.insertAdjacentHTML('beforeend', `
                     <div class="msg-row ai-row" style="${isFirst ? 'margin-top: 10px;' : 'margin-top: -12px;'}">
-                        < img class="avatar" src="${aAvatar}" style="${isFirst ? '' : 'visibility: hidden;'}">
+                        <img class="avatar" src="${aAvatar}" style="${isFirst ? '' : 'visibility: hidden;'}">
                         <div class="message ai-msg">
                             ${isFirst ? `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${currentTimeStr}</div>` : ''}
                             <div class="msg-text">${renderTextOrImage(blockText)}</div>
