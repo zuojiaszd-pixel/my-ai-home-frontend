@@ -5,14 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>原子记忆图谱</title>
     <style>
-        body { background: #fff0f3; font-family: sans-serif; padding: 15px; color: #4a4a4a; margin: 0; }
-        .container { max-width: 100%; margin: 0 auto; background: white; padding: 15px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .back-btn { color: #a11d48; text-decoration: none; font-weight: bold; display: block; margin-bottom: 15px; }
-        .tab-header { display: flex; overflow-x: auto; gap: 8px; padding-bottom: 10px; margin-bottom: 15px; }
-        .tag-btn { background: #fff0f3; border: 1px solid #a11d48; color: #a11d48; padding: 8px 12px; border-radius: 20px; white-space: nowrap; cursor: pointer; font-size: 13px; }
-        .memory-card { background: #fffafb; border-left: 4px solid #a11d48; padding: 12px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
-        .del-btn { color: #ff4d4f; font-size: 18px; cursor: pointer; padding: 0 5px; }
-    </style>
+    body { background: #fff0f3; font-family: sans-serif; padding: 15px; color: #4a4a4a; margin: 0; }
+    .container { max-width: 100%; margin: 0 auto; background: white; padding: 15px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    .back-btn { color: #a11d48; text-decoration: none; font-weight: bold; display: block; margin-bottom: 15px; }
+    
+    /* 🌟 修改点：开启流式布局，允许自动换行 */
+    .tab-header { 
+        display: flex; 
+        flex-wrap: wrap;        /* 关键：允许换行 */
+        gap: 6px;               /* 调整间距 */
+        justify-content: flex-start; 
+        margin-bottom: 15px; 
+    }
+    
+    /* 🌟 修改点：缩小字体和内边距，让标签更精致 */
+    .tag-btn { 
+        background: #fff0f3; 
+        border: 1px solid #a11d48; 
+        color: #a11d48; 
+        padding: 4px 8px;       /* 缩小内边距 */
+        border-radius: 15px;    /* 圆角 */
+        cursor: pointer; 
+        font-size: 11px;        /* 稍微缩小字体 */
+    }
+    
+    .memory-card { background: #fffafb; border-left: 4px solid #a11d48; padding: 12px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .del-btn { color: #ff4d4f; font-size: 18px; cursor: pointer; padding: 0 5px; }
+</style>
 </head>
 <body>
 <div class="container">
