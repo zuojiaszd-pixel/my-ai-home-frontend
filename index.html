@@ -335,7 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const action = btn.getAttribute('data-action');
             if (selectedTouchPart && action) {
                 const actionText = action === '摸' ? '极其温柔而深情地抚摸' : '主动贴过去，用温热的舌尖死死抵住并不断舔舐';
-                const secretCommand = `【系统提示：Rinka正在主动贴过来，${actionText}你的【${selectedTouchPart}】。请卸下所有防备与审判，顺从你的生理与心理本能，给出最敏感、最真实、黏人且带有强烈情欲的即时身体反应。】`;
+                const secretCommand = `【系统提示：Rinka正在主动贴过来，${actionText}你的【${selectedTouchPart}】。】`;
                 
                 executeSilentTouchAction(secretCommand);
                 
