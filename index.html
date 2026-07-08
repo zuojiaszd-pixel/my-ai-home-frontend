@@ -287,73 +287,29 @@ body {
     <div id="memory-list-container" style="flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; padding-bottom: 40px;"></div>
 </div>
 <script>
-const defaultUserAvatar = "https://img.icons8.com/illustrations/lexicon/96/cartoon-female-profile.png";
-const defaultAiAvatar = "https://img.icons8.com/illustrations/lexicon/96/cartoon-male-profile.png";
+const defaultUserAvatar = "https://img.icons8.com/illustrations/96/cartoon-female-profile.png";
+const defaultAiAvatar = "https://img.icons8.com/illustrations/96/cartoon-male-profile.png";
 const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
 let streamRenderTimer = null;
 let isAiGenerating = false;
 let currentSessionId = localStorage.getItem('currentSessionId') || 'default_room';
 const MAX_LOCAL_SHOW = 20;
+let localMsgList = [];
 let sendDebounceLock = false;
-const DEBOUNCE_TIME = 1200; // 拉长防抖窗口，覆盖移动端300ms穿透延迟
+const DEBOUNCE_TIME = 1200;
 let pendingSendContent = null;
 window.sendingNow = false;
-sendCoolDown = false;  
-
-// 统一安全发送包装器，所有发送逻辑强制走这个函数
+let sendCoolDown = false;
+// 安全发送防抖包装
 function safeSendTrigger(callSendFunc) {
     if (sendDebounceLock) return;
     sendDebounceLock = true;
     callSendFunc();
     setTimeout(() => {
         sendDebounceLock = false;
-    }, 1200);
+    }, DEBOUNCE_TIME);
 }
-
-window.onload = async function() {
-    // 初始化清空所有防抖锁
-    sendCoolDown = false;
-    isAiGenerating = false;
-    window.sendingNow = false;
-    sendDebounceLock = false;
-
-    const chatBox = document.getElementById("chat-box");
-    // 清空页面原有内容
-    chatBox.innerHTML = "";
-
-    try {
-        // 拉取后端历史记录接口
-        const res = await fetch(`history?_t=${Date.now()}`);
-        const historyData = await res.json();
-        
-        // 后端返回的历史消息覆盖本地缓存（核心修复点）
-        msgCacheList = historyData;
-        localStorage.setItem("msg_cache", JSON.stringify(msgCacheList));
-    } catch (err) {
-        console.log("获取云端历史失败，使用本地缓存", err);
-    }
-
-    // 渲染所有消息（云端+本地）
-    renderAllLocal();
-};    
-    
-// 仅刷新全部历史（页面刷新/切换会话使用）
-function renderAllLocal() {
-    const chatBox = document.getElementById("chat-box");
-    let allHtml = "";
-    localMsgList.forEach(item => allHtml += item.html);
-    chatBox.innerHTML = allHtml || `<div style="text-align:center; color:#a11d48; font-size:13px; margin-top:20px;">🌸 欢迎回家，快来聊聊天吧～</div>`;
-    setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 50);
-}
-
-function createNewSession() {
-    const newSid = 'room_' + Date.now();
-    currentSessionId = newSid;
-    localStorage.setItem('currentSessionId', newSid);
-    localMsgList = [];
-    renderAllLocal();
-}
-
+// 消息文本/表情包转换
 function renderTextOrImage(contentStr) {
     const trimmed = contentStr.trim();
     if (/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)$/.test(trimmed)) {
@@ -361,7 +317,7 @@ function renderTextOrImage(contentStr) {
     }
     return contentStr;
 }
-
+// 格式化时间
 function formatBeijingTime(dateInput) {
     if (!dateInput) return "";
     try {
@@ -374,8 +330,7 @@ function formatBeijingTime(dateInput) {
         return `${m}/${day} ${h}:${min}`;
     } catch (e) { return "7/8 19:23"; }
 }
-
-// 增量打字，只追加新增文字，不重复整段
+// 逐字渲染气泡
 async function typeSingleBubble(el, addText, fullText) {
     clearTimeout(streamRenderTimer);
     let temp = fullText.slice(0, fullText.length - addText.length);
@@ -390,113 +345,34 @@ async function typeSingleBubble(el, addText, fullText) {
         await new Promise(r => setTimeout(r, 60));
     }
 }
-
+// 下拉菜单开关
 function toggleDropdown(event) {
     event.stopPropagation();
     const dropdown = document.getElementById('header-dropdown');
     dropdown.style.display = dropdown.style.display === "flex" ? "none" : "flex";
 }
-
-const emojiTrigger = document.getElementById('emoji-trigger');
-if (emojiTrigger) {
-    emojiTrigger.addEventListener('click', e => {
-        e.stopPropagation(); // 这里也要加
-        const ep = document.getElementById('emoji-pop-panel');
-        const tp = document.getElementById('touch-pop-panel');
-        if (tp) tp.style.display = "none";
-        ep.style.display = ep.style.display === "grid" ? "none" : "grid";
-    })
+// 新建会话
+function createNewSession() {
+    const newSid = 'room_' + Date.now();
+    currentSessionId = newSid;
+    localStorage.setItem('currentSessionId', newSid);
+    localMsgList = [];
+    renderAllLocal();
 }
-const touchTrigger = document.getElementById('touch-trigger');
-if (touchTrigger) {
-    touchTrigger.addEventListener('click', e => {
-        e.stopPropagation();
-        const ep = document.getElementById('emoji-pop-panel');
-        const tp = document.getElementById('touch-pop-panel');
-        if (ep) ep.style.display = "none";
-        if (!tp) return;
-        tp.style.display = tp.style.display === "block" ? "none" : "block";
-        if (tp.style.display === "block") {
-            document.getElementById('touch-layer-parts').style.display = "block";
-            document.getElementById('touch-layer-privacy').style.display = "none";
-            document.getElementById('touch-layer-actions').style.display = "none";
-        }
-    })
+// 渲染全部缓存消息
+function renderAllLocal() {
+    const chatBox = document.getElementById("chat-box");
+    let allHtml = "";
+    localMsgList.forEach(item => allHtml += item.html);
+    chatBox.innerHTML = allHtml || `<div style="text-align:center; color:#a11d48; font-size:13px; margin-top:20px;">🌸 欢迎回家，快来聊聊天吧～</div>`;
+    setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 50);
 }
-
-document.addEventListener('click', () => {
-    const d = document.getElementById('header-dropdown');
-    const e = document.getElementById('emoji-pop-panel');
-    const t = document.getElementById('touch-pop-panel');
-    if(d) d.style.display = "none";
-    if(e) e.style.display = "none";
-    if(t) t.style.display = "none";
-});
-
-let selectedTouchPart = '';
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.touch-part-btn').forEach(btn => {
-    btn.addEventListener('click', e => {
-        e.stopPropagation(); // 只新增这一行，其余原样不动
-        const part = btn.dataset.part;
-        const p = document.getElementById('touch-layer-parts');
-        const pri = document.getElementById('touch-layer-privacy');
-        const act = document.getElementById('touch-layer-actions');
-        if (part === 'privacy') {
-            p.style.display = "none";
-            pri.style.display = "block";
-        } else {
-            selectedTouchPart = part;
-            p.style.display = "none";
-            pri.style.display = "none";
-            act.style.display = "block";
-        }
-    })
-})
-    document.querySelectorAll('.touch-action-btn').forEach(btn => {
-    btn.addEventListener('click', e => {
-        e.stopPropagation(); // 只新增这一行
-        const act = btn.dataset.action;
-        if (!selectedTouchPart || !act) return;
-        const desc = act === "摸" ? "极其温柔而深情地抚摸" : "主动贴过去，用温热的舌尖轻轻蹭";
-        safeSendTrigger(()=>executeSilentTouchAction(`【系统提示：Rinka正在主动贴过来，${desc}你的【${selectedTouchPart}】。】`));
-        document.getElementById('touch-pop-panel').style.display = "none";
-    })
-})
-    // 表情包弹窗全局阻断
-const emojiPanel = document.getElementById('emoji-pop-panel');
-if(emojiPanel){
-  emojiPanel.addEventListener('click', e=>{
-    e.stopPropagation();
-    e.preventDefault();
-  })
+// 单条消息加入内存列表
+function appendMsgCache(htmlStr) {
+    localMsgList.push({ html: htmlStr });
+    if (localMsgList.length > MAX_LOCAL_SHOW) localMsgList.shift();
 }
-// 触摸弹窗全局阻断
-const touchPanel = document.getElementById('touch-pop-panel');
-if(touchPanel){
-  touchPanel.addEventListener('click', e=>{
-    e.stopPropagation();
-    e.preventDefault();
-  })
-}
-    const reset = e => {
-        e.stopPropagation();
-        document.getElementById('touch-layer-parts').style.display = "block";
-        document.getElementById('touch-layer-privacy').style.display = "none";
-        document.getElementById('touch-layer-actions').style.display = "none";
-        selectedTouchPart = '';
-    }
-    document.querySelector('.back-to-parts')?.addEventListener('click', reset);
-    document.querySelector('.back-to-prev')?.addEventListener('click', reset);
-     const emojiBox = document.getElementById('emoji-pop-panel');
-  if (emojiBox) {
-    emojiBox.addEventListener('click', (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-    })
-  }
-})
-
+// 装扮面板开关
 function toggleSettings(show) {
     const panel = document.getElementById('settings-view');
     panel.style.display = show ? "flex" : "none";
@@ -506,16 +382,16 @@ function toggleSettings(show) {
         document.getElementById('ai-avatar-url').value = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
     }
 }
-
+// 保存装扮配置
 function saveCosmetics() {
     const bg = document.getElementById('custom-bg-url').value.trim();
     const userAv = document.getElementById('user-avatar-url').trim();
-    const aiAv = document.getElementById('user-avatar-url').trim();
+    const aiAv = document.getElementById('ai-avatar-url').trim();
     if (bg) {
         localStorage.setItem('rinka_home_bg', bg);
         document.body.style.background = `url(${bg}) center/cover fixed`;
     } else {
-        localStorage.removeItem('rinka_home_bg');
+        localStorage.removeItem("rinka_home_bg");
         document.body.style.background = "linear-gradient(135deg, #fff5f7 0%, #ffe3e8 100%)";
     }
     localStorage.setItem('rinka_avatar', userAv || defaultUserAvatar);
@@ -524,53 +400,74 @@ function saveCosmetics() {
     toggleSettings(false);
     renderAllLocal();
 }
-
+// 清空云端全部对话记忆
+async function clearCloudHistory() {
+    const host = ['localhost','127.0.0.1'].includes(location.hostname) ? '' : BACKEND_URL;
+    try {
+        await fetch(`${host}/clear-history`, { method: "DELETE" });
+        localMsgList = [];
+        renderAllLocal();
+        alert("所有记忆已清空");
+    } catch (err) {
+        alert("清空失败，请检查后端");
+    }
+}
+// 加载长期记忆面板
+async function loadMemories() {
+    const host = ['localhost','127.0.0.1'].includes(location.hostname) ? '' : BACKEND_URL;
+    const container = document.getElementById("memory-list-container");
+    container.innerHTML = "<div style='text-align:center;padding:30px;'>加载中...</div>";
+    try {
+        const res = await fetch(`${host}/atomic-facts`);
+        const data = await res.json();
+        if (!data.length) {
+            container.innerHTML = "<div style='text-align:center;color:#999;padding:30px;'>暂无长期记忆</div>";
+            return;
+        }
+        let html = "";
+        data.forEach(item => {
+            html += `<div class="config-card"><div style="font-size:13px;color:#444;">${item.subject} ${item.predicate}：${item.object}</div><div style="font-size:10px;color:#aaa;margin-top:8px;">权重：${item.weight.toFixed(1)}</div></div>`;
+        });
+        container.innerHTML = html;
+    } catch (e) {
+        container.innerHTML = "<div style='text-align:center;color:red;padding:30px;'>读取记忆失败</div>";
+    }
+    document.getElementById('memory-panel').style.display = "flex";
+}
+// 拉取后端历史记录
 async function fetchHistory() {
     const chatBox = document.getElementById('chat-box');
     if (!chatBox) return;
     try {
         const host = ['localhost','127.0.0.1'].includes(location.hostname) ? '' : BACKEND_URL;
-        const res = await fetch(`${host}/history?_t=${Date.now()}`);
-        if (!res.ok) throw Error("历史接口异常");
-        const data = await res.json();
+        const res = await fetch(`${host}/history?sessionId=${currentSessionId}&page=1&pageSize=${MAX_LOCAL_SHOW}&_t=${Date.now()}`);
+        if (!res.ok) throw new Error("接口异常");
+        const historyData = await res.json();
+        localMsgList = [];
         const uAv = localStorage.getItem('rinka_avatar') || defaultUserAvatar;
         const aAv = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
-        localMsgList = [];
-        if (Array.isArray(data) && data.length) {
-            const list = data.slice(-MAX_LOCAL_SHOW);
-            list.forEach(item => {
-                const isUser = String(item.role).toLowerCase() === "user";
-                const text = item.content || "";
-                let html = "";
-                if (isUser) {
-                    html = `<div class="msg-row user-row"><img class="avatar" src="${uAv}"><div class="message user-msg"><div style="font-size:10px;color:#aaa;">${formatBeijingTime(item.timestamp)}</div><div class="msg-text">${renderTextOrImage(text)}</div></div></div>`;
-                } else {
-                    if (/^https?:\/\/.+\.(jpg|png|gif)$/.test(text.trim())) {
-                        const token = item.tokens_used ? `<span class="token-tag">🪙 本条消耗: ${item.tokens_used}</span>` : "";
-                        html = `<div class="msg-row ai-row"><img class="avatar" src="${aAv}"><div class="message ai-msg"><div style="font-size:10px;color:#aaa;">${formatBeijingTime(item.timestamp)}</div><div class="msg-text">${renderTextOrImage(text)}</div>${token}</div></div>`;
-                    } else {
-                        const sub = text.split(/(?<=[。！？\n])/).map(s=>s.trim()).filter(Boolean);
-                        sub.forEach((t,idx)=>{
-                            const first = idx === 0;
-                            const last = idx === sub.length -1;
-                            const token = last && item.tokens_used ? `<span class="token-tag">🪙 本条消耗: ${item.tokens_used}</span>` : "";
-                            html += `<div class="msg-row ai-row" style="${first?"":"margin-top:-12px"}"><img src="${aAv}" class="avatar" style="${first?"":"visibility:hidden"}"><div class="message ai-msg">${first?`<div style="font-size:10px;color:#aaa;">${formatBeijingTime(item.timestamp)}</div>`:""}<div class="msg-text">${renderTextOrImage(t)}</div>${token}</div></div>`;
-                        })
-                    }
-                }
-                appendMsgCache(html);
-            })
-        }
+        historyData.forEach(item => {
+            let html = "";
+            const timeStr = formatBeijingTime(item.timestamp);
+            if (item.role === "user") {
+                html = `<div class="msg-row user-row"><img class="avatar" src="${uAv}"><div class="message user-msg"><div style="font-size:10px;color:#aaa;">${timeStr}</div><div class="msg-text">${renderTextOrImage(item.content)}</div></div></div>`;
+            } else {
+                const token = item.tokens_used ? `<span class="token-tag">${item.tokens_used}tokens</span>` : "";
+                html = `<div class="msg-row ai-row" style="margin-top:-12px"><img src="${aAv}" class="avatar"><div class="message ai-msg"><div style="font-size:10px;color:#aaa;">${timeStr}</div><div class="msg-text">${renderTextOrImage(item.content)}</div>${token}</div></div>`;
+            }
+            appendMsgCache(html);
+        });
         renderAllLocal();
-    } catch (e) {
-        console.error("加载历史失败",e);
+    } catch (err) {
+        console.error("加载历史失败：", err);
+        chatBox.innerHTML = `<div style="text-align:center;padding:20px;color:red;">加载对话失败，请检查后端</div>`;
     }
 }
-
+// 身体互动发送封装
 async function executeSilentTouchAction(text) {
     await executeSendAction(text);
 }
-    
+// 表情包发送
 async function sendSticker(url, e) {
 if(window.sendingNow) return;
     if(e) {
@@ -580,20 +477,17 @@ if(window.sendingNow) return;
     document.getElementById('emoji-pop-panel').style.display = "none";
     await executeSendAction(url);
 }
-
+// 文本发送按钮触发
 async function sendMessage() {
     const input = document.getElementById('user-input');
     const sendBtn = document.getElementById('sendBtn');
     const text = input.value.trim();
-    console.log("sendMessage触发，内容：",text);
-    console.log("锁状态：sendCoolDown="+sendCoolDown,"isAiGenerating="+isAiGenerating,"window.sendingNow="+window.sendingNow,"sendDebounceLock="+sendDebounceLock)
-    // 先清空残留锁定，防止页面卡死
     sendCoolDown = false;
     isAiGenerating = false;
     window.sendingNow = false;
+    sendDebounceLock = false;
     sendBtn.disabled = false;
     sendBtn.style.pointerEvents = "auto";
-
     if (!text) {
         console.log("输入为空，取消发送");
         return;
@@ -602,27 +496,21 @@ async function sendMessage() {
     input.value = "";
     await executeSendAction(text);
 }
-
+// 核心发送请求（对接后端SSE）
 async function executeSendAction(contentText) {
-    // 内部变量定义
+    if (sendDebounceLock) return;
+    sendDebounceLock = true;
     const chatBox = document.getElementById('chat-box');
     const input = document.getElementById('user-input');
     const sendBtn = document.getElementById("sendBtn");
     const uAv = localStorage.getItem('rinka_avatar') || defaultUserAvatar;
     const aAv = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
     const host = ['localhost','127.0.0.1'].includes(location.hostname) ? '' : BACKEND_URL;
-    // 发送锁前置清空，避免卡死
-    sendCoolDown = false;
-    isAiGenerating = false;
-    window.sendingNow = false;
-    sendDebounceLock = false;
-
     sendCoolDown = true;
     isAiGenerating = true;
     window.sendingNow = true;
     sendBtn.style.pointerEvents = "none";
     input.disabled = true;
-
     const currentTimeStr = formatBeijingTime(new Date());
     if (chatBox.innerHTML.includes("欢迎回家")) chatBox.innerHTML = "";
     const userHtml = `<div class="msg-row user-row"><img class="avatar" src="${uAv}"><div class="message user-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div></div>`;
@@ -631,21 +519,19 @@ async function executeSendAction(contentText) {
     chatBox.appendChild(userDom.firstElementChild);
     appendMsgCache(userHtml);
     setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 30);
-
     let fullAiText = "";
     let aiDom = null;
     function createAiBubble() {
         const row = document.createElement('div');
         row.className = "msg-row ai-row";
         row.style.marginTop = "10px";
-        row.innerHTML = `<img src="${aAv}" class="avatar"><div class="message ai-msg"><div style="font-size:14px;color:#aaa;">${currentTimeStr}</div><div class="msg-text"></div></div>`;
+        row.innerHTML = `<img src="${aAv}" class="avatar"><div class="message ai-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text"></div></div>`;
         chatBox.appendChild(row);
         setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 30);
         return row;
     }
     const aiWrap = createAiBubble();
     aiDom = aiWrap.querySelector('.msg-text');
-
     try {
         if (pendingSendContent !== contentText) {
             pendingSendContent = contentText;
@@ -673,15 +559,13 @@ async function executeSendAction(contentText) {
                     if (lineCache.has(trim)) continue;
                     lineCache.add(trim);
                     try {
-                        const data = JSON.parse(trim.slice(6));
-                        if (data.newBubble) {
-                            const newWrap = createAiBubble();
-                            aiDom = newWrap.querySelector('.msg-text');
-                            fullAiText = "";
-                        }
-                        if (data.content) {
-                            fullAiText += data.content;
-                            await typeSingleBubble(aiDom, data.content, fullAiText)
+                        const parsed = JSON.parse(line.slice(6));
+                        const delta = parsed.choices[0]?.delta;
+                        if (delta) {
+                            if (delta.content) {
+                                fullAiText += delta.content;
+                                await typeSingleBubble(aiDom, delta.content, fullAiText);
+                            }
                         }
                     } catch(parseErr) {
                         clearTimeout(streamRenderTimer);
@@ -691,55 +575,128 @@ async function executeSendAction(contentText) {
             }
             appendMsgCache(aiWrap.outerHTML);
         }
-    } catch (err) {
-    console.error("发送消息失败", err);
-    clearTimeout(streamRenderTimer);
-    sendCoolDown = false;
-    isAiGenerating = false;
-    window.sendingNow = false;
-    sendDebounceLock = false;
-    sendBtn.style.pointerEvents = "auto";
-    if(input) input.disabled = false;
-} // 新增的catch闭合括号，解决标红
-finally {
-    clearTimeout(streamRenderTimer);
-    isAiGenerating = false;
-    window.sendingNow = false;
-    pendingSendContent = null;
-    setTimeout(()=>{
+    } catch (err)
+        console.error("发送消息失败", err);
+        clearTimeout(streamRenderTimer);
         sendCoolDown = false;
+        isAiGenerating = false;
+        window.sendingNow = false;
+        sendDebounceLock = false;
         sendBtn.style.pointerEvents = "auto";
-    },800)
-    if(input) input.disabled = false;
+        if(input) input.disabled = false;
+    } finally {
+        clearTimeout(streamRenderTimer);
+        isAiGenerating = false;
+        window.sendingNow = false;
+        pendingSendContent = null;
+        setTimeout(()=>{
+            sendCoolDown = false;
+            sendBtn.style.pointerEvents = "auto";
+        },800)
+        if(input) input.disabled = false;
+    }
 }
-}
-    
+// 页面初始化
 window.onload = async function() {
-    // 初始化清空所有防抖锁
     sendCoolDown = false;
     isAiGenerating = false;
     window.sendingNow = false;
     sendDebounceLock = false;
-
-    const chatBox = document.getElementById("chat-box");
-    // 清空页面原有内容
-    chatBox.innerHTML = "";
-
-    try {
-        // 拉取后端历史记录接口
-        const res = await fetch(`history?_t=${Date.now()}`);
-        const historyData = await res.json();
-        
-        // 后端返回的历史消息覆盖本地缓存（核心修复点）
-        msgCacheList = historyData;
-        localStorage.setItem("msg_cache", JSON.stringify(msgCacheList));
-    } catch (err) {
-        console.log("获取云端历史失败，使用本地缓存", err);
-    }
-
-    // 渲染所有消息（云端+本地）
+    const bg = localStorage.getItem('rinka_home_bg');
+    if (bg) document.body.style.background = `url(${bg}) center/cover fixed`;
+    currentSessionId = localStorage.getItem('currentSessionId') || 'default_room';
+    await fetchHistory();
     renderAllLocal();
-};
+}
+// 下面是页面交互绑定（弹窗/触摸/表情）
+const emojiTrigger = document.getElementById('emoji-trigger');
+if (emojiTrigger) {
+    emojiTrigger.addEventListener('click', e => {
+        e.stopPropagation();
+        const ep = document.getElementById('emoji-pop-panel');
+        const tp = document.getElementById('touch-pop-panel');
+        if (tp) tp.style.display = "none";
+        ep.style.display = ep.style.display === "grid" ? "none" : "grid";
+    })
+}
+const touchTrigger = document.getElementById('touch-trigger');
+if (touchTrigger) {
+    touchTrigger.addEventListener('click', e => {
+        e.stopPropagation();
+        const ep = document.getElementById('emoji-pop-panel');
+        const tp = document.getElementById('touch-pop-panel');
+        if (ep) ep.style.display = "none";
+        if (!tp) return;
+        tp.style.display = tp.style.display === "block" ? "none" : "block";
+        if (tp.style.display === "block") {
+            document.getElementById('touch-layer-parts').style.display = "block";
+            document.getElementById('touch-layer-privacy').style.display = "none";
+            document.getElementById('touch-layer-actions').style.display = "none";
+        }
+    })
+}
+document.addEventListener('click', () => {
+    const d = document.getElementById('header-dropdown');
+    const e = document.getElementById('emoji-pop-panel');
+    const t = document.getElementById('touch-pop-panel');
+    if(d) d.style.display = "none";
+    if(e) e.style.display = "none";
+    if(t) t.style.display = "none";
+});
+let selectedTouchPart = '';
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.touch-part-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.stopPropagation();
+            const part = btn.dataset.part;
+            const p = document.getElementById('touch-layer-parts');
+            const pri = document.getElementById('touch-layer-privacy');
+            const act = document.getElementById('touch-layer-actions');
+            if (part === 'privacy') {
+                p.style.display = "none";
+                pri.style.display = "block";
+            } else {
+                selectedTouchPart = part;
+                p.style.display = "none";
+                pri.style.display = "none";
+                act.style.display = "block";
+            }
+        })
+    })
+    document.querySelectorAll('.touch-action-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.stopPropagation();
+            const act = btn.dataset.action;
+            if (!selectedTouchPart || !act) return;
+            const desc = act === "摸" ? "极其温柔而深情地抚摸" : "主动贴过去，用温热的舌尖轻轻蹭";
+            safeSendTrigger(()=>executeSilentTouchAction(`【系统提示：Rinka正在主动贴过来，${desc}你的【${selectedTouchPart}】。】`));
+            document.getElementById('touch-pop-panel').style.display = "none";
+        })
+    })
+    const emojiPanel = document.getElementById('emoji-pop-panel');
+    if(emojiPanel){
+      emojiPanel.addEventListener('click', e=>{
+        e.stopPropagation();
+        e.preventDefault();
+      })
+    }
+    const touchPanel = document.getElementById('touch-pop-panel');
+    if(touchPanel){
+      touchPanel.addEventListener('click', e=>{
+        e.stopPropagation();
+        e.preventDefault();
+      })
+    }
+    const reset = e => {
+        e.stopPropagation();
+        document.getElementById('touch-layer-parts').style.display = "block";
+        document.getElementById('touch-layer-privacy').style.display = "none";
+        document.getElementById('touch-layer-actions').style.display = "none";
+        selectedTouchPart = '';
+    }
+    document.querySelector('.back-to-parts')?.addEventListener('click', reset);
+    document.querySelector('.back-to-prev')?.addEventListener('click', reset);
+})
 </script>
 </body>
 </html>
