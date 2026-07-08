@@ -565,51 +565,6 @@ async function sendMessage() {
     await executeSendAction(text);
 }
 
-// 核心修复：用户消息直接插入DOM，不再全量重绘覆盖
-async function executeSendAction(contentText) {
-    // 四层判断，任意一个激活直接退出
-    if(sendDebounceLock || window.sendingNow || sendCoolDown || isAiGenerating) return;
-    sendCoolDown = true;
-    isAiGenerating = true;
-    window.sendingNow = true;
-    // 发送时直接禁用页面所有交互按钮
-    document.getElementById("send-btn").style.pointerEvents = "none";
-    document.getElementById("user-input").disabled = true;
-}
-
-const input = document.getElementById('user-input');
-const sendBtn = document.getElementById("sendBtn");
-
-if(input) input.disabled = true;
-if(sendBtn) sendBtn.disabled = true;
-    const chatBox = document.getElementById('chat-box');
-    const uAv = localStorage.getItem('rinka_avatar') || defaultUserAvatar;
-    const aAv = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
-    if (chatBox.innerHTML.includes("欢迎回家")) chatBox.innerHTML = "";
-    const currentTimeStr = formatBeijingTime(new Date());
-
-    // 用户消息直接追加DOM，不会被覆盖
-    const userHtml = `<div class="msg-row user-row"><img class="avatar" src="${uAv}"><div class="message user-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div></div>`;
-    const userDom = document.createElement('div');
-    userDom.innerHTML = userHtml;
-    chatBox.appendChild(userDom.firstElementChild);
-    appendMsgCache(userHtml);
-    setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 30);
-
-    let fullAiText = "";
-    let aiDom = null;
-    function createAiBubble() {
-        const row = document.createElement('div');
-        row.className = "msg-row ai-row";
-        row.style.marginTop = "10px";
-        row.innerHTML = `<img src="${aAv}" class="avatar"><div class="message ai-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text"></div></div>`;
-        chatBox.appendChild(row);
-        setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 30);
-        return row;
-    }
-    const aiWrap = createAiBubble();
-    aiDom = aiWrap.querySelector('.msg-text');
-
 async function executeSendAction(contentText) {
   let fullAiText = "";
   let aiDom = null;
@@ -617,7 +572,6 @@ async function executeSendAction(contentText) {
     const row = document.createElement('div');
     row.className = "msg-row ai-row";
     row.style.marginTop = "10px";
-    // 修正：img前面多余空格 < img → <img
     row.innerHTML = `< img src="${aAv}" class="avatar"><div class="message ai-msg"><div style="font-size:14px" class="msg-text"></div></div>`;
     chatBox.appendChild(row);
     setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 30);
@@ -661,14 +615,12 @@ async function executeSendAction(contentText) {
               await typeSingleBubble(aiDom, data.content, fullAiText)
             }
           } catch(parseErr) {
-            // 单行JSON解析失败直接忽略
             continue;
-          } // 补：内层try的闭合
-        } // 补：for循环闭合
-      } // 补：while循环闭合
-      appendMsgCache(aiWrap.outerHTML);
-    } // if (pendingSendContent !== contentText) 闭合
+          }
+        }
       }
+      appendMsgCache(aiWrap.outerHTML);
+    }
   } catch (err)
     console.error("发送消息失败", err);
   } finally {
@@ -681,9 +633,9 @@ async function executeSendAction(contentText) {
     },800)
     if(input) input.disabled = false;
     if(sendBtn) sendBtn.disabled = false;
-  } // finally闭合
-} // 最外层async函数闭合
-
+  }
+}
+    
 window.onload = async function() {
     const bg = localStorage.getItem('rinka_home_bg');
     if (bg) document.body.style.background = `url(${bg}) center/cover fixed`;
