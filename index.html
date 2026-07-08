@@ -409,15 +409,15 @@ while (true) {
         }
         appendMsgCache(aiWrap.outerHTML);
     } catch (err) {
-        console.error("静默发送失败", err);
-        // 报错不刷新整页，只提示，不会清空消息
-    finally {
-    clearTimeout(streamRenderTimer);
-    isAiGenerating = false;
-    // 300毫秒后解除点击冷却
-    setTimeout(()=>{
-        sendCoolDown = false;
-    },300)
+  console.error("静默发送失败", err);
+  // 报错不刷新整页，只提示，不会清空消息
+} finally {
+  clearTimeout(streamRenderTimer);
+  isAiGenerating = false;
+  // 300毫秒后解除点击冷却
+  setTimeout(()=>{
+    sendCoolDown = false;
+  },300)
 }
 
 function toggleDropdown(event) {
@@ -657,15 +657,15 @@ while (true) {
         }
         appendMsgCache(aiWrap.outerHTML);
     } catch (err) {
-        console.error("发送失败", err);
-        // 网络报错不再调用fetchHistory清空页面，用户消息保留
-    finally {
-    clearTimeout(streamRenderTimer);
-    isAiGenerating = false;
-    // 300毫秒后解除点击冷却
-    setTimeout(()=>{
-        sendCoolDown = false;
-    },300)
+  console.error("静默发送失败", err);
+  // 报错不刷新整页，只提示，不会清空消息
+} finally {
+  clearTimeout(streamRenderTimer);
+  isAiGenerating = false;
+  // 300毫秒后解除点击冷却
+  setTimeout(()=>{
+    sendCoolDown = false;
+  },300)
 }
 
 window.onload = async function() {
