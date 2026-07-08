@@ -172,6 +172,17 @@
             background: none; border: none; font-size: 22px; cursor: pointer; padding: 0 4px; display: flex; align-items: center; justify-content: center; outline: none; transition: transform 0.1s;
         }
         #touch-trigger:active { transform: scale(0.85); }
+        
+        #emoji-pop-panel {
+  pointer-events: auto !important;
+}
+#touch-layer-parts, #touch-layer-privacy, #touch-layer-actions {
+  pointer-events: auto !important;
+}
+/* 页面底层容器禁止弹窗点击向下穿透 */
+body {
+  touch-action: manipulation; /* 消除移动端300ms点击延迟根源 */
+}
     </style>
 </head>
 <body>
@@ -194,25 +205,25 @@
         <div class="input-area">
             <button id="touch-trigger" title="身体互动">🌸</button>
             <button class="emoji-toggle-btn" id="emoji-trigger">😀</button>
-            <input type="text" id="user-input" placeholder="和瑛聊聊天吧..." onkeydown="if(event.key==='Enter'){sendMessage();event.preventDefault();}">
-            <button class="send-btn" id="sendBtn" onclick="sendMessage()">发送</button>
+            <input type="text" id="user-input" placeholder="和瑛聊聊天吧..." onkeydown="if(event.key==='Enter'){safeSendTrigger(()=>sendMessage());event.preventDefault();}">
+            <button class="send-btn" id="sendBtn" onclick="safeSendTrigger(()=>sendMessage())">发送</button>
             
             <!-- 🌐 表情包面板 -->
             <div id="emoji-pop-panel" class="emoji-pop-panel">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/happy1.jpg" onclick="sendSticker(this.src, event)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/snuggle1.jpg" onclick="sendSticker(this.src, event)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/snuggle2.jpg" onclick="sendSticker(this.src, event)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/snuggle3.jpg" onclick="sendSticker(this.src, event)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/like1.jpg" onclick="sendSticker(this.src, event)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/like2.jpg" onclick="sendSticker(this.src, event)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/like3.jpg" onclick="sendSticker(this.src, event)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/cry1.jpg" onclick="sendSticker(this.src, event)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/afraid1.jpg" onclick="sendSticker(this.src, event)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/naughty1.jpg" onclick="sendSticker(this.src, event)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/pinch1.jpg" onclick="sendSticker(this.src, event)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/ugh1.jpg" onclick="sendSticker(this.src, event)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/ugh2.jpg" onclick="sendSticker(this.src, event)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/doubt1.jpg" onclick="sendSticker(this.src, event)">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/happy1.jpg" onclick="safeSendTrigger(()=>sendSticker(this.src, event))">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/snuggle1.jpg" onclick="safeSendTrigger(()=>sendSticker(this.src, event))">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/snuggle2.jpg" onclick="safeSendTrigger(()=>sendSticker(this.src, event))">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/snuggle3.jpg" onclick="safeSendTrigger(()=>sendSticker(this.src, event))">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/like1.jpg" onclick="safeSendTrigger(()=>sendSticker(this.src, event))">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/like2.jpg" onclick="safeSendTrigger(()=>sendSticker(this.src, event))">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/like3.jpg" onclick="safeSendTrigger(()=>sendSticker(this.src, event))">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/cry1.jpg" onclick="safeSendTrigger(()=>sendSticker(this.src, event))">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/afraid1.jpg" onclick="safeSendTrigger(()=>sendSticker(this.src, event))">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/naughty1.jpg" onclick="safeSendTrigger(()=>sendSticker(this.src, event))">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/pinch1.jpg" onclick="safeSendTrigger(()=>sendSticker(this.src, event))">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/ugh1.jpg" onclick="safeSendTrigger(()=>sendSticker(this.src, event))">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/ugh2.jpg" onclick="safeSendTrigger(()=>sendSticker(this.src, event))">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/doubt1.jpg" onclick="safeSendTrigger(()=>sendSticker(this.src, event))">
             </div>
 
             <!-- 🌸 身体互动面板 (完美融入并修正缺失) -->
@@ -283,15 +294,49 @@ let streamRenderTimer = null;
 let isAiGenerating = false;
 let currentSessionId = localStorage.getItem('currentSessionId') || 'default_room';
 const MAX_LOCAL_SHOW = 20;
-let localMsgList = [];
-let sendCoolDown = false;    
+let sendDebounceLock = false;
+const DEBOUNCE_TIME = 1200; // 拉长防抖窗口，覆盖移动端300ms穿透延迟
+let pendingSendContent = null;
+window.sendingNow = false;
+sendCoolDown = false;  
 
-// 追加单条消息缓存，不再全量重绘
-function appendMsgCache(htmlStr) {
-    localMsgList.push({ html: htmlStr });
-    if (localMsgList.length > MAX_LOCAL_SHOW) localMsgList.shift();
+// 统一安全发送包装器，所有发送逻辑强制走这个函数
+function safeSendTrigger(callSendFunc) {
+    if (sendDebounceLock) return;
+    sendDebounceLock = true;
+    callSendFunc();
+    setTimeout(() => {
+        sendDebounceLock = false;
+    }, 1200);
 }
 
+window.onload = async function() {
+    // 初始化清空所有防抖锁
+    sendCoolDown = false;
+    isAiGenerating = false;
+    window.sendingNow = false;
+    sendDebounceLock = false;
+
+    const chatBox = document.getElementById("chat-box");
+    // 清空页面原有内容
+    chatBox.innerHTML = "";
+
+    try {
+        // 拉取后端历史记录接口
+        const res = await fetch(`history?_t=${Date.now()}`);
+        const historyData = await res.json();
+        
+        // 后端返回的历史消息覆盖本地缓存（核心修复点）
+        msgCacheList = historyData;
+        localStorage.setItem("msg_cache", JSON.stringify(msgCacheList));
+    } catch (err) {
+        console.log("获取云端历史失败，使用本地缓存", err);
+    }
+
+    // 渲染所有消息（云端+本地）
+    renderAllLocal();
+};    
+    
 // 仅刷新全部历史（页面刷新/切换会话使用）
 function renderAllLocal() {
     const chatBox = document.getElementById("chat-box");
@@ -414,7 +459,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const act = btn.dataset.action;
         if (!selectedTouchPart || !act) return;
         const desc = act === "摸" ? "极其温柔而深情地抚摸" : "主动贴过去，用温热的舌尖轻轻蹭";
-        executeSilentTouchAction(`【系统提示：Rinka正在主动贴过来，${desc}你的【${selectedTouchPart}】。】`);
+        safeSendTrigger(()=>executeSilentTouchAction(`【系统提示：Rinka正在主动贴过来，${desc}你的【${selectedTouchPart}】。】`));
         document.getElementById('touch-pop-panel').style.display = "none";
     })
 })
@@ -522,6 +567,10 @@ async function fetchHistory() {
     }
 }
 
+async function executeSilentTouchAction(text) {
+    await executeSendAction(text);
+}
+    
 async function sendSticker(url, e) {
 if(window.sendingNow) return;
     if(e) {
@@ -536,31 +585,46 @@ async function sendMessage() {
     const input = document.getElementById('user-input');
     const sendBtn = document.getElementById('sendBtn');
     const text = input.value.trim();
-    if (!text || sendCoolDown || isAiGenerating) return;
+    console.log("sendMessage触发，内容：",text);
+    console.log("锁状态：sendCoolDown="+sendCoolDown,"isAiGenerating="+isAiGenerating,"window.sendingNow="+window.sendingNow,"sendDebounceLock="+sendDebounceLock)
+    // 先清空残留锁定，防止页面卡死
+    sendCoolDown = false;
+    isAiGenerating = false;
+    window.sendingNow = false;
+    sendBtn.disabled = false;
+    sendBtn.style.pointerEvents = "auto";
+
+    if (!text) {
+        console.log("输入为空，取消发送");
+        return;
+    }
     sendBtn.disabled = true;
     input.value = "";
     await executeSendAction(text);
 }
 
-// 核心修复：用户消息直接插入DOM，不再全量重绘覆盖
 async function executeSendAction(contentText) {
-    if(window.sendingNow || sendCoolDown || isAiGenerating) return;
+    // 内部变量定义
+    const chatBox = document.getElementById('chat-box');
+    const input = document.getElementById('user-input');
+    const sendBtn = document.getElementById("sendBtn");
+    const uAv = localStorage.getItem('rinka_avatar') || defaultUserAvatar;
+    const aAv = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
+    const host = ['localhost','127.0.0.1'].includes(location.hostname) ? '' : BACKEND_URL;
+    // 发送锁前置清空，避免卡死
+    sendCoolDown = false;
+    isAiGenerating = false;
+    window.sendingNow = false;
+    sendDebounceLock = false;
+
     sendCoolDown = true;
     isAiGenerating = true;
     window.sendingNow = true;
+    sendBtn.style.pointerEvents = "none";
+    input.disabled = true;
 
-const input = document.getElementById('user-input');
-const sendBtn = document.getElementById("sendBtn");
-
-if(input) input.disabled = true;
-if(sendBtn) sendBtn.disabled = true;
-    const chatBox = document.getElementById('chat-box');
-    const uAv = localStorage.getItem('rinka_avatar') || defaultUserAvatar;
-    const aAv = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
-    if (chatBox.innerHTML.includes("欢迎回家")) chatBox.innerHTML = "";
     const currentTimeStr = formatBeijingTime(new Date());
-
-    // 用户消息直接追加DOM，不会被覆盖
+    if (chatBox.innerHTML.includes("欢迎回家")) chatBox.innerHTML = "";
     const userHtml = `<div class="msg-row user-row"><img class="avatar" src="${uAv}"><div class="message user-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div></div>`;
     const userDom = document.createElement('div');
     userDom.innerHTML = userHtml;
@@ -574,7 +638,7 @@ if(sendBtn) sendBtn.disabled = true;
         const row = document.createElement('div');
         row.className = "msg-row ai-row";
         row.style.marginTop = "10px";
-        row.innerHTML = `<img src="${aAv}" class="avatar"><div class="message ai-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text"></div></div>`;
+        row.innerHTML = `<img src="${aAv}" class="avatar"><div class="message ai-msg"><div style="font-size:14px;color:#aaa;">${currentTimeStr}</div><div class="msg-text"></div></div>`;
         chatBox.appendChild(row);
         setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 30);
         return row;
@@ -583,65 +647,99 @@ if(sendBtn) sendBtn.disabled = true;
     aiDom = aiWrap.querySelector('.msg-text');
 
     try {
-        const host = ['localhost','127.0.0.1'].includes(location.hostname) ? '' : BACKEND_URL;
-        const res = await fetch(`${host}/chat`, {
-            method: "POST",
-            headers: {"Content-Type":"application/json"},
-            body: JSON.stringify({sessionId: currentSessionId, content: contentText})
-        });
-        if (!res.body) throw Error("无流");
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder("utf-8");
-        const lineCache = new Set();
-while (true) {
-    const {value,done} = await reader.read();
-    if (done) break;
-            const chunk = decoder.decode(value, {stream:true});
-            const lines = chunk.split('\n');
-            for (const line of lines) {
-                const trim = line.trim();
-                if (!trim || trim.includes("[DONE]") || !trim.startsWith("data: ")) continue;
-                        if (lineCache.has(trim)) continue;
-        lineCache.add(trim);
-                try {
-                    const data = JSON.parse(trim.slice(6));
-                    if (data.newBubble) {
-                        const newWrap = createAiBubble();
-                        aiDom = newWrap.querySelector('.msg-text');
-                        fullAiText = "";
+        if (pendingSendContent !== contentText) {
+            pendingSendContent = contentText;
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
+            const res = await fetch(`${host}/chat`, {
+                method: "POST",
+                signal: controller.signal,
+                headers: {"Content-Type":"application/json"},
+                body: JSON.stringify({sessionId: currentSessionId, content: contentText})
+            });
+            clearTimeout(timeoutId);
+            if (!res.body) throw Error("无流");
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder("utf-8");
+            const lineCache = new Set();
+            while (true) {
+                const {value,done} = await reader.read();
+                if (done) break;
+                const chunk = decoder.decode(value, {stream:true});
+                const lines = chunk.split('\n');
+                for (const line of lines) {
+                    const trim = line.trim();
+                    if (!trim || trim.includes("[DONE]") || !trim.startsWith("data: ")) continue;
+                    if (lineCache.has(trim)) continue;
+                    lineCache.add(trim);
+                    try {
+                        const data = JSON.parse(trim.slice(6));
+                        if (data.newBubble) {
+                            const newWrap = createAiBubble();
+                            aiDom = newWrap.querySelector('.msg-text');
+                            fullAiText = "";
+                        }
+                        if (data.content) {
+                            fullAiText += data.content;
+                            await typeSingleBubble(aiDom, data.content, fullAiText)
+                        }
+                    } catch(parseErr) {
+                        clearTimeout(streamRenderTimer);
+                        continue;
                     }
-                    if (data.content) {
-                        fullAiText += data.content;
-                        await typeSingleBubble(aiDom, data.content, fullAiText);
-                    }
-                } catch(e){}
+                }
             }
+            appendMsgCache(aiWrap.outerHTML);
         }
-        appendMsgCache(aiWrap.outerHTML);
     } catch (err) {
-  console.error("发送消息失败", err);
-  // 报错不刷新整页，只提示，不会清空消息
-} finally {
+    console.error("发送消息失败", err);
+    clearTimeout(streamRenderTimer);
+    sendCoolDown = false;
+    isAiGenerating = false;
+    window.sendingNow = false;
+    sendDebounceLock = false;
+    sendBtn.style.pointerEvents = "auto";
+    if(input) input.disabled = false;
+} // 新增的catch闭合括号，解决标红
+finally {
     clearTimeout(streamRenderTimer);
     isAiGenerating = false;
-    window.sendingNow = false; // 新增释放
+    window.sendingNow = false;
+    pendingSendContent = null;
     setTimeout(()=>{
         sendCoolDown = false;
+        sendBtn.style.pointerEvents = "auto";
     },800)
     if(input) input.disabled = false;
-    if(sendBtn) sendBtn.disabled = false;
 }
 }
-
+    
 window.onload = async function() {
-    const bg = localStorage.getItem('rinka_home_bg');
-    if (bg) document.body.style.background = `url(${bg}) center/cover fixed`;
-    // 新增1：读取保存的会话ID
-    currentSessionId = localStorage.getItem('currentSessionId') || 'default_room';
-    // 新增2：加载云端历史记录
-    await fetchHistory();
+    // 初始化清空所有防抖锁
+    sendCoolDown = false;
+    isAiGenerating = false;
+    window.sendingNow = false;
+    sendDebounceLock = false;
+
+    const chatBox = document.getElementById("chat-box");
+    // 清空页面原有内容
+    chatBox.innerHTML = "";
+
+    try {
+        // 拉取后端历史记录接口
+        const res = await fetch(`history?_t=${Date.now()}`);
+        const historyData = await res.json();
+        
+        // 后端返回的历史消息覆盖本地缓存（核心修复点）
+        msgCacheList = historyData;
+        localStorage.setItem("msg_cache", JSON.stringify(msgCacheList));
+    } catch (err) {
+        console.log("获取云端历史失败，使用本地缓存", err);
+    }
+
+    // 渲染所有消息（云端+本地）
     renderAllLocal();
-}
+};
 </script>
 </body>
 </html>
