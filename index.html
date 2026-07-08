@@ -194,7 +194,7 @@
         <div class="input-area">
             <button id="touch-trigger" title="身体互动">🌸</button>
             <button class="emoji-toggle-btn" id="emoji-trigger">😀</button>
-            <input type="text" id="user-input" placeholder="和瑛聊聊天吧..." onkeydown="if(event.key==='Enter') sendMessage()">
+            <input type="text" id="user-input" placeholder="和瑛聊聊天吧..." onkeydown="if(event.key==='Enter'){sendMessage();event.preventDefault();}">
             <button class="send-btn" id="sendBtn" onclick="sendMessage()">发送</button>
             
             <!-- 🌐 表情包面板 -->
@@ -443,6 +443,14 @@ if(touchPanel){
     }
     document.querySelector('.back-to-parts')?.addEventListener('click', reset);
     document.querySelector('.back-to-prev')?.addEventListener('click', reset);
+     const emojiBox = document.getElementById('emoji-pop-panel');
+  if (emojiBox) {
+    emojiBox.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+    })
+  }
+})
 })
 
 function toggleSettings(show) {
@@ -516,7 +524,7 @@ async function fetchHistory() {
 }
 
 async function sendSticker(url, e) {
-    // 新增两行阻断
+if(window.sendingNow) return;
     if(e) {
         e.stopPropagation();
         e.preventDefault();
@@ -537,13 +545,15 @@ async function sendMessage() {
 
 // 核心修复：用户消息直接插入DOM，不再全量重绘覆盖
 async function executeSendAction(contentText) {
-    if(sendCoolDown || isAiGenerating) return;
-    sendCoolDown = true;
-    isAiGenerating = true;
-    // 替换原来错误的固定字符串选择器
+    // 双重拦截，瞬间上锁，不给穿透留空隙
+if(sendCoolDown || isAiGenerating) return;
+sendCoolDown = true;
+isAiGenerating = true;
+window.sendingNow = true; // 新增全局发送标记
+
 const input = document.getElementById('user-input');
 const sendBtn = document.getElementById("sendBtn");
-// 增加空值判断，兜底防报错
+
 if(input) input.disabled = true;
 if(sendBtn) sendBtn.disabled = true;
     const chatBox = document.getElementById('chat-box');
@@ -614,13 +624,13 @@ while (true) {
   console.error("发送消息失败", err);
   // 报错不刷新整页，只提示，不会清空消息
 } finally {
-  clearTimeout(streamRenderTimer);
-  isAiGenerating = false;
-  // 300毫秒后解除点击冷却
-  setTimeout(()=>{
-    sendCoolDown = false;
-  },800)
-        if(input) input.disabled = false;
+    clearTimeout(streamRenderTimer);
+    isAiGenerating = false;
+    window.sendingNow = false; // 新增
+    setTimeout(()=>{
+        sendCoolDown = false;
+    },800)
+    if(input) input.disabled = false;
     if(sendBtn) sendBtn.disabled = false;
 }
 }
