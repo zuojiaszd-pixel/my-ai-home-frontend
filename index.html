@@ -303,13 +303,15 @@ sendCoolDown = false;
 
 // 统一安全发送包装器，所有发送逻辑强制走这个函数
 function safeSendTrigger(callSendFunc) {
+    // 先判断，不锁直接放行
     if (sendDebounceLock) return;
-    sendDebounceLock = true;
-    callSendFunc();
+    // 把上锁放到回调内部，防止点击直接卡死
     setTimeout(() => {
         sendDebounceLock = false;
     }, DEBOUNCE_TIME);
-}    
+    callSendFunc();
+    sendDebounceLock = true;
+} 
 
 // 追加单条消息缓存，不再全量重绘
 function appendMsgCache(htmlStr) {
@@ -565,7 +567,19 @@ async function sendMessage() {
     const input = document.getElementById('user-input');
     const sendBtn = document.getElementById('sendBtn');
     const text = input.value.trim();
-    if (!text || sendCoolDown || isAiGenerating) return;
+    console.log("sendMessage触发，内容：",text);
+    console.log("锁状态：sendCoolDown="+sendCoolDown,"isAiGenerating="+isAiGenerating,"window.sendingNow="+window.sendingNow,"sendDebounceLock="+sendDebounceLock)
+    // 先清空残留锁定，防止页面卡死
+    sendCoolDown = false;
+    isAiGenerating = false;
+    window.sendingNow = false;
+    sendBtn.disabled = false;
+    sendBtn.style.pointerEvents = "auto";
+
+    if (!text) {
+        console.log("输入为空，取消发送");
+        return;
+    }
     sendBtn.disabled = true;
     input.value = "";
     await executeSendAction(text);
@@ -581,7 +595,7 @@ async function executeSendAction(contentText) {
     if (!aAv) aAv = defaultAiAvatar;
 
     // 四层并发拦截判断
-    if(sendDebounceLock || window.sendingNow || sendCoolDown || isAiGenerating) return;
+    
     sendCoolDown = true;
     isAiGenerating = true;
     window.sendingNow = true;
@@ -676,12 +690,22 @@ input.disabled = false;
 }
     
 window.onload = async function() {
+    // 页面打开强制解锁，防止上次异常卡死
+    sendCoolDown = false;
+    isAiGenerating = false;
+    window.sendingNow = false;
+    sendDebounceLock = false;
+
+    // 读取本地存储的背景图，设置页面壁纸
     const bg = localStorage.getItem('rinka_home_bg');
     if (bg) document.body.style.background = `url(${bg}) center/cover fixed`;
-    // 新增1：读取保存的会话ID
+
+    // 读取当前会话ID，没有就用默认房间
     currentSessionId = localStorage.getItem('currentSessionId') || 'default_room';
-    // 新增2：加载云端历史记录
+    
+    // 拉取云端历史聊天记录
     await fetchHistory();
+    // 把本地缓存的消息渲染到聊天框
     renderAllLocal();
 }
 </script>
