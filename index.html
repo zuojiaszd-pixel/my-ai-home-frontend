@@ -612,10 +612,9 @@ if(sendBtn) sendBtn.disabled = true;
 
 try {
     // =====新增开始=====
-    if (pendingSendContent === contentText) {
-        return;
-    }
+    if (pendingSendContent !== contentText) {
     pendingSendContent = contentText;
+}
     // =====新增结束=====   
         const host = ['localhost','127.0.0.1'].includes(location.hostname) ? '' : BACKEND_URL;
         const res = await fetch(`${host}/chat`, {
