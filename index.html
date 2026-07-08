@@ -253,27 +253,78 @@
 const defaultUserAvatar = "https://img.icons8.com/illustrations/lexicon/96/cartoon-female-profile.png";
 const defaultAiAvatar = "https://img.icons8.com/illustrations/lexicon/96/cartoon-male-profile.png";
 const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
-
 let streamRenderTimer = null;
-let isAiGenerating = false; // 防止同时生成多条AI消息
-let thisRoundHasBubble = false; // 单次回复只生成1个气泡    
-// 持久化sessionId，刷新自动读取
+let isAiGenerating = false;
+let thisRoundHasBubble = false;
 let currentSessionId = localStorage.getItem('currentSessionId') || 'default_room';
 
-    // 新建会话函数同步保存到本地
+// 页面最大展示消息条数
+const MAX_LOCAL_SHOW = 20;
+let localMsgList = [];
+
+// 消息推入本地数组，超出自动删除最早一条，云端完整保存
+function pushLocalMsg(htmlStr) {
+    localMsgList.push({ html: htmlStr });
+    if (localMsgList.length > MAX_LOCAL_SHOW) {
+        localMsgList.shift();
+    }
+    renderAllLocalMsg();
+}
+
+// 一次性批量渲染全部消息，减少DOM卡顿
+function renderAllLocalMsg() {
+    const chatBox = document.getElementById("chat-box");
+    let allHtml = "";
+    localMsgList.forEach(item => allHtml += item.html);
+    if (allHtml) {
+        chatBox.innerHTML = allHtml;
+        setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 30);
+    } else {
+        chatBox.innerHTML = `<div style="text-align:center; color:#a11d48; font-size:13px; margin-top:20px;">🌸 欢迎回家，快来聊聊天吧～</div>`;
+    }
+}
+
+// 新建会话清空本地消息
 function createNewSession() {
   const newSid = 'room_' + Date.now();
   currentSessionId = newSid;
   localStorage.setItem('currentSessionId', newSid);
-  document.getElementById('chat-box').innerHTML = `<div style="text-align:center; color:#a11d48; font-size:13px; margin-top:20px;">🌸 全新时空，快来聊天吧～</div>`;
+  localMsgList = [];
+  renderAllLocalMsg();
 }
 
+// 图文渲染转换函数
 function renderTextOrImage(contentStr) {
     const trimmed = contentStr.trim();
     if (trimmed.startsWith('http') && (trimmed.includes('.jpg') || trimmed.includes('.jpeg') || trimmed.includes('.png') || trimmed.includes('.gif') || trimmed.includes('.webp'))) {
-        return `<img src="${trimmed}" class="chat-sticker-img" alt="表情包">`;
+        return `< img src="${trimmed}" class="chat-sticker-img" alt="表情包">`;
     }
     return document.createTextNode(contentStr).textContent;
+}
+
+// 标准北京时间格式化
+function formatBeijingTime(dateInput) {
+    if (!dateInput) return "";
+    try {
+        const d = new Date(dateInput);
+        if (isNaN(d.getTime())) return "";
+        return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+    } catch (e) { return ""; }
+}
+
+// 通用打字机封装函数（每条AI气泡单独打字）
+async function typeSingleBubbleText(el, fullText, speed = 80) {
+    let tempText = "";
+    for (let char of fullText) {
+        tempText += char;
+        el.innerHTML = renderTextOrImage(tempText);
+        clearTimeout(streamRenderTimer);
+        streamRenderTimer = setTimeout(() => {
+            const box = document.getElementById("chat-box");
+            box.scrollTop = box.scrollHeight;
+        }, 30);
+        await new Promise(res => setTimeout(res, speed));
+    }
 }
 function toggleDropdown(event) { event.stopPropagation(); const dropdown = document.getElementById('header-dropdown'); dropdown.style.display = (dropdown.style.display === 'flex') ? 'none' : 'flex'; }
 
