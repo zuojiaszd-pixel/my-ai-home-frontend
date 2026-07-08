@@ -254,7 +254,15 @@
 const defaultUserAvatar = "https://img.icons8.com/illustrations/lexicon/96/cartoon-female-profile.png";
 const defaultAiAvatar = "https://img.icons8.com/illustrations/lexicon/96/cartoon-male-profile.png";
 const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
-let currentSessionId = 'default_room';
+// 持久化sessionId，刷新自动读取
+let currentSessionId = localStorage.getItem('currentSessionId') || 'default_room';
+// 新建会话函数同步保存到本地
+function createNewSession() {
+  const newSid = 'room_' + Date.now();
+  currentSessionId = newSid;
+  localStorage.setItem('currentSessionId', newSid);
+  document.getElementById('chat-box').innerHTML = `<div style="text-align:center; color:#a11d48; font-size:13px; margin-top:20px;">🌸 全新时空，快来聊天吧～</div>`;
+}
 
 function renderTextOrImage(contentStr) {
     const trimmed = contentStr.trim();
