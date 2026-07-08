@@ -298,6 +298,7 @@ let localMsgList = [];
 let sendDebounceLock = false;
 const DEBOUNCE_TIME = 1200; // 拉长防抖窗口，覆盖移动端300ms穿透延迟
 let pendingSendContent = null;
+window.sendingNow = false;    
 
 // 统一安全发送包装器，所有发送逻辑强制走这个函数
 function safeSendTrigger(callSendFunc) {
@@ -545,6 +546,10 @@ async function fetchHistory() {
     }
 }
 
+async function executeSilentTouchAction(text) {
+    await executeSendAction(text);
+}
+    
 async function sendSticker(url, e) {
 if(window.sendingNow) return;
     if(e) {
@@ -587,7 +592,7 @@ async function executeSendAction(contentText) {
     const currentTimeStr = formatBeijingTime(new Date());
     // 插入用户消息
     if (chatBox.innerHTML.includes("欢迎回家")) chatBox.innerHTML = "";
-    const userHtml = `<div class="msg-row user-row">< img class="avatar" src="${uAv}"><div class="message user-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div></div>`;
+    const userHtml = `<div class="msg-row user-row"><img class="avatar" src="${uAv}"><div class="message user-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div></div>`;
     const userDom = document.createElement('div');
     userDom.innerHTML = userHtml;
     chatBox.appendChild(userDom.firstElementChild);
@@ -600,8 +605,7 @@ async function executeSendAction(contentText) {
         const row = document.createElement('div');
         row.className = "msg-row ai-row";
         row.style.marginTop = "10px";
-        // 修复 < img 多余空格
-        row.innerHTML = `< img src="${aAv}" class="avatar"><div class="message ai-msg"><div style="font-size:14px;color:#aaa;">${currentTimeStr}</div><div class="msg-text"></div></div>`;
+        row.innerHTML = `<img src="${aAv}" class="avatar"><div class="message ai-msg"><div style="font-size:14px;color:#aaa;">${currentTimeStr}</div><div class="msg-text"></div></div>`;
         chatBox.appendChild(row);
         setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 30);
         return row;
