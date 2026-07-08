@@ -610,61 +610,79 @@ if(sendBtn) sendBtn.disabled = true;
     const aiWrap = createAiBubble();
     aiDom = aiWrap.querySelector('.msg-text');
 
-try {
-    // =====新增开始=====
+async function executeSendAction(contentText) {
+  let fullAiText = "";
+  let aiDom = null;
+  function createAiBubble() {
+    const row = document.createElement('div');
+    row.className = "msg-row ai-row";
+    row.style.marginTop = "10px";
+    // 修正：img前面多余空格 < img → <img
+    row.innerHTML = `< img src="${aAv}" class="avatar"><div class="message ai-msg"><div style="font-size:14px" class="msg-text"></div></div>`;
+    chatBox.appendChild(row);
+    setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 30);
+    return row;
+  }
+  const aiWrap = createAiBubble();
+  aiDom = aiWrap.querySelector('.msg-text');
+
+  try {
     if (pendingSendContent !== contentText) {
-    pendingSendContent = contentText;
-}
-    // =====新增结束=====   
-        const host = ['localhost','127.0.0.1'].includes(location.hostname) ? '' : BACKEND_URL;
-        const res = await fetch(`${host}/chat`, {
-            method: "POST",
-            headers: {"Content-Type":"application/json"},
-            body: JSON.stringify({sessionId: currentSessionId, content: contentText})
-        });
-        if (!res.body) throw Error("无流");
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder("utf-8");
-        const lineCache = new Set();
-while (true) {
-    const {value,done} = await reader.read();
-    if (done) break;
-            const chunk = decoder.decode(value, {stream:true});
-            const lines = chunk.split('\n');
-            for (const line of lines) {
-                const trim = line.trim();
-                if (!trim || trim.includes("[DONE]") || !trim.startsWith("data: ")) continue;
-                        if (lineCache.has(trim)) continue;
-        lineCache.add(trim);
-                try {
-                    const data = JSON.parse(trim.slice(6));
-                    if (data.newBubble) {
-                        const newWrap = createAiBubble();
-                        aiDom = newWrap.querySelector('.msg-text');
-                        fullAiText = "";
-                    }
-                    if (data.content) {
-                        fullAiText += data.content;
-                        await typeSingleBubble(aiDom, data.content, fullAiText);
-                    }
-                } catch(e){}
+      pendingSendContent = contentText;
+      const host = ['localhost','127.0.0.1'].includes(location.hostname) ? '' : BACKEND_URL;
+      const res = await fetch(`${host}/chat`, {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({sessionId: currentSessionId, content: contentText})
+      });
+      if (!res.body) throw Error("无流");
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      const lineCache = new Set();
+      while (true) {
+        const {value,done} = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, {stream:true});
+        const lines = chunk.split('\n');
+        for (const line of lines) {
+          const trim = line.trim();
+          if (!trim || trim.includes("[DONE]") || !trim.startsWith("data: ")) continue;
+          if (lineCache.has(trim)) continue;
+          lineCache.add(trim);
+          try {
+            const data = JSON.parse(trim.slice(6));
+            if (data.newBubble) {
+              const newWrap = createAiBubble();
+              aiDom = newWrap.querySelector('.msg-text');
+              fullAiText = "";
             }
-        }
-        appendMsgCache(aiWrap.outerHTML);
-    } catch (err) {
-  console.error("发送消息失败", err);
-  // 报错不刷新整页，只提示，不会清空消息
-} finally {
+            if (data.content) {
+              fullAiText += data.content;
+              await typeSingleBubble(aiDom, data.content, fullAiText)
+            }
+          } catch(parseErr) {
+            // 单行JSON解析失败直接忽略
+            continue;
+          } // 补：内层try的闭合
+        } // 补：for循环闭合
+      } // 补：while循环闭合
+      appendMsgCache(aiWrap.outerHTML);
+    } // if (pendingSendContent !== contentText) 闭合
+      }
+  } catch (err)
+    console.error("发送消息失败", err);
+  } finally {
     clearTimeout(streamRenderTimer);
     isAiGenerating = false;
     window.sendingNow = false;
-    pendingSendContent = null; // 新增这一行
+    pendingSendContent = null;
     setTimeout(()=>{
-        sendCoolDown = false;
+      sendCoolDown = false;
     },800)
     if(input) input.disabled = false;
     if(sendBtn) sendBtn.disabled = false;
-}
+  } // finally闭合
+} // 最外层async函数闭合
 
 window.onload = async function() {
     const bg = localStorage.getItem('rinka_home_bg');
