@@ -303,15 +303,13 @@ sendCoolDown = false;
 
 // 统一安全发送包装器，所有发送逻辑强制走这个函数
 function safeSendTrigger(callSendFunc) {
-    // 先判断，不锁直接放行
     if (sendDebounceLock) return;
-    // 把上锁放到回调内部，防止点击直接卡死
+    sendDebounceLock = true;
+    callSendFunc();
     setTimeout(() => {
         sendDebounceLock = false;
-    }, DEBOUNCE_TIME);
-    callSendFunc();
-    sendDebounceLock = true;
-} 
+    }, 1200);
+}
 
 // 追加单条消息缓存，不再全量重绘
 function appendMsgCache(htmlStr) {
@@ -631,12 +629,15 @@ async function executeSendAction(contentText) {
     try {
         if (pendingSendContent !== contentText) {
             pendingSendContent = contentText;
-            const host = ['localhost','127.0.0.1'].includes(location.hostname) ? '' : BACKEND_URL;
-            const res = await fetch(`${host}/chat`, {
-                method: "POST",
-                headers: {"Content-Type":"application/json"},
-                body: JSON.stringify({sessionId: currentSessionId, content: contentText})
-            });
+            const controller = new AbortController();
+const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时强制断开
+const res = await fetch(`${host}/chat`, {
+    method: "POST",
+    signal: controller.signal, // 绑定超时中断
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({sessionId: currentSessionId, content: contentText})
+});
+clearTimeout(timeoutId); // 请求正常拿到响应，清除超时计时器
             if (!res.body) throw Error("无流");
             const reader = res.body.getReader();
             const decoder = new TextDecoder("utf-8");
@@ -663,19 +664,25 @@ async function executeSendAction(contentText) {
                             await typeSingleBubble(aiDom, data.content, fullAiText)
                         }
                     } catch(parseErr) {
-                        continue;
-                    }
+    clearTimeout(streamRenderTimer);
+    continue;
+}
                 }
             }
             appendMsgCache(aiWrap.outerHTML);
         }
     } catch (err) {
-        console.error("发送消息失败", err);
-        sendCoolDown = false;
-isAiGenerating = false;
-window.sendingNow = false;
-sendBtn.style.pointerEvents = "auto";
-input.disabled = false;
+    console.error("发送消息失败", err);
+    // 销毁渲染定时器，防止断线后重复渲染气泡
+    clearTimeout(streamRenderTimer);
+    // 强制解锁全部状态
+    sendCoolDown = false;
+    isAiGenerating = false;
+    window.sendingNow = false;
+    sendDebounceLock = false;
+    sendBtn.style.pointerEvents = "auto";
+    if(input) input.disabled = false;
+}
     } finally {
         clearTimeout(streamRenderTimer);
         isAiGenerating = false;
