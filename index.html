@@ -504,68 +504,76 @@ async function fetchHistory() {
         const res = await fetch(`${apiHost}/history?_t=${Date.now()}`);
         if (!res.ok) throw new Error("Backend response error");
         const data = await res.json();
-        
+
         const uAvatar = localStorage.getItem('rinka_avatar') || defaultUserAvatar;
         const aAvatar = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
-        
+        let allHtml = '';
+
         if (Array.isArray(data) && data.length > 0) {
-            chatBox.innerHTML = ''; 
-            data.forEach(item => {
+            // 只取最新20条，旧记录舍弃，减少渲染压力
+            const limit = 20;
+            const showList = data.slice(-limit);
+
+            showList.forEach(item => {
                 const isUser = (item.role && item.role.toLowerCase() === 'user');
-                let text = item.content || item.message || ''; 
-                
+                let text = item.content || item.message || '';
+
                 if (isUser) {
-                    chatBox.insertAdjacentHTML('beforeend', `
+                    allHtml += `
                         <div class="msg-row user-row">
-                            <img class="avatar" src="${uAvatar}">
+                            < img class="avatar" src="${uAvatar}">
                             <div class="message user-msg">
                                 <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(item.timestamp || new Date())}</div>
                                 <div class="msg-text">${renderTextOrImage(text)}</div>
                             </div>
                         </div>
-                    `);
+                    `;
                 } else {
                     if (text.trim().startsWith('http') && (text.includes('.jpg') || text.includes('.gif') || text.includes('.png'))) {
                         let tokenHtml = item.tokens_used ? `<span class="token-tag">🪙 本条消耗: ${item.tokens_used} tokens</span>` : "";
-                        chatBox.insertAdjacentHTML('beforeend', `
+                        allHtml += `
                             <div class="msg-row ai-row">
-                                <img class="avatar" src="${aAvatar}">
+                                < img class="avatar" src="${aAvatar}">
                                 <div class="message ai-msg">
                                     <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(item.timestamp || new Date())}</div>
                                     <div class="msg-text">${renderTextOrImage(text)}</div>
                                     ${tokenHtml}
                                 </div>
                             </div>
-                        `);
+                        `;
                     } else {
                         const subMsgs = text.split(/(?<=[。！？\n])/g).map(s => s.trim()).filter(s => s.length > 0);
                         let tokenHtml = item.tokens_used ? `<span class="token-tag">🪙 本条消耗: ${item.tokens_used} tokens</span>` : "";
-                        
                         subMsgs.forEach((subText, index) => {
                             const isFirst = (index === 0);
                             const isLast = (index === subMsgs.length - 1);
-                            
-                            chatBox.insertAdjacentHTML('beforeend', `
+                            allHtml += `
                                 <div class="msg-row ai-row" style="${isFirst ? '' : 'margin-top: -12px;'}">
-                                    <img class="avatar" src="${aAvatar}" style="${isFirst ? '' : 'visibility: hidden;'}">
+                                    < img class="avatar" src="${aAvatar}" style="${isFirst ? '' : 'visibility: hidden;'}">
                                     <div class="message ai-msg">
                                         ${isFirst ? `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(item.timestamp || new Date())}</div>` : ''}
                                         <div class="msg-text">${renderTextOrImage(subText)}</div>
                                         ${isLast ? tokenHtml : ''}
                                     </div>
                                 </div>
-                            `);
+                            `;
                         });
                     }
                 }
             });
-            chatBox.scrollTop = chatBox.scrollHeight;
+            // 一次性渲染全部html
+            chatBox.innerHTML = allHtml;
+            setTimeout(() => {
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }, 30);
         } else {
-            if(chatBox.innerHTML.trim() === "") {
+            if (chatBox.innerHTML.trim() === "") {
                 chatBox.innerHTML = `<div style="text-align:center; color:#a11d48; font-size:13px; margin-top:20px;">🌸 欢迎回家，快来聊聊天吧～</div>`;
             }
         }
-    } catch (e) { console.error(e); }
+    } catch (e) {
+        console.error(e);
+    }
 }
 async function sendSticker(fullImgUrl) {
     document.getElementById('emoji-pop-panel').style.display = 'none';
