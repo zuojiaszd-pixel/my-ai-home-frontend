@@ -458,12 +458,7 @@ if (parsed.content) {
         chatBox.scrollTop = chatBox.scrollHeight;
     }, 100);
 }
-                    } catch (e) {}
-                }
-            }
-        }
-
-        if (currentBubbleText.trim() || textBuffer.trim()) {
+                        if (currentBubbleText.trim() || textBuffer.trim()) {
     currentBubbleText += textBuffer;
     currentBubbleElement.innerHTML = renderTextOrImage(currentBubbleText);
 } else {
@@ -481,6 +476,11 @@ streamRenderTimer = setTimeout(() => {
     isAiGenerating = false;
     thisRoundHasBubble = false;
 }
+                    } catch (e) {}
+                }
+            }
+        }
+
 function toggleSettings(show) {
     const panel = document.getElementById('settings-view'); if (panel) panel.style.display = show ? 'flex' : 'none'; 
     if (show) {
@@ -679,13 +679,7 @@ const createNewAiBubble = () => {
         chatBox.scrollTop = chatBox.scrollHeight;
     }, 100);
 }
-                        }
-                    } catch (e) {}
-                }
-            }
-        }
-        
-        if (currentBubbleText.trim() || textBuffer.trim()) {
+                        if (currentBubbleText.trim() || textBuffer.trim()) {
     currentBubbleText += textBuffer;
     currentBubbleElement.innerHTML = renderTextOrImage(currentBubbleText);
 } else {
@@ -703,6 +697,12 @@ streamRenderTimer = setTimeout(() => {
     isAiGenerating = false;
     thisRoundHasBubble = false;
 }
+                        }
+                    } catch (e) {}
+                }
+            }
+        }
+        
 window.onload = function() {
     const bg = localStorage.getItem('rinka_home_bg');
     if(bg) { document.body.style.background = `url('${bg}') center/cover fixed`; }
