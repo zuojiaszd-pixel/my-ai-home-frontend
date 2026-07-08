@@ -476,14 +476,12 @@ streamRenderTimer = setTimeout(() => {
     chatBox.scrollTop = chatBox.scrollHeight;
 }, 100);
     } catch (e) {
-    console.error("互动请求出错：", e);
+    console.error(e);
     fetchHistory();
 } finally {
     isAiGenerating = false;
     thisRoundHasBubble = false;
 }
-}
-
 function toggleSettings(show) {
     const panel = document.getElementById('settings-view'); if (panel) panel.style.display = show ? 'flex' : 'none'; 
     if (show) {
@@ -704,11 +702,9 @@ streamRenderTimer = setTimeout(() => {
     console.error(e);
     fetchHistory();
 } finally {
-    // 生成完成，解锁，可以发下一条消息
     isAiGenerating = false;
     thisRoundHasBubble = false;
 }
-
 window.onload = function() {
     const bg = localStorage.getItem('rinka_home_bg');
     if(bg) { document.body.style.background = `url('${bg}') center/cover fixed`; }
