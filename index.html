@@ -172,6 +172,17 @@
             background: none; border: none; font-size: 22px; cursor: pointer; padding: 0 4px; display: flex; align-items: center; justify-content: center; outline: none; transition: transform 0.1s;
         }
         #touch-trigger:active { transform: scale(0.85); }
+        
+        #emoji-pop-panel {
+  pointer-events: auto !important;
+}
+#touch-layer-parts, #touch-layer-privacy, #touch-layer-actions {
+  pointer-events: auto !important;
+}
+/* 页面底层容器禁止弹窗点击向下穿透 */
+body {
+  touch-action: manipulation; /* 消除移动端300ms点击延迟根源 */
+}
     </style>
 </head>
 <body>
@@ -194,25 +205,25 @@
         <div class="input-area">
             <button id="touch-trigger" title="身体互动">🌸</button>
             <button class="emoji-toggle-btn" id="emoji-trigger">😀</button>
-            <input type="text" id="user-input" placeholder="和瑛聊聊天吧..." onkeydown="if(event.key==='Enter'){sendMessage();event.preventDefault();}">
-            <button class="send-btn" id="sendBtn" onclick="sendMessage()">发送</button>
+            <input type="text" id="user-input" placeholder="和瑛聊聊天吧..." onkeydown="if(event.key==='Enter'){safeSendTrigger(()=>sendMessage());event.preventDefault();}">
+            <button class="send-btn" id="sendBtn" onclick="safeSendTrigger(()=>sendMessage())">发送</button>
             
             <!-- 🌐 表情包面板 -->
             <div id="emoji-pop-panel" class="emoji-pop-panel">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/happy1.jpg" onclick="sendSticker(this.src, event)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/snuggle1.jpg" onclick="sendSticker(this.src, event)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/snuggle2.jpg" onclick="sendSticker(this.src, event)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/snuggle3.jpg" onclick="sendSticker(this.src, event)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/like1.jpg" onclick="sendSticker(this.src, event)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/like2.jpg" onclick="sendSticker(this.src, event)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/like3.jpg" onclick="sendSticker(this.src, event)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/cry1.jpg" onclick="sendSticker(this.src, event)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/afraid1.jpg" onclick="sendSticker(this.src, event)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/naughty1.jpg" onclick="sendSticker(this.src, event)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/pinch1.jpg" onclick="sendSticker(this.src, event)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/ugh1.jpg" onclick="sendSticker(this.src, event)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/ugh2.jpg" onclick="sendSticker(this.src, event)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/doubt1.jpg" onclick="sendSticker(this.src, event)">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/happy1.jpg" onclick="safeSendTrigger(()=>sendSticker(this.src, event))">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/snuggle1.jpg" onclick="safeSendTrigger(()=>sendSticker(this.src, event))">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/snuggle2.jpg" onclick="safeSendTrigger(()=>sendSticker(this.src, event))">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/snuggle3.jpg" onclick="safeSendTrigger(()=>sendSticker(this.src, event))">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/like1.jpg" onclick="safeSendTrigger(()=>sendSticker(this.src, event))">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/like2.jpg" onclick="safeSendTrigger(()=>sendSticker(this.src, event))">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/like3.jpg" onclick="safeSendTrigger(()=>sendSticker(this.src, event))">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/cry1.jpg" onclick="safeSendTrigger(()=>sendSticker(this.src, event))">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/afraid1.jpg" onclick="safeSendTrigger(()=>sendSticker(this.src, event))">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/naughty1.jpg" onclick="safeSendTrigger(()=>sendSticker(this.src, event))">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/pinch1.jpg" onclick="safeSendTrigger(()=>sendSticker(this.src, event))">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/ugh1.jpg" onclick="safeSendTrigger(()=>sendSticker(this.src, event))">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/ugh2.jpg" onclick="safeSendTrigger(()=>sendSticker(this.src, event))">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/doubt1.jpg" onclick="safeSendTrigger(()=>sendSticker(this.src, event))">
             </div>
 
             <!-- 🌸 身体互动面板 (完美融入并修正缺失) -->
@@ -284,7 +295,19 @@ let isAiGenerating = false;
 let currentSessionId = localStorage.getItem('currentSessionId') || 'default_room';
 const MAX_LOCAL_SHOW = 20;
 let localMsgList = [];
-let sendCoolDown = false;    
+let sendDebounceLock = false;
+const DEBOUNCE_TIME = 1200; // 拉长防抖窗口，覆盖移动端300ms穿透延迟
+let pendingSendContent = null;
+
+// 统一安全发送包装器，所有发送逻辑强制走这个函数
+function safeSendTrigger(callSendFunc) {
+    if (sendDebounceLock) return;
+    sendDebounceLock = true;
+    callSendFunc();
+    setTimeout(() => {
+        sendDebounceLock = false;
+    }, DEBOUNCE_TIME);
+}    
 
 // 追加单条消息缓存，不再全量重绘
 function appendMsgCache(htmlStr) {
@@ -414,7 +437,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const act = btn.dataset.action;
         if (!selectedTouchPart || !act) return;
         const desc = act === "摸" ? "极其温柔而深情地抚摸" : "主动贴过去，用温热的舌尖轻轻蹭";
-        executeSilentTouchAction(`【系统提示：Rinka正在主动贴过来，${desc}你的【${selectedTouchPart}】。】`);
+        safeSendTrigger(()=>executeSilentTouchAction(`【系统提示：Rinka正在主动贴过来，${desc}你的【${selectedTouchPart}】。】`));
         document.getElementById('touch-pop-panel').style.display = "none";
     })
 })
@@ -544,10 +567,15 @@ async function sendMessage() {
 
 // 核心修复：用户消息直接插入DOM，不再全量重绘覆盖
 async function executeSendAction(contentText) {
-    if(window.sendingNow || sendCoolDown || isAiGenerating) return;
+    // 四层判断，任意一个激活直接退出
+    if(sendDebounceLock || window.sendingNow || sendCoolDown || isAiGenerating) return;
     sendCoolDown = true;
     isAiGenerating = true;
     window.sendingNow = true;
+    // 发送时直接禁用页面所有交互按钮
+    document.getElementById("send-btn").style.pointerEvents = "none";
+    document.getElementById("user-input").disabled = true;
+}
 
 const input = document.getElementById('user-input');
 const sendBtn = document.getElementById("sendBtn");
@@ -582,6 +610,18 @@ if(sendBtn) sendBtn.disabled = true;
     const aiWrap = createAiBubble();
     aiDom = aiWrap.querySelector('.msg-text');
 
+try {
+    // =====新增开始=====
+    if (pendingSendContent === contentText) {
+        return;
+    }
+    pendingSendContent = contentText;
+    // =====新增结束=====
+    const host = ['localhost','127.0.0.1'].includes(location.hostname) ? '' : BACKEND_URL;
+    const res = await fetch(`${host}/chat`, {
+        ...原有fetch代码不变
+    });
+    
     try {
         const host = ['localhost','127.0.0.1'].includes(location.hostname) ? '' : BACKEND_URL;
         const res = await fetch(`${host}/chat`, {
@@ -624,13 +664,13 @@ while (true) {
 } finally {
     clearTimeout(streamRenderTimer);
     isAiGenerating = false;
-    window.sendingNow = false; // 新增释放
+    window.sendingNow = false;
+    pendingSendContent = null; // 新增这一行
     setTimeout(()=>{
         sendCoolDown = false;
     },800)
     if(input) input.disabled = false;
     if(sendBtn) sendBtn.disabled = false;
-}
 }
 
 window.onload = async function() {
