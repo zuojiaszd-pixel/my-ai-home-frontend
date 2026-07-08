@@ -584,28 +584,28 @@ async function sendMessage() {
 }
 
 async function executeSendAction(contentText) {
-    // 内部补全所有缺失变量，解决undefined报错
+    // 内部变量定义
     const chatBox = document.getElementById('chat-box');
     const input = document.getElementById('user-input');
     const sendBtn = document.getElementById("sendBtn");
     const uAv = localStorage.getItem('rinka_avatar') || defaultUserAvatar;
-    const aAv = localStorage.getItem('rinka_ai_avatar');
-    if (!aAv) aAv = defaultAiAvatar;
+    const aAv = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
+    const host = ['localhost','127.0.0.1'].includes(location.hostname) ? '' : BACKEND_URL;
+    // 发送锁前置清空，避免卡死
+    sendCoolDown = false;
+    isAiGenerating = false;
+    window.sendingNow = false;
+    sendDebounceLock = false;
 
-    // 四层并发拦截判断
-    
     sendCoolDown = true;
     isAiGenerating = true;
     window.sendingNow = true;
-
-    // 锁定按钮
     sendBtn.style.pointerEvents = "none";
     input.disabled = true;
 
     const currentTimeStr = formatBeijingTime(new Date());
-    // 插入用户消息
     if (chatBox.innerHTML.includes("欢迎回家")) chatBox.innerHTML = "";
-    const userHtml = `<div class="msg-row user-row"><img class="avatar" src="${uAv}"><div class="message user-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div></div>`;
+    const userHtml = `<div class="msg-row user-row">< img class="avatar" src="${uAv}"><div class="message user-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div></div>`;
     const userDom = document.createElement('div');
     userDom.innerHTML = userHtml;
     chatBox.appendChild(userDom.firstElementChild);
@@ -618,7 +618,7 @@ async function executeSendAction(contentText) {
         const row = document.createElement('div');
         row.className = "msg-row ai-row";
         row.style.marginTop = "10px";
-        row.innerHTML = `<img src="${aAv}" class="avatar"><div class="message ai-msg"><div style="font-size:14px;color:#aaa;">${currentTimeStr}</div><div class="msg-text"></div></div>`;
+        row.innerHTML = `< img src="${aAv}" class="avatar"><div class="message ai-msg"><div style="font-size:14px;color:#aaa;">${currentTimeStr}</div><div class="msg-text"></div></div>`;
         chatBox.appendChild(row);
         setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 30);
         return row;
@@ -630,14 +630,14 @@ async function executeSendAction(contentText) {
         if (pendingSendContent !== contentText) {
             pendingSendContent = contentText;
             const controller = new AbortController();
-const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时强制断开
-const res = await fetch(`${host}/chat`, {
-    method: "POST",
-    signal: controller.signal, // 绑定超时中断
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({sessionId: currentSessionId, content: contentText})
-});
-clearTimeout(timeoutId); // 请求正常拿到响应，清除超时计时器
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
+            const res = await fetch(`${host}/chat`, {
+                method: "POST",
+                signal: controller.signal,
+                headers: {"Content-Type":"application/json"},
+                body: JSON.stringify({sessionId: currentSessionId, content: contentText})
+            });
+            clearTimeout(timeoutId);
             if (!res.body) throw Error("无流");
             const reader = res.body.getReader();
             const decoder = new TextDecoder("utf-8");
@@ -664,14 +664,14 @@ clearTimeout(timeoutId); // 请求正常拿到响应，清除超时计时器
                             await typeSingleBubble(aiDom, data.content, fullAiText)
                         }
                     } catch(parseErr) {
-    clearTimeout(streamRenderTimer);
-    continue;
-}
+                        clearTimeout(streamRenderTimer);
+                        continue;
+                    }
                 }
             }
             appendMsgCache(aiWrap.outerHTML);
         }
-     } catch (err) {
+    } catch (err) {
     console.error("发送消息失败", err);
     // 销毁渲染定时器，防止断线后重复渲染气泡
     clearTimeout(streamRenderTimer);
@@ -682,7 +682,8 @@ clearTimeout(timeoutId); // 请求正常拿到响应，清除超时计时器
     sendDebounceLock = false;
     sendBtn.style.pointerEvents = "auto";
     if(input) input.disabled = false;
-} finally {
+} // 关键：补上catch块闭合括号
+finally {
     clearTimeout(streamRenderTimer);
     isAiGenerating = false;
     window.sendingNow = false;
@@ -695,24 +696,16 @@ clearTimeout(timeoutId); // 请求正常拿到响应，清除超时计时器
 }
     
 window.onload = async function() {
-    // 页面打开强制解锁，防止上次异常卡死
     sendCoolDown = false;
     isAiGenerating = false;
     window.sendingNow = false;
     sendDebounceLock = false;
-
-    // 读取本地存储的背景图，设置页面壁纸
     const bg = localStorage.getItem('rinka_home_bg');
     if (bg) document.body.style.background = `url(${bg}) center/cover fixed`;
-
-    // 读取当前会话ID，没有就用默认房间
-    currentSessionId = localStorage.getItem('currentSessionId') || 'default_room';
-    
-    // 拉取云端历史聊天记录
+    currentSessionId = localStorage.getItem('currentSessionId');
     await fetchHistory();
-    // 把本地缓存的消息渲染到聊天框
     renderAllLocal();
-}
+}; // 补齐闭合
 </script>
 </body>
 </html>
