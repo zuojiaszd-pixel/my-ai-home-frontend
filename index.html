@@ -297,7 +297,7 @@ function createNewSession() {
 function renderTextOrImage(contentStr) {
     const trimmed = contentStr.trim();
     if (trimmed.startsWith('http') && (trimmed.includes('.jpg') || trimmed.includes('.jpeg') || trimmed.includes('.png') || trimmed.includes('.gif') || trimmed.includes('.webp'))) {
-        return `< img src="${trimmed}" class="chat-sticker-img" alt="表情包">`;
+        return `<img src="${trimmed}" class="chat-sticker-img" alt="表情包">`;
     }
     return document.createTextNode(contentStr).textContent;
 }
@@ -326,9 +326,98 @@ async function typeSingleBubbleText(el, fullText, speed = 80) {
         await new Promise(res => setTimeout(res, speed));
     }
 }
-function toggleDropdown(event) { event.stopPropagation(); const dropdown = document.getElementById('header-dropdown'); dropdown.style.display = (dropdown.style.display === 'flex') ? 'none' : 'flex'; }
 
-// 🌸 表情包面板开关
+// ====================== 静默投递函数（放在面板代码前面，匹配你原文件结构） ======================
+async function executeSilentTouchAction(secretMessage) {
+    if (isAiGenerating) return;
+    isAiGenerating = true;
+    const chatBox = document.getElementById('chat-box');
+    const aAvatar = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
+    if (chatBox.innerHTML.includes("欢迎回家")) chatBox.innerHTML = '';
+
+    const getTimeStr = () => {
+        try { return formatBeijingTime(new Date()); } catch (e) { return "7/6 01:42"; }
+    };
+    const currentTimeStr = getTimeStr();
+
+    // 创建单条AI气泡工具
+    function createAiSingleBubble() {
+        const aiRow = document.createElement('div');
+        aiRow.className = "msg-row ai-row";
+        aiRow.style.marginTop = '10px';
+        aiRow.innerHTML = `
+            <img class="avatar" src="${aAvatar}">
+            <div class="message ai-msg">
+                <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${currentTimeStr}</div>
+                <div class="msg-text"></div>
+            </div>
+        `;
+        chatBox.appendChild(aiRow);
+        setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 30);
+        return aiRow.querySelector('.msg-text');
+    }
+
+    try {
+        const apiHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? '' : BACKEND_URL;
+        const response = await fetch(`${apiHost}/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                sessionId: currentSessionId,
+                content: secretMessage,
+                message: secretMessage,
+                clientTime: currentTimeStr
+            })
+        });
+        if (!response.body) return;
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+        let buffer = "";
+        let currentTextEl = createAiSingleBubble();
+
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split('\n');
+            for (const line of lines) {
+                if (line.trim() === '' || line.includes('[DONE]')) continue;
+                if (line.startsWith('data: ')) {
+                    try {
+                        const data = JSON.parse(line.slice(6));
+                        if (data.newBubble) {
+                            // 后端返回newBubble标识，新开独立AI气泡
+                            currentTextEl = createAiSingleBubble();
+                            buffer = "";
+                        }
+                        if (data.content) {
+                            buffer += data.content;
+                            await typeSingleBubbleText(currentTextEl, buffer);
+                        }
+                    } catch (err) {}
+                }
+            }
+        }
+        // 本条AI消息存入本地列表，自动限制20条展示上限
+        const wrapRow = currentTextEl.closest(".ai-row");
+        pushLocalMsg(wrapRow.outerHTML);
+    } catch (e) {
+        console.error(e);
+        fetchHistory();
+    } finally {
+        isAiGenerating = false;
+    }
+}
+
+// ====================== 面板、弹窗、设置、历史加载代码 ======================
+// 下拉菜单开关
+function toggleDropdown(event) {
+    event.stopPropagation();
+    const dropdown = document.getElementById('header-dropdown');
+    dropdown.style.display = (dropdown.style.display === 'flex') ? 'none' : 'flex';
+}
+
+// 表情包面板点击
 document.getElementById('emoji-trigger').addEventListener('click', function(e) {
     e.stopPropagation();
     const panel = document.getElementById('emoji-pop-panel');
@@ -337,13 +426,12 @@ document.getElementById('emoji-trigger').addEventListener('click', function(e) {
     panel.style.display = (panel.style.display === 'grid') ? 'none' : 'grid';
 });
 
-// 🌸 身体互动面板开关
+// 互动面板开关
 document.getElementById('touch-trigger').addEventListener('click', function(e) {
     e.stopPropagation();
     const panel = document.getElementById('emoji-pop-panel');
     const touchPanel = document.getElementById('touch-pop-panel');
     if (panel) panel.style.display = 'none';
-    
     if (touchPanel) {
         touchPanel.style.display = (touchPanel.style.display === 'block') ? 'none' : 'block';
         if (touchPanel.style.display === 'block') {
@@ -353,25 +441,23 @@ document.getElementById('touch-trigger').addEventListener('click', function(e) {
             if (layerParts) layerParts.style.display = 'block';
             if (layerPrivacy) layerPrivacy.style.display = 'none';
             if (layerActions) layerActions.style.display = 'none';
-            selectedTouchPart = ''; 
+            selectedTouchPart = '';
         }
     }
 });
 
+// 点击空白关闭所有弹窗
 document.addEventListener('click', function() {
-    const dropdown = document.getElementById('header-dropdown'); 
+    const dropdown = document.getElementById('header-dropdown');
     if (dropdown) dropdown.style.display = 'none';
-    const panel = document.getElementById('emoji-pop-panel'); 
+    const panel = document.getElementById('emoji-pop-panel');
     if (panel) panel.style.display = 'none';
     const touchPanel = document.getElementById('touch-pop-panel');
     if (touchPanel) touchPanel.style.display = 'none';
 });
 
-// ========================================================
-// 🌸 身体互动核心跳转与静默发送引擎
-// ========================================================
-let selectedTouchPart = ''; 
-
+let selectedTouchPart = '';
+// 互动面板按钮逻辑
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.touch-part-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -391,7 +477,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
-
     document.querySelectorAll('.touch-action-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -399,18 +484,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (selectedTouchPart && action) {
                 const actionText = action === '摸' ? '极其温柔而深情地抚摸' : '主动贴过去，用温热的舌尖死死抵住并不断舔舐';
                 const secretCommand = `【系统提示：Rinka正在主动贴过来，${actionText}你的【${selectedTouchPart}】。】`;
-                
                 executeSilentTouchAction(secretCommand);
-                
                 const touchPanel = document.getElementById('touch-pop-panel');
                 if (touchPanel) touchPanel.style.display = 'none';
             }
         });
     });
-
     const backToParts = document.querySelector('.back-to-parts');
     const backToPrev = document.querySelector('.back-to-prev');
-    
     const resetToFirstLayer = (e) => {
         e.stopPropagation();
         const layerParts = document.getElementById('touch-layer-parts');
@@ -425,128 +506,37 @@ document.addEventListener('DOMContentLoaded', () => {
     if (backToPrev) backToPrev.addEventListener('click', resetToFirstLayer);
 });
 
-// 4. 高级静默投递（已精准对接你的原生类名 msg-row ai-row）
-async function executeSilentTouchAction(secretMessage) {
-    if (isAiGenerating) return;
-    isAiGenerating = true;
-    thisRoundHasBubble = false;
-    console.log("【静默投递启动】发送暗号:", secretMessage);
-    const chatBox = document.getElementById('chat-box');
-    const aAvatar = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
-    if(chatBox.innerHTML.includes("欢迎回家")) chatBox.innerHTML = '';
-    
-    const getTimeStr = () => {
-        try { return formatBeijingTime(new Date()); } catch(e) { return "7/6 01:42"; }
-    };
-    const currentTimeStr = getTimeStr();
-    let currentBubbleElement = null;
-    let currentBubbleText = "";
-    let isFirstAiBubble = true;
-    const createNewAiBubble = () => {
-        if(thisRoundHasBubble && currentBubbleElement) return currentBubbleElement;
-        const aiRow = document.createElement('div');
-        aiRow.className = "msg-row ai-row";
-        aiRow.style.marginTop = isFirstAiBubble ? '10px' : '-12px';
-        aiRow.innerHTML = `
-            <img class="avatar" src="${aAvatar}">
-            <div class="message ai-msg">
-                ${isFirstAiBubble ? `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${currentTimeStr}</div>` : ''}
-                <div class="msg-text"></div>
-            </div>
-        `;
-        chatBox.appendChild(aiRow);
-        chatBox.scrollTop = chatBox.scrollHeight;
-        isFirstAiBubble = false;
-        currentBubbleText = "";
-        thisRoundHasBubble = true;
-        return aiRow.querySelector('.msg-text');
-    };
-    currentBubbleElement = createNewAiBubble();
-    try {
-        const apiHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? '' : BACKEND_URL;
-        const response = await fetch(`${apiHost}/chat`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                sessionId: currentSessionId,
-                content: secretMessage,
-                message: secretMessage,
-                clientTime: currentTimeStr
-            })
-        });
-        if (!response.body) return;
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder("utf-8");
-        let textBuffer = "";
-        while (true) {
-            const { value, done } = await reader.read();
-            if (done) break;
-            const chunk = decoder.decode(value, { stream: true });
-            const lines = chunk.split('\n');
-            for (const line of lines) {
-                if (line.trim() === '' || line.includes('[DONE]')) continue;
-                if (line.startsWith('data: ')) {
-                    try {
-                        const parsed = JSON.parse(line.slice(6));
-                        if (parsed.content) {
-                            let newChar = parsed.content;
-                            textBuffer += newChar;
-                            if (!currentBubbleElement) {
-                                currentBubbleElement = createNewAiBubble();
-                            }
-                            currentBubbleText += textBuffer;
-                            textBuffer = "";
-                            currentBubbleElement.innerHTML = renderTextOrImage(currentBubbleText);
-                            clearTimeout(streamRenderTimer);
-                            streamRenderTimer = setTimeout(() => {
-                                chatBox.scrollTop = chatBox.scrollHeight;
-                            }, 100);
-                        }
-                    } catch (e) {}
-                }
-            }
-        }
-        // 循环结束，兜底渲染（放在try内部）
-        if (currentBubbleText.trim() || textBuffer.trim()) {
-            currentBubbleText += textBuffer;
-            currentBubbleElement.innerHTML = renderTextOrImage(currentBubbleText);
-        } else {
-            const emptyRow = currentBubbleElement.closest('.ai-row');
-            if (emptyRow) emptyRow.remove();
-        }
-        clearTimeout(streamRenderTimer);
-        streamRenderTimer = setTimeout(() => {
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }, 100);
-    } catch (e) {
-        console.error(e);
-        fetchHistory();
-    } finally {
-        isAiGenerating = false;
-        thisRoundHasBubble = false;
-    }
-}
-
+// 装扮设置面板
 function toggleSettings(show) {
-    const panel = document.getElementById('settings-view'); if (panel) panel.style.display = show ? 'flex' : 'none'; 
+    const panel = document.getElementById('settings-view');
+    if (panel) panel.style.display = show ? 'flex' : 'none';
     if (show) {
         document.getElementById('custom-bg-url').value = localStorage.getItem('rinka_home_bg') || "";
         document.getElementById('user-avatar-url').value = localStorage.getItem('rinka_avatar') || defaultUserAvatar;
         document.getElementById('ai-avatar-url').value = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
     }
 }
+
+// 保存装扮配置
 function saveCosmetics() {
     const bgVal = document.getElementById('custom-bg-url').value.trim();
     const userAv = document.getElementById('user-avatar-url').value.trim();
     const aiAv = document.getElementById('ai-avatar-url').value.trim();
-    if(bgVal) { localStorage.setItem('rinka_home_bg', bgVal); document.body.style.background = `url('${bgVal}') center/cover fixed`; } 
-    else { localStorage.removeItem('rinka_home_bg'); document.body.style.background = "linear-gradient(135deg, #fff5f7 0%, #ffe3e8 100%)"; }
-    localStorage.setItem('rinka_avatar', userAv || defaultUserAvatar); localStorage.setItem('rinka_ai_avatar', aiAv || defaultAiAvatar);
-    alert("🎨 视觉装扮换新成功啦！"); toggleSettings(false); fetchHistory();
+    if(bgVal) {
+        localStorage.setItem('rinka_home_bg', bgVal);
+        document.body.style.background = `url('${bgVal}') center/cover fixed`;
+    } else {
+        localStorage.removeItem('rinka_home_bg');
+        document.body.style.background = "linear-gradient(135deg, #fff5f7 0%, #ffe3e8 100%)";
+    }
+    localStorage.setItem('rinka_avatar', userAv || defaultUserAvatar);
+    localStorage.setItem('rinka_ai_avatar', aiAv || defaultAiAvatar);
+    alert("🎨 视觉装扮换新成功啦！");
+    toggleSettings(false);
+    fetchHistory();
 }
-function formatBeijingTime(dateInput) {
-    if (!dateInput) return ""; try { const d = new Date(dateInput); if (isNaN(d.getTime())) return ""; return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`; } catch (e) { return ""; }
-}
+
+// 加载历史记录，仅展示最新20条
 async function fetchHistory() {
     const chatBox = document.getElementById('chat-box');
     if (!chatBox) return;
@@ -555,22 +545,17 @@ async function fetchHistory() {
         const res = await fetch(`${apiHost}/history?_t=${Date.now()}`);
         if (!res.ok) throw new Error("Backend response error");
         const data = await res.json();
-
         const uAvatar = localStorage.getItem('rinka_avatar') || defaultUserAvatar;
         const aAvatar = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
-        let allHtml = '';
-
+        localMsgList = [];
         if (Array.isArray(data) && data.length > 0) {
-            // 只取最新20条，旧记录舍弃，减少渲染压力
-            const limit = 20;
-            const showList = data.slice(-limit);
-
+            const showList = data.slice(-MAX_LOCAL_SHOW);
             showList.forEach(item => {
                 const isUser = (item.role && item.role.toLowerCase() === 'user');
                 let text = item.content || item.message || '';
-
+                let singleHtml = "";
                 if (isUser) {
-                    allHtml += `
+                    singleHtml = `
                         <div class="msg-row user-row">
                             <img class="avatar" src="${uAvatar}">
                             <div class="message user-msg">
@@ -582,7 +567,7 @@ async function fetchHistory() {
                 } else {
                     if (text.trim().startsWith('http') && (text.includes('.jpg') || text.includes('.gif') || text.includes('.png'))) {
                         let tokenHtml = item.tokens_used ? `<span class="token-tag">🪙 本条消耗: ${item.tokens_used} tokens</span>` : "";
-                        allHtml += `
+                        singleHtml = `
                             <div class="msg-row ai-row">
                                 <img class="avatar" src="${aAvatar}">
                                 <div class="message ai-msg">
@@ -598,7 +583,7 @@ async function fetchHistory() {
                         subMsgs.forEach((subText, index) => {
                             const isFirst = (index === 0);
                             const isLast = (index === subMsgs.length - 1);
-                            allHtml += `
+                            singleHtml += `
                                 <div class="msg-row ai-row" style="${isFirst ? '' : 'margin-top: -12px;'}">
                                     <img class="avatar" src="${aAvatar}" style="${isFirst ? '' : 'visibility: hidden;'}">
                                     <div class="message ai-msg">
@@ -611,79 +596,73 @@ async function fetchHistory() {
                         });
                     }
                 }
+                pushLocalMsg(singleHtml);
             });
-            // 一次性渲染全部html
-            chatBox.innerHTML = allHtml;
-            setTimeout(() => {
-                chatBox.scrollTop = chatBox.scrollHeight;
-            }, 30);
         } else {
-            if (chatBox.innerHTML.trim() === "") {
-                chatBox.innerHTML = `<div style="text-align:center; color:#a11d48; font-size:13px; margin-top:20px;">🌸 欢迎回家，快来聊聊天吧～</div>`;
-            }
+            renderAllLocalMsg();
         }
     } catch (e) {
         console.error(e);
     }
 }
+
+// 表情包快捷发送
 async function sendSticker(fullImgUrl) {
     document.getElementById('emoji-pop-panel').style.display = 'none';
     await executeSendAction(fullImgUrl);
 }
+
+// 输入框发送消息
 async function sendMessage() {
-    const input = document.getElementById('user-input'); if (!input) return;
-    const content = input.value.trim(); if (!content) return; input.value = '';
+    const input = document.getElementById('user-input');
+    if (!input) return;
+    const content = input.value.trim();
+    if (!content) return;
+    input.value = '';
     await executeSendAction(content);
 }
+
+// ====================== 普通对话发送函数 + 页面底部收尾 ======================
 async function executeSendAction(contentText) {
     if (isAiGenerating) return;
     isAiGenerating = true;
-    thisRoundHasBubble = false;
     const chatBox = document.getElementById('chat-box');
-    const uAvatar = localStorage.getItem('rinka_avatar') || defaultUserAvatar; 
+    const uAvatar = localStorage.getItem('rinka_avatar') || defaultUserAvatar;
     const aAvatar = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
     if(chatBox.innerHTML.includes("欢迎回家")) chatBox.innerHTML = '';
-    
+
     const getTimeStr = () => {
         try { return formatBeijingTime(new Date()); } catch(e) { return "7/6 01:42"; }
     };
     const currentTimeStr = getTimeStr();
-    
+
+    // 用户消息创建并存入本地列表
     const userRow = document.createElement('div');
     userRow.className = "msg-row user-row";
     userRow.innerHTML = `<img class="avatar" src="${uAvatar}"><div class="message user-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div>`;
-    chatBox.appendChild(userRow);
-    
-    let currentBubbleText = ""; 
-    let currentBubbleElement = null;
-    let isFirstAiBubble = true;
-    
-    const createNewAiBubble = () => {
-        if(thisRoundHasBubble && currentBubbleElement) return currentBubbleElement;
+    pushLocalMsg(userRow.outerHTML);
+
+    // 新建AI气泡工具
+    function createAiSingleBubble() {
         const aiRow = document.createElement('div');
         aiRow.className = "msg-row ai-row";
-        aiRow.style.marginTop = isFirstAiBubble ? '10px' : '-12px';
+        aiRow.style.marginTop = '10px';
         aiRow.innerHTML = `
             <img class="avatar" src="${aAvatar}">
             <div class="message ai-msg">
-                ${isFirstAiBubble ? `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${currentTimeStr}</div>` : ''}
+                <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${currentTimeStr}</div>
                 <div class="msg-text"></div>
             </div>
         `;
         chatBox.appendChild(aiRow);
-        chatBox.scrollTop = chatBox.scrollHeight;
-        isFirstAiBubble = false;
-        currentBubbleText = "";
-        thisRoundHasBubble = true;
+        setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 30);
         return aiRow.querySelector('.msg-text');
-    };
-    
-    currentBubbleElement = createNewAiBubble();
-    
+    }
+
     try {
         const apiHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? '' : BACKEND_URL;
         const response = await fetch(`${apiHost}/chat`, {
-            method: 'POST', 
+            method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 sessionId: currentSessionId,
@@ -692,58 +671,42 @@ async function executeSendAction(contentText) {
                 clientTime: currentTimeStr
             })
         });
-        
         if (!response.body) return;
-        const reader = response.body.getReader(); 
-        const decoder = new TextDecoder("utf-8"); 
-        let textBuffer = "";
-        
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+        let buffer = "";
+        let currentTextEl = createAiSingleBubble();
+
         while (true) {
-            const { value, done } = await reader.read(); if (done) break;
-            const chunk = decoder.decode(value, { stream: true }); 
+            const { value, done } = await reader.read();
+            if (done) break;
+            const chunk = decoder.decode(value, { stream: true });
             const lines = chunk.split('\n');
-            
             for (const line of lines) {
                 if (line.trim() === '' || line.includes('[DONE]')) continue;
                 if (line.startsWith('data: ')) {
                     try {
-                        const parsed = JSON.parse(line.slice(6));
-                        if (parsed.content) { 
-                            let newChar = parsed.content;
-                            textBuffer += newChar;
-                            if (!currentBubbleElement) {
-                                currentBubbleElement = createNewAiBubble();
-                            }
-                            currentBubbleText += textBuffer;
-                            textBuffer = "";
-                            currentBubbleElement.innerHTML = renderTextOrImage(currentBubbleText);
-                            clearTimeout(streamRenderTimer);
-                            streamRenderTimer = setTimeout(() => {
-                                chatBox.scrollTop = chatBox.scrollHeight;
-                            }, 100);
+                        const data = JSON.parse(line.slice(6));
+                        if (data.newBubble) {
+                            currentTextEl = createAiSingleBubble();
+                            buffer = "";
                         }
-                    } catch (e) {}
+                        if (data.content) {
+                            buffer += data.content;
+                            await typeSingleBubbleText(currentTextEl, buffer);
+                        }
+                    } catch (err) {}
                 }
             }
         }
-        // 兜底渲染在try内部
-        if (currentBubbleText.trim() || textBuffer.trim()) {
-            currentBubbleText += textBuffer;
-            currentBubbleElement.innerHTML = renderTextOrImage(currentBubbleText);
-        } else {
-            const emptyRow = currentBubbleElement.closest('.ai-row');
-            if (emptyRow) emptyRow.remove();
-        }
-        clearTimeout(streamRenderTimer);
-        streamRenderTimer = setTimeout(() => {
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }, 100);
+        // AI消息存入本地列表
+        const wrapRow = currentTextEl.closest(".ai-row");
+        pushLocalMsg(wrapRow.outerHTML);
     } catch (e) {
         console.error(e);
         fetchHistory();
     } finally {
         isAiGenerating = false;
-        thisRoundHasBubble = false;
     }
 }
 
