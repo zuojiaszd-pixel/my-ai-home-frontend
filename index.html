@@ -255,36 +255,27 @@ const defaultAiAvatar = "https://img.icons8.com/illustrations/lexicon/96/cartoon
 const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
 let streamRenderTimer = null;
 let isAiGenerating = false;
-let thisRoundHasBubble = false;
 let currentSessionId = localStorage.getItem('currentSessionId') || 'default_room';
-
-// 页面最大展示消息条数
 const MAX_LOCAL_SHOW = 20;
 let localMsgList = [];
 
-// 消息推入本地数组，超出自动删除最早一条，云端完整保存
+// 流数据缓存，防止重复解析分片
+let lastChunkCache = "";
+
 function pushLocalMsg(htmlStr) {
     localMsgList.push({ html: htmlStr });
-    if (localMsgList.length > MAX_LOCAL_SHOW) {
-        localMsgList.shift();
-    }
+    if (localMsgList.length > MAX_LOCAL_SHOW) localMsgList.shift();
     renderAllLocalMsg();
 }
 
-// 一次性批量渲染全部消息，减少DOM卡顿
 function renderAllLocalMsg() {
     const chatBox = document.getElementById("chat-box");
     let allHtml = "";
     localMsgList.forEach(item => allHtml += item.html);
-    if (allHtml) {
-        chatBox.innerHTML = allHtml;
-        setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 30);
-    } else {
-        chatBox.innerHTML = `<div style="text-align:center; color:#a11d48; font-size:13px; margin-top:20px;">🌸 欢迎回家，快来聊聊天吧～</div>`;
-    }
+    chatBox.innerHTML = allHtml || `<div style="text-align:center; color:#a11d48; font-size:13px; margin-top:20px;">🌸 欢迎回家，快来聊聊天吧～</div>`;
+    setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 50);
 }
 
-// 新建会话清空本地消息
 function createNewSession() {
   const newSid = 'room_' + Date.now();
   currentSessionId = newSid;
@@ -293,32 +284,33 @@ function createNewSession() {
   renderAllLocalMsg();
 }
 
-// 图文渲染转换函数
 function renderTextOrImage(contentStr) {
     const trimmed = contentStr.trim();
-    if (trimmed.startsWith('http') && (trimmed.includes('.jpg') || trimmed.includes('.jpeg') || trimmed.includes('.png') || trimmed.includes('.gif') || trimmed.includes('.webp'))) {
+    if (trimmed.startsWith('http') && /\.(jpg|jpeg|png|gif|webp)$/.test(trimmed)) {
         return `<img src="${trimmed}" class="chat-sticker-img" alt="表情包">`;
     }
-    return document.createTextNode(contentStr).textContent;
+    return contentStr;
 }
 
-// 标准北京时间格式化
 function formatBeijingTime(dateInput) {
     if (!dateInput) return "";
     try {
         const d = new Date(dateInput);
         if (isNaN(d.getTime())) return "";
-        return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
-    } catch (e) { return ""; }
+        return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    } catch (e) { return "7/8 19:23"; }
 }
 
-// 通用打字机封装函数（每条AI气泡单独打字）
-async function typeSingleBubbleText(el, fullText, speed = 80) {
+// 单气泡独立打字，每条气泡专属定时器，杜绝全局冲突重复打字
+async function typeSingleBubbleText(el, fullText, speed = 70) {
+    // 本条气泡启动前清空全局旧计时器，停止之前残留重复渲染
+    clearTimeout(streamRenderTimer);
     let tempText = "";
-    for (let char of fullText) {
-        tempText += char;
+    const chunkSize = 4;
+    // 逐段输出，写完直接终止，不会循环重复
+    for (let i = 0; i < fullText.length; i += chunkSize) {
+        tempText += fullText.slice(i, i + chunkSize);
         el.innerHTML = renderTextOrImage(tempText);
-        clearTimeout(streamRenderTimer);
         streamRenderTimer = setTimeout(() => {
             const box = document.getElementById("chat-box");
             box.scrollTop = box.scrollHeight;
@@ -327,20 +319,15 @@ async function typeSingleBubbleText(el, fullText, speed = 80) {
     }
 }
 
-// ====================== 静默投递函数（放在面板代码前面，匹配你原文件结构） ======================
+// 静默互动消息
 async function executeSilentTouchAction(secretMessage) {
     if (isAiGenerating) return;
     isAiGenerating = true;
     const chatBox = document.getElementById('chat-box');
     const aAvatar = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
     if (chatBox.innerHTML.includes("欢迎回家")) chatBox.innerHTML = '';
+    const currentTimeStr = formatBeijingTime(new Date());
 
-    const getTimeStr = () => {
-        try { return formatBeijingTime(new Date()); } catch (e) { return "7/6 01:42"; }
-    };
-    const currentTimeStr = getTimeStr();
-
-    // 创建单条AI气泡工具
     function createAiSingleBubble() {
         const aiRow = document.createElement('div');
         aiRow.className = "msg-row ai-row";
@@ -358,158 +345,133 @@ async function executeSilentTouchAction(secretMessage) {
     }
 
     try {
-        const apiHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? '' : BACKEND_URL;
+        const apiHost = ['localhost', '127.0.0.1'].includes(window.location.hostname) ? '' : BACKEND_URL;
         const response = await fetch(`${apiHost}/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                sessionId: currentSessionId,
-                content: secretMessage,
-                message: secretMessage,
-                clientTime: currentTimeStr
-            })
+            body: JSON.stringify({ sessionId: currentSessionId, content: secretMessage, message: secretMessage })
         });
-        if (!response.body) return;
+        if (!response.body) throw new Error("无流数据");
         const reader = response.body.getReader();
         const decoder = new TextDecoder("utf-8");
         let buffer = "";
         let currentTextEl = createAiSingleBubble();
+        lastChunkCache = "";
 
         while (true) {
             const { value, done } = await reader.read();
             if (done) break;
             const chunk = decoder.decode(value, { stream: true });
+            // 去重：相同分片不再重复解析，解决重复打字
+            if (chunk === lastChunkCache) continue;
+            lastChunkCache = chunk;
             const lines = chunk.split('\n');
             for (const line of lines) {
-                if (line.trim() === '' || line.includes('[DONE]')) continue;
-                if (line.startsWith('data: ')) {
-                    try {
-                        const data = JSON.parse(line.slice(6));
-                        if (data.newBubble) {
-                            // 后端返回newBubble标识，新开独立AI气泡
-                            currentTextEl = createAiSingleBubble();
-                            buffer = "";
-                        }
-                        if (data.content) {
-                            buffer += data.content;
-                            await typeSingleBubbleText(currentTextEl, buffer);
-                        }
-                    } catch (err) {}
-                }
+                const trimLine = line.trim();
+                if (!trimLine || trimLine.includes('[DONE]') || !trimLine.startsWith('data: ')) continue;
+                try {
+                    const data = JSON.parse(trimLine.slice(6));
+                    if (data.newBubble) {
+                        buffer = "";
+                        currentTextEl = createAiSingleBubble();
+                        clearTimeout(streamRenderTimer);
+                    }
+                    if (data.content) {
+                        buffer += data.content;
+                        await typeSingleBubbleText(currentTextEl, buffer);
+                    }
+                } catch (err) {}
             }
         }
-        // 本条AI消息存入本地列表，自动限制20条展示上限
-        const wrapRow = currentTextEl.closest(".ai-row");
-        pushLocalMsg(wrapRow.outerHTML);
+        pushLocalMsg(currentTextEl.closest(".ai-row").outerHTML);
     } catch (e) {
-        console.error(e);
+        console.error("静默消息报错", e);
         fetchHistory();
     } finally {
+        clearTimeout(streamRenderTimer);
         isAiGenerating = false;
     }
 }
 
-// ====================== 面板、弹窗、设置、历史加载代码 ======================
-// 下拉菜单开关
+// 面板交互逻辑
 function toggleDropdown(event) {
     event.stopPropagation();
     const dropdown = document.getElementById('header-dropdown');
-    dropdown.style.display = (dropdown.style.display === 'flex') ? 'none' : 'flex';
+    dropdown.style.display = dropdown.style.display === 'flex' ? 'none' : 'flex';
 }
 
-// 表情包面板点击
-document.getElementById('emoji-trigger').addEventListener('click', function(e) {
+document.getElementById('emoji-trigger')?.addEventListener('click', e => {
     e.stopPropagation();
-    const panel = document.getElementById('emoji-pop-panel');
+    const emojiPanel = document.getElementById('emoji-pop-panel');
     const touchPanel = document.getElementById('touch-pop-panel');
     if (touchPanel) touchPanel.style.display = 'none';
-    panel.style.display = (panel.style.display === 'grid') ? 'none' : 'grid';
+    emojiPanel.style.display = emojiPanel.style.display === 'grid' ? 'none' : 'grid';
 });
 
-// 互动面板开关
-document.getElementById('touch-trigger').addEventListener('click', function(e) {
+document.getElementById('touch-trigger')?.addEventListener('click', e => {
     e.stopPropagation();
-    const panel = document.getElementById('emoji-pop-panel');
+    const emojiPanel = document.getElementById('emoji-pop-panel');
     const touchPanel = document.getElementById('touch-pop-panel');
-    if (panel) panel.style.display = 'none';
-    if (touchPanel) {
-        touchPanel.style.display = (touchPanel.style.display === 'block') ? 'none' : 'block';
-        if (touchPanel.style.display === 'block') {
-            const layerParts = document.getElementById('touch-layer-parts');
-            const layerPrivacy = document.getElementById('touch-layer-privacy');
-            const layerActions = document.getElementById('touch-layer-actions');
-            if (layerParts) layerParts.style.display = 'block';
-            if (layerPrivacy) layerPrivacy.style.display = 'none';
-            if (layerActions) layerActions.style.display = 'none';
-            selectedTouchPart = '';
-        }
+    if (emojiPanel) emojiPanel.style.display = 'none';
+    if (!touchPanel) return;
+    touchPanel.style.display = touchPanel.style.display === 'block' ? 'none' : 'block';
+    if (touchPanel.style.display === 'block') {
+        document.getElementById('touch-layer-parts').style.display = 'block';
+        document.getElementById('touch-layer-privacy').style.display = 'none';
+        document.getElementById('touch-layer-actions').style.display = 'none';
     }
 });
 
-// 点击空白关闭所有弹窗
-document.addEventListener('click', function() {
-    const dropdown = document.getElementById('header-dropdown');
-    if (dropdown) dropdown.style.display = 'none';
-    const panel = document.getElementById('emoji-pop-panel');
-    if (panel) panel.style.display = 'none';
-    const touchPanel = document.getElementById('touch-pop-panel');
-    if (touchPanel) touchPanel.style.display = 'none';
+document.addEventListener('click', () => {
+    document.getElementById('header-dropdown')?.style.display = 'none';
+    document.getElementById('emoji-pop-panel')?.style.display = 'none';
+    document.getElementById('touch-pop-panel')?.style.display = 'none';
 });
 
 let selectedTouchPart = '';
-// 互动面板按钮逻辑
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.touch-part-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+        btn.addEventListener('click', e => {
             e.stopPropagation();
-            const part = btn.getAttribute('data-part');
-            const layerParts = document.getElementById('touch-layer-parts');
-            const layerPrivacy = document.getElementById('touch-layer-privacy');
-            const layerActions = document.getElementById('touch-layer-actions');
+            const part = btn.dataset.part;
+            const parts = document.getElementById('touch-layer-parts');
+            const privacy = document.getElementById('touch-layer-privacy');
+            const actions = document.getElementById('touch-layer-actions');
             if (part === 'privacy') {
-                if (layerParts) layerParts.style.display = 'none';
-                if (layerPrivacy) layerPrivacy.style.display = 'block';
+                parts.style.display = 'none';
+                privacy.style.display = 'block';
             } else {
                 selectedTouchPart = part;
-                if (layerParts) layerParts.style.display = 'none';
-                if (layerPrivacy) layerPrivacy.style.display = 'none';
-                if (layerActions) layerActions.style.display = 'block';
+                parts.style.display = 'none';
+                privacy.style.display = 'none';
+                actions.style.display = 'block';
             }
         });
     });
     document.querySelectorAll('.touch-action-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+        btn.addEventListener('click', e => {
             e.stopPropagation();
-            const action = btn.getAttribute('data-action');
-            if (selectedTouchPart && action) {
-                const actionText = action === '摸' ? '极其温柔而深情地抚摸' : '主动贴过去，用温热的舌尖死死抵住并不断舔舐';
-                const secretCommand = `【系统提示：Rinka正在主动贴过来，${actionText}你的【${selectedTouchPart}】。】`;
-                executeSilentTouchAction(secretCommand);
-                const touchPanel = document.getElementById('touch-pop-panel');
-                if (touchPanel) touchPanel.style.display = 'none';
-            }
+            const action = btn.dataset.action;
+            if (!selectedTouchPart || !action) return;
+            const desc = action === '摸' ? '极其温柔而深情地抚摸' : '主动贴过去，用温热的舌尖轻轻蹭';
+            executeSilentTouchAction(`【系统提示：Rinka正在主动贴过来，${desc}你的【${selectedTouchPart}】。】`);
+            document.getElementById('touch-pop-panel').style.display = 'none';
         });
     });
-    const backToParts = document.querySelector('.back-to-parts');
-    const backToPrev = document.querySelector('.back-to-prev');
-    const resetToFirstLayer = (e) => {
+    const resetLayer = e => {
         e.stopPropagation();
-        const layerParts = document.getElementById('touch-layer-parts');
-        const layerPrivacy = document.getElementById('touch-layer-privacy');
-        const layerActions = document.getElementById('touch-layer-actions');
-        if (layerParts) layerParts.style.display = 'block';
-        if (layerPrivacy) layerPrivacy.style.display = 'none';
-        if (layerActions) layerActions.style.display = 'none';
+        document.getElementById('touch-layer-parts').style.display = 'block';
+        document.getElementById('touch-layer-privacy').style.display = 'none';
+        document.getElementById('touch-layer-actions').style.display = 'none';
         selectedTouchPart = '';
     };
-    if (backToParts) backToParts.addEventListener('click', resetToFirstLayer);
-    if (backToPrev) backToPrev.addEventListener('click', resetToFirstLayer);
+    document.querySelector('.back-to-parts')?.addEventListener('click', resetLayer);
+    document.querySelector('.back-to-prev')?.addEventListener('click', resetLayer);
 });
 
-// 装扮设置面板
 function toggleSettings(show) {
     const panel = document.getElementById('settings-view');
-    if (panel) panel.style.display = show ? 'flex' : 'none';
+    panel.style.display = show ? 'flex' : 'none';
     if (show) {
         document.getElementById('custom-bg-url').value = localStorage.getItem('rinka_home_bg') || "";
         document.getElementById('user-avatar-url').value = localStorage.getItem('rinka_avatar') || defaultUserAvatar;
@@ -517,12 +479,11 @@ function toggleSettings(show) {
     }
 }
 
-// 保存装扮配置
 function saveCosmetics() {
     const bgVal = document.getElementById('custom-bg-url').value.trim();
     const userAv = document.getElementById('user-avatar-url').value.trim();
     const aiAv = document.getElementById('ai-avatar-url').value.trim();
-    if(bgVal) {
+    if (bgVal) {
         localStorage.setItem('rinka_home_bg', bgVal);
         document.body.style.background = `url('${bgVal}') center/cover fixed`;
     } else {
@@ -531,193 +492,144 @@ function saveCosmetics() {
     }
     localStorage.setItem('rinka_avatar', userAv || defaultUserAvatar);
     localStorage.setItem('rinka_ai_avatar', aiAv || defaultAiAvatar);
-    alert("🎨 视觉装扮换新成功啦！");
+    alert("🎨 装扮保存成功！");
     toggleSettings(false);
     fetchHistory();
 }
 
-// 加载历史记录，仅展示最新20条
 async function fetchHistory() {
     const chatBox = document.getElementById('chat-box');
     if (!chatBox) return;
     try {
-        const apiHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? '' : BACKEND_URL;
+        const apiHost = ['localhost', '127.0.0.1'].includes(window.location.hostname) ? '' : BACKEND_URL;
         const res = await fetch(`${apiHost}/history?_t=${Date.now()}`);
-        if (!res.ok) throw new Error("Backend response error");
+        if (!res.ok) throw new Error("历史接口异常");
         const data = await res.json();
         const uAvatar = localStorage.getItem('rinka_avatar') || defaultUserAvatar;
         const aAvatar = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
         localMsgList = [];
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data) && data.length) {
             const showList = data.slice(-MAX_LOCAL_SHOW);
             showList.forEach(item => {
-                const isUser = (item.role && item.role.toLowerCase() === 'user');
-                let text = item.content || item.message || '';
-                let singleHtml = "";
+                const isUser = String(item.role).toLowerCase() === 'user';
+                const text = item.content || item.message || '';
+                let html = "";
                 if (isUser) {
-                    singleHtml = `
-                        <div class="msg-row user-row">
-                            <img class="avatar" src="${uAvatar}">
-                            <div class="message user-msg">
-                                <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(item.timestamp || new Date())}</div>
-                                <div class="msg-text">${renderTextOrImage(text)}</div>
-                            </div>
-                        </div>
-                    `;
+                    html = `<div class="msg-row user-row"><img class="avatar" src="${uAvatar}"><div class="message user-msg"><div style="font-size:10px;color:#aaa;margin-bottom:4px;">${formatBeijingTime(item.timestamp)}</div><div class="msg-text">${renderTextOrImage(text)}</div></div></div>`;
                 } else {
-                    if (text.trim().startsWith('http') && (text.includes('.jpg') || text.includes('.gif') || text.includes('.png'))) {
-                        let tokenHtml = item.tokens_used ? `<span class="token-tag">🪙 本条消耗: ${item.tokens_used} tokens</span>` : "";
-                        singleHtml = `
-                            <div class="msg-row ai-row">
-                                <img class="avatar" src="${aAvatar}">
-                                <div class="message ai-msg">
-                                    <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(item.timestamp || new Date())}</div>
-                                    <div class="msg-text">${renderTextOrImage(text)}</div>
-                                    ${tokenHtml}
-                                </div>
-                            </div>
-                        `;
+                    if (/^http.*\.(jpg|png|gif)/.test(text.trim())) {
+                        const tokenTag = item.tokens_used ? `<span class="token-tag">🪙 本条消耗: ${item.tokens_used} tokens</span>` : "";
+                        html = `<div class="msg-row ai-row"><img class="avatar" src="${aAvatar}"><div class="message ai-msg"><div style="font-size:10px;color:#aaa;margin-bottom:4px;">${formatBeijingTime(item.timestamp)}</div><div class="msg-text">${renderTextOrImage(text)}</div>${tokenTag}</div></div>`;
                     } else {
-                        const subMsgs = text.split(/(?<=[。！？\n])/g).map(s => s.trim()).filter(s => s.length > 0);
-                        let tokenHtml = item.tokens_used ? `<span class="token-tag">🪙 本条消耗: ${item.tokens_used} tokens</span>` : "";
-                        subMsgs.forEach((subText, index) => {
-                            const isFirst = (index === 0);
-                            const isLast = (index === subMsgs.length - 1);
-                            singleHtml += `
-                                <div class="msg-row ai-row" style="${isFirst ? '' : 'margin-top: -12px;'}">
-                                    <img class="avatar" src="${aAvatar}" style="${isFirst ? '' : 'visibility: hidden;'}">
-                                    <div class="message ai-msg">
-                                        ${isFirst ? `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(item.timestamp || new Date())}</div>` : ''}
-                                        <div class="msg-text">${renderTextOrImage(subText)}</div>
-                                        ${isLast ? tokenHtml : ''}
-                                    </div>
-                                </div>
-                            `;
+                        const subTexts = text.split(/(?<=[。！？\n])/).map(s => s.trim()).filter(Boolean);
+                        subTexts.forEach((sub, idx) => {
+                            const first = idx === 0;
+                            const last = idx === subTexts.length - 1;
+                            const tokenTag = last && item.tokens_used ? `<span class="token-tag">🪙 本条消耗: ${item.tokens_used} tokens</span>` : "";
+                            html += `<div class="msg-row ai-row" style="${first ? '' : 'margin-top:-12px'}"><img class="avatar" src="${aAvatar}" style="${first ? '' : 'visibility:hidden'}"><div class="message ai-msg">${first ? `<div style="font-size:10px;color:#aaa;margin-bottom:4px;">${formatBeijingTime(item.timestamp)}</div>` : ''}<div class="msg-text">${renderTextOrImage(sub)}</div>${tokenTag}</div></div>`;
                         });
                     }
                 }
-                pushLocalMsg(singleHtml);
+                pushLocalMsg(html);
             });
-        } else {
-            renderAllLocalMsg();
-        }
+        } else renderAllLocalMsg();
     } catch (e) {
-        console.error(e);
+        console.error("加载历史失败", e);
     }
 }
 
-// 表情包快捷发送
-async function sendSticker(fullImgUrl) {
+async function sendSticker(imgUrl) {
     document.getElementById('emoji-pop-panel').style.display = 'none';
-    await executeSendAction(fullImgUrl);
+    await executeSendAction(imgUrl);
 }
 
-// 输入框发送消息
 async function sendMessage() {
     const input = document.getElementById('user-input');
-    if (!input) return;
     const content = input.value.trim();
     if (!content) return;
     input.value = '';
     await executeSendAction(content);
 }
 
-// ====================== 普通对话发送函数 + 页面底部收尾 ======================
+// 普通对话发送
 async function executeSendAction(contentText) {
     if (isAiGenerating) return;
     isAiGenerating = true;
     const chatBox = document.getElementById('chat-box');
     const uAvatar = localStorage.getItem('rinka_avatar') || defaultUserAvatar;
     const aAvatar = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
-    if(chatBox.innerHTML.includes("欢迎回家")) chatBox.innerHTML = '';
+    if (chatBox.innerHTML.includes("欢迎回家")) chatBox.innerHTML = '';
+    const currentTimeStr = formatBeijingTime(new Date());
 
-    const getTimeStr = () => {
-        try { return formatBeijingTime(new Date()); } catch(e) { return "7/6 01:42"; }
-    };
-    const currentTimeStr = getTimeStr();
-
-    // 用户消息创建并存入本地列表
+    // 用户消息直接渲染，无动画
     const userRow = document.createElement('div');
     userRow.className = "msg-row user-row";
-    userRow.innerHTML = `<img class="avatar" src="${uAvatar}"><div class="message user-msg"><div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div>`;
+    userRow.innerHTML = `<img class="avatar" src="${uAvatar}"><div class="message user-msg"><div style="font-size:10px;color:#aaa;margin-bottom:4px;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div>`;
     pushLocalMsg(userRow.outerHTML);
 
-    // 新建AI气泡工具
     function createAiSingleBubble() {
         const aiRow = document.createElement('div');
         aiRow.className = "msg-row ai-row";
         aiRow.style.marginTop = '10px';
-        aiRow.innerHTML = `
-            <img class="avatar" src="${aAvatar}">
-            <div class="message ai-msg">
-                <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${currentTimeStr}</div>
-                <div class="msg-text"></div>
-            </div>
-        `;
+        aiRow.innerHTML = `<img class="avatar" src="${aAvatar}"><div class="message ai-msg"><div style="font-size:10px;color:#aaa;margin-bottom:4px;">${currentTimeStr}</div><div class="msg-text"></div></div>`;
         chatBox.appendChild(aiRow);
         setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 30);
         return aiRow.querySelector('.msg-text');
     }
 
     try {
-        const apiHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? '' : BACKEND_URL;
+        const apiHost = ['localhost', '127.0.0.1'].includes(window.location.hostname) ? '' : BACKEND_URL;
         const response = await fetch(`${apiHost}/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                sessionId: currentSessionId,
-                content: contentText,
-                message: contentText,
-                clientTime: currentTimeStr
-            })
+            body: JSON.stringify({ sessionId: currentSessionId, content: contentText, message: contentText })
         });
-        if (!response.body) return;
+        if (!response.body) throw new Error("无流");
         const reader = response.body.getReader();
         const decoder = new TextDecoder("utf-8");
         let buffer = "";
         let currentTextEl = createAiSingleBubble();
+        lastChunkCache = "";
 
         while (true) {
             const { value, done } = await reader.read();
             if (done) break;
             const chunk = decoder.decode(value, { stream: true });
+            if (chunk === lastChunkCache) continue;
+            lastChunkCache = chunk;
             const lines = chunk.split('\n');
             for (const line of lines) {
-                if (line.trim() === '' || line.includes('[DONE]')) continue;
-                if (line.startsWith('data: ')) {
-                    try {
-                        const data = JSON.parse(line.slice(6));
-                        if (data.newBubble) {
-                            currentTextEl = createAiSingleBubble();
-                            buffer = "";
-                        }
-                        if (data.content) {
-                            buffer += data.content;
-                            await typeSingleBubbleText(currentTextEl, buffer);
-                        }
-                    } catch (err) {}
-                }
+                const trimLine = line.trim();
+                if (!trimLine || trimLine.includes('[DONE]') || !trimLine.startsWith('data: ')) continue;
+                try {
+                    const data = JSON.parse(trimLine.slice(6));
+                    if (data.newBubble) {
+                        buffer = "";
+                        currentTextEl = createAiSingleBubble();
+                        clearTimeout(streamRenderTimer);
+                    }
+                    if (data.content) {
+                        buffer += data.content;
+                        await typeSingleBubbleText(currentTextEl, buffer);
+                    }
+                } catch (err) {}
             }
         }
-        // AI消息存入本地列表
-        const wrapRow = currentTextEl.closest(".ai-row");
-        pushLocalMsg(wrapRow.outerHTML);
+        pushLocalMsg(currentTextEl.closest(".ai-row").outerHTML);
     } catch (e) {
-        console.error(e);
+        console.error("发送消息报错", e);
         fetchHistory();
     } finally {
+        clearTimeout(streamRenderTimer);
         isAiGenerating = false;
     }
 }
 
 window.onload = function() {
     const bg = localStorage.getItem('rinka_home_bg');
-    if(bg) { document.body.style.background = `url('${bg}') center/cover fixed`; }
+    if (bg) document.body.style.background = `url('${bg}') center/cover fixed`;
     fetchHistory();
 };
-window.addEventListener('beforeunload', () => {
-    clearTimeout(streamRenderTimer);
-});
 </script>
 </body>
 </html>
