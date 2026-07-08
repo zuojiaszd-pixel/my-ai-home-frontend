@@ -284,6 +284,7 @@ let isAiGenerating = false;
 let currentSessionId = localStorage.getItem('currentSessionId') || 'default_room';
 const MAX_LOCAL_SHOW = 20;
 let localMsgList = [];
+let sendCoolDown = false;    
 
 // 追加单条消息缓存，不再全量重绘
 function appendMsgCache(htmlStr) {
@@ -347,8 +348,9 @@ async function typeSingleBubble(el, addText, fullText) {
 
 // 触摸静默发送
 async function executeSilentTouchAction(secretMessage) {
-    if (isAiGenerating) return;
-    isAiGenerating = true;
+    if(sendCoolDown || isAiGenerating) return;
+  sendCoolDown = true;
+  isAiGenerating = true;
     const chatBox = document.getElementById('chat-box');
     const aAvatar = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
     if (chatBox.innerHTML.includes("欢迎回家")) chatBox.innerHTML = '';
@@ -409,10 +411,13 @@ while (true) {
     } catch (err) {
         console.error("静默发送失败", err);
         // 报错不刷新整页，只提示，不会清空消息
-    } finally {
-        clearTimeout(streamRenderTimer);
-        isAiGenerating = false;
-    }
+    finally {
+    clearTimeout(streamRenderTimer);
+    isAiGenerating = false;
+    // 300毫秒后解除点击冷却
+    setTimeout(()=>{
+        sendCoolDown = false;
+    },300)
 }
 
 function toggleDropdown(event) {
@@ -583,7 +588,8 @@ async function sendMessage() {
 
 // 核心修复：用户消息直接插入DOM，不再全量重绘覆盖
 async function executeSendAction(contentText) {
-    if (isAiGenerating) return;
+    if(sendCoolDown || isAiGenerating) return;
+    sendCoolDown = true;
     isAiGenerating = true;
     const chatBox = document.getElementById('chat-box');
     const uAv = localStorage.getItem('rinka_avatar') || defaultUserAvatar;
@@ -653,10 +659,13 @@ while (true) {
     } catch (err) {
         console.error("发送失败", err);
         // 网络报错不再调用fetchHistory清空页面，用户消息保留
-    } finally {
-        clearTimeout(streamRenderTimer);
-        isAiGenerating = false;
-    }
+    finally {
+    clearTimeout(streamRenderTimer);
+    isAiGenerating = false;
+    // 300毫秒后解除点击冷却
+    setTimeout(()=>{
+        sendCoolDown = false;
+    },300)
 }
 
 window.onload = async function() {
