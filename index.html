@@ -673,16 +673,14 @@ async function executeSendAction(contentText) {
         }
     } catch (err) {
     console.error("发送消息失败", err);
-    // 销毁渲染定时器，防止断线后重复渲染气泡
     clearTimeout(streamRenderTimer);
-    // 强制解锁全部状态
     sendCoolDown = false;
     isAiGenerating = false;
     window.sendingNow = false;
     sendDebounceLock = false;
     sendBtn.style.pointerEvents = "auto";
     if(input) input.disabled = false;
-} // 关键：补上catch块闭合括号
+} // 新增的catch闭合括号，解决标红
 finally {
     clearTimeout(streamRenderTimer);
     isAiGenerating = false;
