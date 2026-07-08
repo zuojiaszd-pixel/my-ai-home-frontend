@@ -195,7 +195,7 @@
             <button id="touch-trigger" title="身体互动">🌸</button>
             <button class="emoji-toggle-btn" id="emoji-trigger">😀</button>
             <input type="text" id="user-input" placeholder="和瑛聊聊天吧..." onkeydown="if(event.key==='Enter') sendMessage()">
-            <button class="send-btn" onclick="sendMessage()">发送</button>
+            <button class="send-btn" id="sendBtn" onclick="sendMessage()">发送</button>
             
             <!-- 🌐 表情包面板 -->
             <div id="emoji-pop-panel" class="emoji-pop-panel">
@@ -416,7 +416,7 @@ while (true) {
   // 300毫秒后解除点击冷却
   setTimeout(()=>{
     sendCoolDown = false;
-  },300)
+  },800)
 }
 }
 
@@ -580,10 +580,15 @@ async function sendSticker(url) {
 
 async function sendMessage() {
     const input = document.getElementById('user-input');
+    const sendBtn = document.getElementById('sendBtn');
     const text = input.value.trim();
-    if (!text) return;
+    if (!text || sendCoolDown || isAiGenerating) return;
+    sendBtn.disabled = true;
     input.value = "";
     await executeSendAction(text);
+    setTimeout(()=>{
+        sendBtn.disabled = false;
+    },800)
 }
 
 // 核心修复：用户消息直接插入DOM，不再全量重绘覆盖
@@ -664,7 +669,7 @@ while (true) {
   // 300毫秒后解除点击冷却
   setTimeout(()=>{
     sendCoolDown = false;
-  },300)
+  },800)
 }
 }
 
