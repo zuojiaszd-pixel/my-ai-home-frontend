@@ -294,19 +294,11 @@ let streamRenderTimer = null;
 let isAiGenerating = false;
 let currentSessionId = localStorage.getItem('currentSessionId') || 'default_room';
 const MAX_LOCAL_SHOW = 20;
-let localMsgList = [];
 let sendDebounceLock = false;
 const DEBOUNCE_TIME = 1200; // 拉长防抖窗口，覆盖移动端300ms穿透延迟
 let pendingSendContent = null;
 window.sendingNow = false;
-sendCoolDown = false;
-// 本地消息缓存数组
-let msgCacheList = [];
-// 页面加载先读取本地存储
-const localCache = localStorage.getItem("msg_cache");
-if (localCache) {
-  msgCacheList = JSON.parse(localCache);
-}    
+sendCoolDown = false;  
 
 // 统一安全发送包装器，所有发送逻辑强制走这个函数
 function safeSendTrigger(callSendFunc) {
@@ -316,13 +308,6 @@ function safeSendTrigger(callSendFunc) {
     setTimeout(() => {
         sendDebounceLock = false;
     }, 1200);
-}
-
-// 追加单条消息缓存，不再全量重绘
-function appendMsgCache(htmlStr) {
-    msgCacheList.push(htmlStr);
-    // 更新本地存储
-    localStorage.setItem("msg_cache", JSON.stringify(msgCacheList));
 }
 
 window.onload = async function() {
