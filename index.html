@@ -544,11 +544,10 @@ async function sendMessage() {
 
 // 核心修复：用户消息直接插入DOM，不再全量重绘覆盖
 async function executeSendAction(contentText) {
-    // 双重拦截，瞬间上锁，不给穿透留空隙
-if(sendCoolDown || isAiGenerating) return;
-sendCoolDown = true;
-isAiGenerating = true;
-window.sendingNow = true; // 新增全局发送标记
+    if(window.sendingNow || sendCoolDown || isAiGenerating) return;
+    sendCoolDown = true;
+    isAiGenerating = true;
+    window.sendingNow = true;
 
 const input = document.getElementById('user-input');
 const sendBtn = document.getElementById("sendBtn");
@@ -625,7 +624,7 @@ while (true) {
 } finally {
     clearTimeout(streamRenderTimer);
     isAiGenerating = false;
-    window.sendingNow = false; // 新增
+    window.sendingNow = false; // 新增释放
     setTimeout(()=>{
         sendCoolDown = false;
     },800)
