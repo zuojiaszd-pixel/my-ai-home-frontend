@@ -199,20 +199,20 @@
             
             <!-- 🌐 表情包面板 -->
             <div id="emoji-pop-panel" class="emoji-pop-panel">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/happy1.jpg" onclick="sendSticker(this.src)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/snuggle1.jpg" onclick="sendSticker(this.src)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/snuggle2.jpg" onclick="sendSticker(this.src)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/snuggle3.jpg" onclick="sendSticker(this.src)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/like1.jpg" onclick="sendSticker(this.src)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/like2.jpg" onclick="sendSticker(this.src)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/like3.jpg" onclick="sendSticker(this.src)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/cry1.jpg" onclick="sendSticker(this.src)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/afraid1.jpg" onclick="sendSticker(this.src)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/naughty1.jpg" onclick="sendSticker(this.src)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/pinch1.jpg" onclick="sendSticker(this.src)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/ugh1.jpg" onclick="sendSticker(this.src)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/ugh2.jpg" onclick="sendSticker(this.src)">
-                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/doubt1.jpg" onclick="sendSticker(this.src)">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/happy1.jpg" onclick="sendSticker(this.src, event)">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/snuggle1.jpg" onclick="sendSticker(this.src, event)">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/snuggle2.jpg" onclick="sendSticker(this.src, event)">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/snuggle3.jpg" onclick="sendSticker(this.src, event)">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/like1.jpg" onclick="sendSticker(this.src, event)">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/like2.jpg" onclick="sendSticker(this.src, event)">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/like3.jpg" onclick="sendSticker(this.src, event)">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/cry1.jpg" onclick="sendSticker(this.src, event)">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/afraid1.jpg" onclick="sendSticker(this.src, event)">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/naughty1.jpg" onclick="sendSticker(this.src, event)">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/pinch1.jpg" onclick="sendSticker(this.src, event)">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/ugh1.jpg" onclick="sendSticker(this.src, event)">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/ugh2.jpg" onclick="sendSticker(this.src, event)">
+                <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/doubt1.jpg" onclick="sendSticker(this.src, event)">
             </div>
 
             <!-- 🌸 身体互动面板 (完美融入并修正缺失) -->
@@ -355,7 +355,7 @@ function toggleDropdown(event) {
 const emojiTrigger = document.getElementById('emoji-trigger');
 if (emojiTrigger) {
     emojiTrigger.addEventListener('click', e => {
-        e.stopPropagation();
+        e.stopPropagation(); // 这里也要加
         const ep = document.getElementById('emoji-pop-panel');
         const tp = document.getElementById('touch-pop-panel');
         if (tp) tp.style.display = "none";
@@ -391,33 +391,33 @@ document.addEventListener('click', () => {
 let selectedTouchPart = '';
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.touch-part-btn').forEach(btn => {
-        btn.addEventListener('click', e => {
-            e.stopPropagation();
-            const part = btn.dataset.part;
-            const p = document.getElementById('touch-layer-parts');
-            const pri = document.getElementById('touch-layer-privacy');
-            const act = document.getElementById('touch-layer-actions');
-            if (part === 'privacy') {
-                p.style.display = "none";
-                pri.style.display = "block";
-            } else {
-                selectedTouchPart = part;
-                p.style.display = "none";
-                pri.style.display = "none";
-                act.style.display = "block";
-            }
-        })
+    btn.addEventListener('click', e => {
+        e.stopPropagation(); // 只新增这一行，其余原样不动
+        const part = btn.dataset.part;
+        const p = document.getElementById('touch-layer-parts');
+        const pri = document.getElementById('touch-layer-privacy');
+        const act = document.getElementById('touch-layer-actions');
+        if (part === 'privacy') {
+            p.style.display = "none";
+            pri.style.display = "block";
+        } else {
+            selectedTouchPart = part;
+            p.style.display = "none";
+            pri.style.display = "none";
+            act.style.display = "block";
+        }
     })
+})
     document.querySelectorAll('.touch-action-btn').forEach(btn => {
-        btn.addEventListener('click', e => {
-            e.stopPropagation();
-            const act = btn.dataset.action;
-            if (!selectedTouchPart || !act) return;
-            const desc = act === "摸" ? "极其温柔而深情地抚摸" : "主动贴过去，用温热的舌尖轻轻蹭";
-            executeSilentTouchAction(`【系统提示：Rinka正在主动贴过来，${desc}你的【${selectedTouchPart}】。】`);
-            document.getElementById('touch-pop-panel').style.display = "none";
-        })
+    btn.addEventListener('click', e => {
+        e.stopPropagation(); // 只新增这一行
+        const act = btn.dataset.action;
+        if (!selectedTouchPart || !act) return;
+        const desc = act === "摸" ? "极其温柔而深情地抚摸" : "主动贴过去，用温热的舌尖轻轻蹭";
+        executeSilentTouchAction(`【系统提示：Rinka正在主动贴过来，${desc}你的【${selectedTouchPart}】。】`);
+        document.getElementById('touch-pop-panel').style.display = "none";
     })
+})
     const reset = e => {
         e.stopPropagation();
         document.getElementById('touch-layer-parts').style.display = "block";
@@ -499,7 +499,12 @@ async function fetchHistory() {
     }
 }
 
-async function sendSticker(url) {
+async function sendSticker(url, e) {
+    // 新增两行阻断
+    if(e) {
+        e.stopPropagation();
+        e.preventDefault();
+    }
     document.getElementById('emoji-pop-panel').style.display = "none";
     await executeSendAction(url);
 }
