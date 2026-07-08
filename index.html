@@ -616,13 +616,7 @@ try {
         return;
     }
     pendingSendContent = contentText;
-    // =====新增结束=====
-    const host = ['localhost','127.0.0.1'].includes(location.hostname) ? '' : BACKEND_URL;
-    const res = await fetch(`${host}/chat`, {
-        ...原有fetch代码不变
-    });
-    
-    try {
+    // =====新增结束=====   
         const host = ['localhost','127.0.0.1'].includes(location.hostname) ? '' : BACKEND_URL;
         const res = await fetch(`${host}/chat`, {
             method: "POST",
