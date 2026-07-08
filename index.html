@@ -253,11 +253,14 @@
 const defaultUserAvatar = "https://img.icons8.com/illustrations/lexicon/96/cartoon-female-profile.png";
 const defaultAiAvatar = "https://img.icons8.com/illustrations/lexicon/96/cartoon-male-profile.png";
 const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
-    // 流式渲染节流计时器，解决频繁滚动卡顿
+
 let streamRenderTimer = null;
+let isAiGenerating = false; // 防止同时生成多条AI消息
+let thisRoundHasBubble = false; // 单次回复只生成1个气泡    
 // 持久化sessionId，刷新自动读取
 let currentSessionId = localStorage.getItem('currentSessionId') || 'default_room';
-// 新建会话函数同步保存到本地
+
+    // 新建会话函数同步保存到本地
 function createNewSession() {
   const newSid = 'room_' + Date.now();
   currentSessionId = newSid;
@@ -373,6 +376,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // 4. 高级静默投递（已精准对接你的原生类名 msg-row ai-row）
 async function executeSilentTouchAction(secretMessage) {
+    if (isAiGenerating) return;
+isAiGenerating = true;
+thisRoundHasBubble = false;
     console.log("【静默投递启动】发送暗号:", secretMessage);
     const chatBox = document.getElementById('chat-box');
     const aAvatar = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
@@ -388,23 +394,25 @@ async function executeSilentTouchAction(secretMessage) {
     let isFirstAiBubble = true;
 
     const createNewAiBubble = () => {
-        const aiRow = document.createElement('div');
-        aiRow.className = "msg-row ai-row";
-        aiRow.style.marginTop = isFirstAiBubble ? '10px' : '-12px';
-        aiRow.innerHTML = `
-            <img class="avatar" src="${aAvatar}" style="${isFirstAiBubble ? '' : 'visibility: hidden;'}">
-            <div class="message ai-msg">
-                ${isFirstAiBubble ? `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${currentTimeStr}</div>` : ''}
-                <div class="msg-text"></div>
-            </div>
-        `;
-        chatBox.appendChild(aiRow);
-        chatBox.scrollTop = chatBox.scrollHeight;
-        isFirstAiBubble = false;
-        currentBubbleText = "";
-        return aiRow.querySelector('.msg-text');
-    };
-
+    if(thisRoundHasBubble && currentBubbleElement) return currentBubbleElement;
+    const aiRow = document.createElement('div');
+    aiRow.className = "msg-row ai-row";
+    aiRow.style.marginTop = isFirstAiBubble ? '10px' : '-12px';
+    // 头像代码完全不动，保留展示
+    aiRow.innerHTML = `
+        < img class="avatar" src="${aAvatar}">
+        <div class="message ai-msg">
+            ${isFirstAiBubble ? `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${currentTimeStr}</div>` : ''}
+            <div class="msg-text"></div>
+        </div>
+    `;
+    chatBox.appendChild(aiRow);
+    chatBox.scrollTop = chatBox.scrollHeight;
+    isFirstAiBubble = false;
+    currentBubbleText = "";
+    thisRoundHasBubble = true;
+    return aiRow.querySelector('.msg-text');
+};
     currentBubbleElement = createNewAiBubble();
 
     try {
@@ -436,26 +444,20 @@ async function executeSilentTouchAction(secretMessage) {
                 if (line.startsWith('data: ')) {
                     try {
                         const parsed = JSON.parse(line.slice(6));
-                        if (parsed.content) {
-                            let newChar = parsed.content;
-                            textBuffer += newChar;
-
-                            if (/[。！？\n]/.test(newChar) || (textBuffer.includes('http') && !currentBubbleText.includes('http'))) {
-                                currentBubbleText += textBuffer;
-                                textBuffer = "";
-                                currentBubbleElement.innerHTML = renderTextOrImage(currentBubbleText.trim());
-                                currentBubbleElement = createNewAiBubble();
-                            } else {
-                                currentBubbleText += textBuffer;
-                                textBuffer = "";
-                                currentBubbleElement.innerText = currentBubbleText;
-                            }
-                            // 延迟滚动，减少页面重绘卡顿
-clearTimeout(streamRenderTimer);
-streamRenderTimer = setTimeout(() => {
-    chatBox.scrollTop = chatBox.scrollHeight;
-}, 100);
-                        }
+if (parsed.content) {
+    let newChar = parsed.content;
+    textBuffer += newChar;
+    if (!currentBubbleElement) {
+        currentBubbleElement = createNewAiBubble();
+    }
+    currentBubbleText += textBuffer;
+    textBuffer = "";
+    currentBubbleElement.innerHTML = renderTextOrImage(currentBubbleText);
+    clearTimeout(streamRenderTimer);
+    streamRenderTimer = setTimeout(() => {
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }, 100);
+}
                     } catch (e) {}
                 }
             }
@@ -473,10 +475,13 @@ clearTimeout(streamRenderTimer);
 streamRenderTimer = setTimeout(() => {
     chatBox.scrollTop = chatBox.scrollHeight;
 }, 100);
-    } catch (err) {
-        console.error("静默身体互动请求失败:", err);
-        fetchHistory();
-    }
+    } catch (e) {
+    console.error("互动请求出错：", e);
+    fetchHistory();
+} finally {
+    isAiGenerating = false;
+    thisRoundHasBubble = false;
+}
 }
 
 function toggleSettings(show) {
@@ -583,6 +588,11 @@ async function sendMessage() {
 }
 
 async function executeSendAction(contentText) {
+        // 已有回复正在生成，直接拦截，不重复请求
+    if (isAiGenerating) return;
+    isAiGenerating = true;
+    thisRoundHasBubble = false; // 重置本轮气泡标记
+
     const chatBox = document.getElementById('chat-box');
     const uAvatar = localStorage.getItem('rinka_avatar') || defaultUserAvatar; 
     const aAvatar = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
@@ -602,23 +612,27 @@ async function executeSendAction(contentText) {
     let currentBubbleElement = null;
     let isFirstAiBubble = true;
     
-    const createNewAiBubble = () => {
-        const aiRow = document.createElement('div');
-        aiRow.className = "msg-row ai-row";
-        aiRow.style.marginTop = isFirstAiBubble ? '10px' : '-12px';
-        aiRow.innerHTML = `
-            <img class="avatar" src="${aAvatar}" style="${isFirstAiBubble ? '' : 'visibility: hidden;'}">
-            <div class="message ai-msg">
-                ${isFirstAiBubble ? `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${currentTimeStr}</div>` : ''}
-                <div class="msg-text"></div>
-            </div>
-        `;
-        chatBox.appendChild(aiRow);
-        chatBox.scrollTop = chatBox.scrollHeight;
-        isFirstAiBubble = false;
-        currentBubbleText = "";
-        return aiRow.querySelector('.msg-text');
-    };
+const createNewAiBubble = () => {
+    // 本轮已经创建过气泡，不再新建
+    if(thisRoundHasBubble && currentBubbleElement) return currentBubbleElement;
+    const aiRow = document.createElement('div');
+    aiRow.className = "msg-row ai-row";
+    aiRow.style.marginTop = isFirstAiBubble ? '10px' : '-12px';
+    // 头像完整保留，不变
+    aiRow.innerHTML = `
+        < img class="avatar" src="${aAvatar}">
+        <div class="message ai-msg">
+            ${isFirstAiBubble ? `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${currentTimeStr}</div>` : ''}
+            <div class="msg-text"></div>
+        </div>
+    `;
+    chatBox.appendChild(aiRow);
+    chatBox.scrollTop = chatBox.scrollHeight;
+    isFirstAiBubble = false;
+    currentBubbleText = "";
+    thisRoundHasBubble = true; // 标记本轮已有气泡
+    return aiRow.querySelector('.msg-text');
+};
     
     currentBubbleElement = createNewAiBubble();
     
@@ -654,17 +668,20 @@ async function executeSendAction(contentText) {
                             let newChar = parsed.content;
                             textBuffer += newChar;
                             
-                            if (/[。！？\n]/.test(newChar) || (textBuffer.includes('http') && !currentBubbleText.includes('http'))) {
-                                currentBubbleText += textBuffer;
-                                textBuffer = ""; 
-                                currentBubbleElement.innerHTML = renderTextOrImage(currentBubbleText.trim());
-                                currentBubbleElement = createNewAiBubble();
-                            } else {
-                                currentBubbleText += textBuffer;
-                                textBuffer = "";
-                                currentBubbleElement.innerText = currentBubbleText;
-                            }
-                            chatBox.scrollTop = chatBox.scrollHeight; 
+                            // 第一次收到文字才创建气泡，之后永远复用这一个
+    if (!currentBubbleElement) {
+        currentBubbleElement = createNewAiBubble();
+    }
+    // 文字全部塞进同一个气泡，不分条
+    currentBubbleText += textBuffer;
+    textBuffer = "";
+    currentBubbleElement.innerHTML = renderTextOrImage(currentBubbleText);
+    // 延迟滚动，不卡顿
+    clearTimeout(streamRenderTimer);
+    streamRenderTimer = setTimeout(() => {
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }, 100);
+}
                         }
                     } catch (e) {}
                 }
@@ -672,17 +689,24 @@ async function executeSendAction(contentText) {
         }
         
         if (currentBubbleText.trim() || textBuffer.trim()) {
-            currentBubbleText += textBuffer;
-            currentBubbleElement.innerHTML = renderTextOrImage(currentBubbleText.trim());
-        } else {
-            const emptyRow = currentBubbleElement.closest('.ai-row');
-            if (emptyRow) emptyRow.remove();
-        }
-        chatBox.scrollTop = chatBox.scrollHeight;
-    } catch (e) { 
-        console.error(e);
-        fetchHistory();
-    }
+    currentBubbleText += textBuffer;
+    currentBubbleElement.innerHTML = renderTextOrImage(currentBubbleText)
+} else {
+    const emptyRow = currentBubbleElement.closest('.ai-row');
+    if (emptyRow) emptyRow.remove();
+}
+// 替换原来直接滚动，节流防卡顿
+clearTimeout(streamRenderTimer);
+streamRenderTimer = setTimeout(() => {
+    chatBox.scrollTop = chatBox.scrollHeight;
+}, 100);
+} catch (e) {
+    console.error(e);
+    fetchHistory();
+} finally {
+    // 生成完成，解锁，可以发下一条消息
+    isAiGenerating = false;
+    thisRoundHasBubble = false;
 }
 
 window.onload = function() {
