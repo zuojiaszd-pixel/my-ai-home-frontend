@@ -418,6 +418,22 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('touch-pop-panel').style.display = "none";
     })
 })
+    // 表情包弹窗全局阻断
+const emojiPanel = document.getElementById('emoji-pop-panel');
+if(emojiPanel){
+  emojiPanel.addEventListener('click', e=>{
+    e.stopPropagation();
+    e.preventDefault();
+  })
+}
+// 触摸弹窗全局阻断
+const touchPanel = document.getElementById('touch-pop-panel');
+if(touchPanel){
+  touchPanel.addEventListener('click', e=>{
+    e.stopPropagation();
+    e.preventDefault();
+  })
+}
     const reset = e => {
         e.stopPropagation();
         document.getElementById('touch-layer-parts').style.display = "block";
