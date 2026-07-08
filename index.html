@@ -400,7 +400,7 @@ thisRoundHasBubble = false;
     aiRow.style.marginTop = isFirstAiBubble ? '10px' : '-12px';
     // 头像代码完全不动，保留展示
     aiRow.innerHTML = `
-        < img class="avatar" src="${aAvatar}">
+        <img class="avatar" src="${aAvatar}">
         <div class="message ai-msg">
             ${isFirstAiBubble ? `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${currentTimeStr}</div>` : ''}
             <div class="msg-text"></div>
@@ -620,7 +620,7 @@ const createNewAiBubble = () => {
     aiRow.style.marginTop = isFirstAiBubble ? '10px' : '-12px';
     // 头像完整保留，不变
     aiRow.innerHTML = `
-        < img class="avatar" src="${aAvatar}">
+        <img class="avatar" src="${aAvatar}">
         <div class="message ai-msg">
             ${isFirstAiBubble ? `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${currentTimeStr}</div>` : ''}
             <div class="msg-text"></div>
@@ -690,7 +690,7 @@ const createNewAiBubble = () => {
         
         if (currentBubbleText.trim() || textBuffer.trim()) {
     currentBubbleText += textBuffer;
-    currentBubbleElement.innerHTML = renderTextOrImage(currentBubbleText)
+    currentBubbleElement.innerHTML = renderTextOrImage(currentBubbleText);
 } else {
     const emptyRow = currentBubbleElement.closest('.ai-row');
     if (emptyRow) emptyRow.remove();
