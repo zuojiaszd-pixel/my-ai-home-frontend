@@ -298,6 +298,8 @@ let localMsgList = [];
 let sendDebounceLock = false;
 const DEBOUNCE_TIME = 1200; // 拉长防抖窗口，覆盖移动端300ms穿透延迟
 let pendingSendContent = null;
+window.sendingNow = false;
+sendCoolDown = false;
 window.sendingNow = false;    
 
 // 统一安全发送包装器，所有发送逻辑强制走这个函数
