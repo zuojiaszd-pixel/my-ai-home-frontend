@@ -269,7 +269,7 @@
 </div>
 <div id="memory-panel" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fcf8f9; z-index: 102; display: none; flex-direction: column; box-sizing: border-box;">
     <div class="settings-header" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #fff; border-bottom: 1px solid #f0e4e6; min-height: 60px;">
-        <button class="back-chat-btn" style="background: rgba(255, 192, 203, 0.4); color: #a11d48; border: none; padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: bold; cursor: pointer;" onclick="document.getElementById('memory-panel').style.display='none'">← 返回聊天</button>
+        <button class="back-chat-btn" style="background: rgba(255, 192, 203, 0.4); color: #a11d48; border: none; padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: bold; cursor: pointer;" onclick="document.mentById('memory-panel').style.display='none'">← 返回聊天</button>
         <div class="settings-center-title"><span class="main-t" style="font-size: 16px; font-weight: bold; color: #a11d48;">🧠 瑛的动态情感备忘录</span></div>
         <button class="back-chat-btn" style="background: #a11d48; color: white; border: none; padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: bold; cursor: pointer;" onclick="loadMemories()">🔄 刷新</button>
     </div>
@@ -426,15 +426,22 @@ function toggleDropdown(event) {
     dropdown.style.display = dropdown.style.display === 'flex' ? 'none' : 'flex';
 }
 
-document.getElementById('emoji-trigger')?.addEventListener('click', e => {
+// Emoji按钮
+const emojiTrigger = document.getElementById('emoji-trigger');
+if (emojiTrigger) {
+  emojiTrigger.addEventListener('click', e => {
     e.stopPropagation();
     const emojiPanel = document.getElementById('emoji-pop-panel');
     const touchPanel = document.getElementById('touch-pop-panel');
     if (touchPanel) touchPanel.style.display = 'none';
     emojiPanel.style.display = emojiPanel.style.display === 'grid' ? 'none' : 'grid';
-});
+  })
+}
 
-document.getElementById('touch-trigger')?.addEventListener('click', e => {
+// 触摸互动按钮
+const touchTrigger = document.getElementById('touch-trigger');
+if (touchTrigger) {
+  touchTrigger.addEventListener('click', e => {
     e.stopPropagation();
     const emojiPanel = document.getElementById('emoji-pop-panel');
     const touchPanel = document.getElementById('touch-pop-panel');
@@ -442,17 +449,12 @@ document.getElementById('touch-trigger')?.addEventListener('click', e => {
     if (!touchPanel) return;
     touchPanel.style.display = touchPanel.style.display === 'block' ? 'none' : 'block';
     if (touchPanel.style.display === 'block') {
-        document.getElementById('touch-layer-parts').style.display = 'block';
-        document.getElementById('touch-layer-privacy').style.display = 'none';
-        document.getElementById('touch-layer-actions').style.display = 'none';
+      document.getElementById('touch-layer-parts').style.display = 'block';
+      document.getElementById('touch-layer-privacy').style.display = 'none';
+      document.getElementById('touch-layer-actions').style.display = 'none';
     }
-});
-
-document.addEventListener('click', () => {
-    document.getElementById('header-dropdown')?.style.display = 'none';
-    document.getElementById('emoji-pop-panel')?.style.display = 'none';
-    document.getElementById('touch-pop-panel')?.style.display = 'none';
-});
+  })
+}
 
 let selectedTouchPart = '';
 document.addEventListener('DOMContentLoaded', () => {
