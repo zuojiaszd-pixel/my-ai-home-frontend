@@ -464,18 +464,17 @@ if (parsed.content) {
         }
 
         if (currentBubbleText.trim() || textBuffer.trim()) {
-            currentBubbleText += textBuffer;
-            currentBubbleElement.innerHTML = renderTextOrImage(currentBubbleText.trim());
-        } else {
-            const emptyRow = currentBubbleElement.closest('.ai-row');
-            if (emptyRow) emptyRow.remove();
-        }
-        // 延迟滚动，减少页面重绘卡顿
+    currentBubbleText += textBuffer;
+    currentBubbleElement.innerHTML = renderTextOrImage(currentBubbleText);
+} else {
+    const emptyRow = currentBubbleElement.closest('.ai-row');
+    if (emptyRow) emptyRow.remove();
+}
 clearTimeout(streamRenderTimer);
 streamRenderTimer = setTimeout(() => {
     chatBox.scrollTop = chatBox.scrollHeight;
 }, 100);
-    } catch (e) {
+} catch (e) {
     console.error(e);
     fetchHistory();
 } finally {
@@ -693,7 +692,6 @@ const createNewAiBubble = () => {
     const emptyRow = currentBubbleElement.closest('.ai-row');
     if (emptyRow) emptyRow.remove();
 }
-// 替换原来直接滚动，节流防卡顿
 clearTimeout(streamRenderTimer);
 streamRenderTimer = setTimeout(() => {
     chatBox.scrollTop = chatBox.scrollHeight;
