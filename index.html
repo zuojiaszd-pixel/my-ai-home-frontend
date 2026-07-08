@@ -521,7 +521,7 @@ async function fetchHistory() {
                 if (isUser) {
                     allHtml += `
                         <div class="msg-row user-row">
-                            < img class="avatar" src="${uAvatar}">
+                            <img class="avatar" src="${uAvatar}">
                             <div class="message user-msg">
                                 <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(item.timestamp || new Date())}</div>
                                 <div class="msg-text">${renderTextOrImage(text)}</div>
@@ -533,7 +533,7 @@ async function fetchHistory() {
                         let tokenHtml = item.tokens_used ? `<span class="token-tag">🪙 本条消耗: ${item.tokens_used} tokens</span>` : "";
                         allHtml += `
                             <div class="msg-row ai-row">
-                                < img class="avatar" src="${aAvatar}">
+                                <img class="avatar" src="${aAvatar}">
                                 <div class="message ai-msg">
                                     <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(item.timestamp || new Date())}</div>
                                     <div class="msg-text">${renderTextOrImage(text)}</div>
@@ -549,7 +549,7 @@ async function fetchHistory() {
                             const isLast = (index === subMsgs.length - 1);
                             allHtml += `
                                 <div class="msg-row ai-row" style="${isFirst ? '' : 'margin-top: -12px;'}">
-                                    < img class="avatar" src="${aAvatar}" style="${isFirst ? '' : 'visibility: hidden;'}">
+                                    <img class="avatar" src="${aAvatar}" style="${isFirst ? '' : 'visibility: hidden;'}">
                                     <div class="message ai-msg">
                                         ${isFirst ? `<div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">${formatBeijingTime(item.timestamp || new Date())}</div>` : ''}
                                         <div class="msg-text">${renderTextOrImage(subText)}</div>
