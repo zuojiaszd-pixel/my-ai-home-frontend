@@ -287,39 +287,34 @@ body {
     <div id="memory-list-container" style="flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; padding-bottom: 40px;"></div>
 </div>
 <script>
-const defaultUserAvatar = "https://img.icons8.com/illustrations/lexicon/96/cartoon-female-profile.png";
+const defaultUserAvatar = "https://img.icons8.com/illustrations/96/cartoon-female-profile.png";
 const defaultAiAvatar = "https://img.icons8.com/illustrations/96/cartoon-male-profile.png";
 const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
 let streamRenderTimer = null;
-let globalAbort = null; // 全局请求控制器，用于打断旧请求
-let isRequesting = false; // 单一请求锁
+let globalAbort = null;
+let isRequesting = false;
 let currentSessionId = localStorage.getItem('currentSessionId') || 'default_room';
 const MAX_LOCAL_SHOW = 20;
 let localMsgList = [];
 const DEBOUNCE_TIME = 1200;
 let pendingSendContent = null;
 
-// 统一安全发送入口，屏蔽多重触发
+// 统一发送入口，全局单锁
 function safeSendTrigger(callSendFunc) {
     if (isRequesting) return;
     callSendFunc();
 }
-
-// 消息缓存追加
 function appendMsgCache(htmlStr) {
     localMsgList.push({ html: htmlStr });
     if (localMsgList.length > MAX_LOCAL_SHOW) localMsgList.shift();
 }
-
-// 渲染全部历史消息
 function renderAllLocal() {
     const chatBox = document.getElementById("chat-box");
-    chatBox.innerHTML = "";
-    localMsgList.forEach(item => chatBox.innerHTML += item.html);
+    let allHtml = "";
+    localMsgList.forEach(item => allHtml += item.html);
+    chatBox.innerHTML = allHtml || `<div style="text-align:center; color:#a11d48; font-size:13px; margin-top:20px;">🌸 欢迎回家，快来聊聊天吧～</div>`;
     setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 50);
 }
-
-// 新建会话
 function createNewSession() {
     const newSid = 'room_' + Date.now();
     currentSessionId = newSid;
@@ -327,8 +322,6 @@ function createNewSession() {
     localMsgList = [];
     renderAllLocal();
 }
-
-// 图文/表情包转换
 function renderTextOrImage(contentStr) {
     const trimmed = contentStr.trim();
     if (/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)$/.test(trimmed)) {
@@ -336,8 +329,6 @@ function renderTextOrImage(contentStr) {
     }
     return contentStr.replaceAll('\n','<br>');
 }
-
-// 时间格式化
 function formatBeijingTime(dateInput) {
     if (!dateInput) return "";
     try {
@@ -349,8 +340,6 @@ function formatBeijingTime(dateInput) {
         return `${m}/${day} ${h}:${min}`;
     } catch (e) { return "7/9 09:00"; }
 }
-
-// 逐字打字动画
 async function typeSingleBubble(el, addText, fullText) {
     clearTimeout(streamRenderTimer);
     let temp = fullText.slice(0, fullText.length - addText.length);
@@ -365,15 +354,11 @@ async function typeSingleBubble(el, addText, fullText) {
         await new Promise(r => setTimeout(r, 60));
     }
 }
-
-// 下拉菜单开关
 function toggleDropdown(event) {
     event.stopPropagation();
     const dropdown = document.getElementById('header-dropdown');
     dropdown.style.display = dropdown.style === "flex" ? "none" : "flex";
 }
-
-// 装扮面板
 function toggleSettings(show) {
     const panel = document.getElementById('settings-view');
     panel.style.display = show ? "flex" : "none";
@@ -383,12 +368,10 @@ function toggleSettings(show) {
         document.getElementById('ai-avatar-url').value = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
     }
 }
-
-// 保存装扮
 function saveCosmetics() {
     const bg = document.getElementById('custom-bg-url').value.trim();
     const userAv = document.getElementById('user-avatar-url').trim();
-    const aiAv = document.getElementById('ai-avatar-url').trim();
+    const aiAv = document.getElementById('user-avatar-url').trim();
     if (bg) {
         localStorage.setItem('rinka_home_bg', bg);
         document.body.style.background = `url(${bg}) center/cover fixed`;
@@ -402,25 +385,21 @@ function saveCosmetics() {
     toggleSettings(false);
     renderAllLocal();
 }
-
-// 清空云端全部对话&记忆
 async function clearCloudHistory() {
     const host = ['localhost','127.0.0.1'].includes(location.hostname) ? '' : BACKEND_URL;
     try {
         await fetch(`${host}/clear-history`, { method: "DELETE" });
         localMsgList = [];
         renderAllLocal();
-        alert("所有对话与记忆已清空");
+        alert("所有对话与长期记忆已清空");
     } catch (err) {
         alert("清空失败，请检查后端");
     }
 }
-
-// 读取长期原子记忆图谱
 async function loadMemories() {
     const host = ['localhost','127.0.0.1'].includes(location.hostname) ? '' : BACKEND_URL;
     const container = document.getElementById("memory-list-container");
-    container.innerHTML = "<div style='text-align:center;padding:30px;'>加载记忆...</div>";
+    container.innerHTML = "<div style='text-align:center;padding:30px;'>加载记忆数据中...</div>";
     try {
         const res = await fetch(`${host}/atomic-facts`);
         const data = await res.json();
@@ -438,8 +417,6 @@ async function loadMemories() {
     }
     document.getElementById('memory-panel').style.display = "flex";
 }
-
-// 页面加载拉取云端历史对话
 async function fetchHistory() {
     const chatBox = document.getElementById('chat-box');
     if (!chatBox) return;
@@ -452,8 +429,8 @@ async function fetchHistory() {
         const uAv = localStorage.getItem('rinka_avatar') || defaultUserAvatar;
         const aAv = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
         historyData.forEach(item => {
-            const timeStr = formatBeijingTime(item.timestamp);
             let html = "";
+            const timeStr = formatBeijingTime(item.timestamp);
             if (item.role === "user") {
                 html = `<div class="msg-row user-row"><img class="avatar" src="${uAv}"><div class="message user-msg"><div style="font-size:10px;color:#aaa;">${timeStr}</div><div class="msg-text">${renderTextOrImage(item.content)}</div></div></div>`;
             } else {
@@ -465,18 +442,14 @@ async function fetchHistory() {
         renderAllLocal();
     } catch (err) {
         console.error("加载历史失败：", err);
-        chatBox.innerHTML = `<div style="text-align:center;padding:20px;color:red;">加载云端对话失败</div>`;
+        chatBox.innerHTML = `<div style="text-align:center;padding:20px;color:red;">加载对话失败，请检查后端</div>`;
     }
 }
-
-// 身体互动快捷发送
 async function executeSilentTouchAction(text) {
     await executeSendAction(text);
 }
-
-// 表情包发送
 async function sendSticker(url, e) {
-    if(isRequesting) return;
+if(isRequesting) return;
     if(e) {
         e.stopPropagation();
         e.preventDefault();
@@ -484,24 +457,20 @@ async function sendSticker(url, e) {
     document.getElementById('emoji-pop-panel').style.display = "none";
     await executeSendAction(url);
 }
-
-// 发送按钮主入口（单一触发，屏蔽多重事件）
 async function sendMessage() {
     const input = document.getElementById('user-input');
-    const sendBtn = document.getElementById('sendBtn');
     const text = input.value.trim();
     if (isRequesting || !text) return;
+    const sendBtn = document.getElementById('sendBtn');
     sendBtn.disabled = true;
     input.value = "";
     await executeSendAction(text);
     setTimeout(()=> sendBtn.disabled = false, DEBOUNCE_TIME);
 }
-
-// 核心发送函数【修复SSE分片不实时+打断旧请求防重复】
 async function executeSendAction(contentText) {
-    // 顶层拦截：正在发送直接返回
+    // 拦截并发
     if (isRequesting) return;
-    // 打断上一条未完成请求，彻底杜绝重复
+    // 中断上一条请求，彻底杜绝后端双条写入
     if (globalAbort) globalAbort.abort();
     globalAbort = new AbortController();
     isRequesting = true;
@@ -515,8 +484,6 @@ async function executeSendAction(contentText) {
     sendBtn.style.pointerEvents = "none";
     input.disabled = true;
     const currentTimeStr = formatBeijingTime(new Date());
-
-    // 插入用户消息
     if (chatBox.innerHTML.includes("欢迎回家")) chatBox.innerHTML = "";
     const userHtml = `<div class="msg-row user-row"><img class="avatar" src="${uAv}"><div class="message user-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div></div>`;
     const userDom = document.createElement('div');
@@ -526,7 +493,7 @@ async function executeSendAction(contentText) {
     setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 30);
 
     let fullAiText = "";
-    let aiDom = null;
+    let aiWrap = null;
     function createAiBubble() {
         const row = document.createElement('div');
         row.className = "msg-row ai-row";
@@ -536,10 +503,9 @@ async function executeSendAction(contentText) {
         setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 30);
         return row;
     }
-    const aiWrap = createAiBubble();
-    aiDom = aiWrap.querySelector('.msg-text');
-    let sseBuffer = ""; // 关键：SSE分片缓冲区，解决不实时
-
+    aiWrap = createAiBubble();
+    const aiDom = aiWrap.querySelector('.msg-text');
+    let sseBuffer = ""; // 修复：缓冲区定义在循环外
     try {
         if (pendingSendContent !== contentText) {
             pendingSendContent = contentText;
@@ -552,17 +518,15 @@ async function executeSendAction(contentText) {
                 cache: "no-cache"
             });
             clearTimeout(timeoutId);
-            if (!res.body) throw Error("无流式数据");
+            if (!res.body) throw Error("无流");
             const reader = res.body.getReader();
             const decoder = new TextDecoder("utf-8");
             const lineCache = new Set();
             while (true) {
                 const {value,done} = await reader.read();
                 if (done) break;
-                // 拼接分片缓冲区，修复半截字符串无法解析
                 sseBuffer += decoder.decode(value, {stream:true});
                 const lines = sse.split('\n');
-                // 保留最后一段残缺分片到buffer
                 sseBuffer = lines.pop() || "";
                 for (const line of lines) {
                     const trim = line.trim();
@@ -577,6 +541,7 @@ async function executeSendAction(contentText) {
                             await typeSingleBubble(aiDom, delta.content, fullAiText);
                         }
                     } catch(parseErr) {
+                        clearTimeout(streamRenderTimer);
                         continue;
                     }
                 }
@@ -584,7 +549,7 @@ async function executeSendAction(contentText) {
             appendMsgCache(aiWrap.outerHTML);
         }
     } catch (err) {
-        if (err.name !== "AbortError") console.error("发送异常", err);
+        if (err.name !== "AbortError") console.error("发送失败", err);
     } finally {
         clearTimeout(streamRenderTimer);
         isRequesting = false;
@@ -596,8 +561,6 @@ async function executeSendAction(contentText) {
         if(input) input.disabled = false;
     }
 }
-
-// 页面初始化
 window.onload = async function() {
     isRequesting = false;
     globalAbort = null;
@@ -606,9 +569,16 @@ window.onload = async function() {
     currentSessionId = localStorage.getItem('currentSessionId') || 'default_room';
     await fetchHistory();
     renderAllLocal();
+    // 页面加载后绑定回车，唯一一处回车发送逻辑
+    const inputBox = document.getElementById("user-input");
+    inputBox.addEventListener("keydown", (e)=>{
+        if(e.key === "Enter"){
+            e.preventDefault();
+            safeSendTrigger(()=>sendMessage());
+        }
+    })
 }
-
-// 页面交互绑定（统一入口，多重点击事件全部走safeSendTrigger）
+// 弹窗交互绑定不变
 const emojiTrigger = document.getElementById('emoji-trigger');
 if (emojiTrigger) {
     emojiTrigger.addEventListener('click', e => {
@@ -687,15 +657,15 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
       })
     }
-    const reset = e => {
+    const resetPanel = e => {
         e.stopPropagation();
         document.getElementById('touch-layer-parts').style.display = "block";
         document.getElementById('touch-layer-privacy').style.display = "none";
         document.getElementById('touch-layer-actions').style.display = "none";
         selectedTouchPart = '';
     }
-    document.querySelector('.back-to-parts')?.addEventListener('click', reset);
-    document.querySelector('.back-to-prev')?.addEventListener('click', reset);
+    document.querySelector('.back-to-parts')?.addEventListener('click', resetPanel);
+    document.querySelector('.back-to-prev')?.addEventListener('click', resetPanel);
 })
 </script>
 </body>
