@@ -370,7 +370,6 @@ async function executeSilentTouchAction(secretMessage) {
 
     const aiWrap = createAiBubble();
     aiDom = aiWrap.querySelector('.msg-text');
-    lastRawChunk = "";
     try {
         const host = ['localhost','127.0.0.1'].includes(location.hostname) ? '' : BACKEND_URL;
         const res = await fetch(`${host}/chat`, {
@@ -418,6 +417,7 @@ while (true) {
   setTimeout(()=>{
     sendCoolDown = false;
   },300)
+}
 }
 
 function toggleDropdown(event) {
@@ -618,7 +618,6 @@ async function executeSendAction(contentText) {
     }
     const aiWrap = createAiBubble();
     aiDom = aiWrap.querySelector('.msg-text');
-    lastRawChunk = "";
 
     try {
         const host = ['localhost','127.0.0.1'].includes(location.hostname) ? '' : BACKEND_URL;
@@ -657,7 +656,7 @@ while (true) {
         }
         appendMsgCache(aiWrap.outerHTML);
     } catch (err) {
-  console.error("静默发送失败", err);
+  console.error("发送消息失败", err);
   // 报错不刷新整页，只提示，不会清空消息
 } finally {
   clearTimeout(streamRenderTimer);
@@ -666,6 +665,7 @@ while (true) {
   setTimeout(()=>{
     sendCoolDown = false;
   },300)
+}
 }
 
 window.onload = async function() {
