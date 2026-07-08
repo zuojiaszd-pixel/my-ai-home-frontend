@@ -5,6 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Rinka & 瑛之家 °.∞.°</title>
     <style>
+        * {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    box-sizing: border-box;
+}
+/* 修复移动端模糊、重复渲染卡顿 */
+.msg-row, .message {
+    will-change: transform;
+    transform: translateZ(0);
+}
+.chat-box {
+    overflow-y: auto;
+    /* 适配手机底部安全区，防止输入框遮挡 */
+    padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px)) !important;
+}
+.input-area {
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)) !important;
+}
+/* 兼容旧手机模糊滤镜失效 */
+@supports not (backdrop-filter: blur(10px)) {
+    .emoji-pop-panel, .touch-pop-panel, .settings-view {
+        background: rgba(255,255,255,0.94) !important;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+}
         body {
             font-family: 'PingFang SC', 'Helvetica Neue', -apple-system, sans-serif;
             background: linear-gradient(135deg, #fff5f7 0%, #ffe3e8 100%) !important;
