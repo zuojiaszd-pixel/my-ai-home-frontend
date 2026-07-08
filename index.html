@@ -517,9 +517,6 @@ async function sendMessage() {
     sendBtn.disabled = true;
     input.value = "";
     await executeSendAction(text);
-    setTimeout(()=>{
-        sendBtn.disabled = false;
-    },800)
 }
 
 // 核心修复：用户消息直接插入DOM，不再全量重绘覆盖
@@ -527,11 +524,12 @@ async function executeSendAction(contentText) {
     if(sendCoolDown || isAiGenerating) return;
     sendCoolDown = true;
     isAiGenerating = true;
-     // 新增：锁定输入框+发送按钮
-    const input = document.querySelector("你的输入框选择器");
-    const sendBtn = document.getElementById("sendBtn");
-    input.disabled = true;
-    sendBtn.disabled = true;
+    // 替换原来错误的固定字符串选择器
+const input = document.getElementById('user-input');
+const sendBtn = document.getElementById("sendBtn");
+// 增加空值判断，兜底防报错
+if(input) input.disabled = true;
+if(sendBtn) sendBtn.disabled = true;
     const chatBox = document.getElementById('chat-box');
     const uAv = localStorage.getItem('rinka_avatar') || defaultUserAvatar;
     const aAv = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
@@ -606,6 +604,8 @@ while (true) {
   setTimeout(()=>{
     sendCoolDown = false;
   },800)
+        if(input) input.disabled = false;
+    if(sendBtn) sendBtn.disabled = false;
 }
 }
 
