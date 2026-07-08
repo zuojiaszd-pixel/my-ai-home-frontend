@@ -671,7 +671,7 @@ clearTimeout(timeoutId); // 请求正常拿到响应，清除超时计时器
             }
             appendMsgCache(aiWrap.outerHTML);
         }
-    } catch (err) {
+     } catch (err) {
     console.error("发送消息失败", err);
     // 销毁渲染定时器，防止断线后重复渲染气泡
     clearTimeout(streamRenderTimer);
@@ -682,18 +682,16 @@ clearTimeout(timeoutId); // 请求正常拿到响应，清除超时计时器
     sendDebounceLock = false;
     sendBtn.style.pointerEvents = "auto";
     if(input) input.disabled = false;
-}
-    } finally {
-        clearTimeout(streamRenderTimer);
-        isAiGenerating = false;
-        window.sendingNow = false;
-        pendingSendContent = null;
-        setTimeout(()=>{
-            sendCoolDown = false;
-            sendBtn.style.pointerEvents = "auto";
-        },800)
-        if(input) input.disabled = false;
-    }
+} finally {
+    clearTimeout(streamRenderTimer);
+    isAiGenerating = false;
+    window.sendingNow = false;
+    pendingSendContent = null;
+    setTimeout(()=>{
+        sendCoolDown = false;
+        sendBtn.style.pointerEvents = "auto";
+    },800)
+    if(input) input.disabled = false;
 }
     
 window.onload = async function() {
