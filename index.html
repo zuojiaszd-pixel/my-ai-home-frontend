@@ -659,9 +659,13 @@ while (true) {
     }
 }
 
-window.onload = function() {
+window.onload = async function() {
     const bg = localStorage.getItem('rinka_home_bg');
     if (bg) document.body.style.background = `url(${bg}) center/cover fixed`;
+    // 新增1：读取保存的会话ID
+    currentSessionId = localStorage.getItem('currentSessionId') || 'default_room';
+    // 新增2：加载云端历史记录
+    await fetchHistory();
     renderAllLocal();
 }
 </script>
