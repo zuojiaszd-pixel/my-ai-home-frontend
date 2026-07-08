@@ -253,6 +253,8 @@
 const defaultUserAvatar = "https://img.icons8.com/illustrations/lexicon/96/cartoon-female-profile.png";
 const defaultAiAvatar = "https://img.icons8.com/illustrations/lexicon/96/cartoon-male-profile.png";
 const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
+    // 流式渲染节流计时器，解决频繁滚动卡顿
+let streamRenderTimer = null;
 // 持久化sessionId，刷新自动读取
 let currentSessionId = localStorage.getItem('currentSessionId') || 'default_room';
 // 新建会话函数同步保存到本地
@@ -448,7 +450,11 @@ async function executeSilentTouchAction(secretMessage) {
                                 textBuffer = "";
                                 currentBubbleElement.innerText = currentBubbleText;
                             }
-                            chatBox.scrollTop = chatBox.scrollHeight;
+                            // 延迟滚动，减少页面重绘卡顿
+clearTimeout(streamRenderTimer);
+streamRenderTimer = setTimeout(() => {
+    chatBox.scrollTop = chatBox.scrollHeight;
+}, 100);
                         }
                     } catch (e) {}
                 }
@@ -462,7 +468,11 @@ async function executeSilentTouchAction(secretMessage) {
             const emptyRow = currentBubbleElement.closest('.ai-row');
             if (emptyRow) emptyRow.remove();
         }
-        chatBox.scrollTop = chatBox.scrollHeight;
+        // 延迟滚动，减少页面重绘卡顿
+clearTimeout(streamRenderTimer);
+streamRenderTimer = setTimeout(() => {
+    chatBox.scrollTop = chatBox.scrollHeight;
+}, 100);
     } catch (err) {
         console.error("静默身体互动请求失败:", err);
         fetchHistory();
@@ -680,6 +690,10 @@ window.onload = function() {
     if(bg) { document.body.style.background = `url('${bg}') center/cover fixed`; }
     fetchHistory();
 };
+    // 离开页面清除节流定时器，避免后台持续渲染占用性能
+window.addEventListener('beforeunload', () => {
+    clearTimeout(streamRenderTimer);
+});
 </script>
 </body>
 </html>
