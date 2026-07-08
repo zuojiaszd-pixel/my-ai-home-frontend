@@ -346,80 +346,6 @@ async function typeSingleBubble(el, addText, fullText) {
     }
 }
 
-// 触摸静默发送
-async function executeSilentTouchAction(secretMessage) {
-    if(sendCoolDown || isAiGenerating) return;
-  sendCoolDown = true;
-  isAiGenerating = true;
-    const chatBox = document.getElementById('chat-box');
-    const aAvatar = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
-    if (chatBox.innerHTML.includes("欢迎回家")) chatBox.innerHTML = '';
-    const currentTimeStr = formatBeijingTime(new Date());
-    let fullAiText = "";
-    let aiDom = null;
-
-    function createAiBubble() {
-        const row = document.createElement('div');
-        row.className = "msg-row ai-row";
-        row.style.marginTop = "10px";
-        row.innerHTML = `<img src="${aAvatar}" class="avatar"><div class="message ai-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text"></div></div>`;
-        chatBox.appendChild(row);
-        setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 30);
-        return row;
-    }
-
-    const aiWrap = createAiBubble();
-    aiDom = aiWrap.querySelector('.msg-text');
-    try {
-        const host = ['localhost','127.0.0.1'].includes(location.hostname) ? '' : BACKEND_URL;
-        const res = await fetch(`${host}/chat`, {
-            method: "POST",
-            headers: {"Content-Type":"application/json"},
-            body: JSON.stringify({sessionId: currentSessionId, content: secretMessage})
-        });
-        if (!res.body) throw Error("无流");
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder("utf-8");
-        const lineCache = new Set();
-while (true) {
-    const {value,done} = await reader.read();
-    if (done) break;
-            const chunk = decoder.decode(value, {stream:true});
-            const lines = chunk.split('\n');
-            for (const line of lines) {
-                const trim = line.trim();
-                if (!trim || trim.includes("[DONE]") || !trim.startsWith("data: ")) continue;
-                 // 新增单行去重
-        if (lineCache.has(trim)) continue;
-        lineCache.add(trim);
-                try {
-                    const data = JSON.parse(trim.slice(6));
-                    if (data.newBubble) {
-                        const newWrap = createAiBubble();
-                        aiDom = newWrap.querySelector('.msg-text');
-                        fullAiText = "";
-                    }
-                    if (data.content) {
-                        fullAiText += data.content;
-                        await typeSingleBubble(aiDom, data.content, fullAiText);
-                    }
-                } catch(e){}
-            }
-        }
-        appendMsgCache(aiWrap.outerHTML);
-    } catch (err) {
-  console.error("静默发送失败", err);
-  // 报错不刷新整页，只提示，不会清空消息
-} finally {
-  clearTimeout(streamRenderTimer);
-  isAiGenerating = false;
-  // 300毫秒后解除点击冷却
-  setTimeout(()=>{
-    sendCoolDown = false;
-  },800)
-}
-}
-
 function toggleDropdown(event) {
     event.stopPropagation();
     const dropdown = document.getElementById('header-dropdown');
@@ -596,6 +522,11 @@ async function executeSendAction(contentText) {
     if(sendCoolDown || isAiGenerating) return;
     sendCoolDown = true;
     isAiGenerating = true;
+     // 新增：锁定输入框+发送按钮
+    const input = document.querySelector("你的输入框选择器");
+    const sendBtn = document.getElementById("sendBtn");
+    input.disabled = true;
+    sendBtn.disabled = true;
     const chatBox = document.getElementById('chat-box');
     const uAv = localStorage.getItem('rinka_avatar') || defaultUserAvatar;
     const aAv = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
