@@ -284,7 +284,6 @@ let isAiGenerating = false;
 let currentSessionId = localStorage.getItem('currentSessionId') || 'default_room';
 const MAX_LOCAL_SHOW = 20;
 let localMsgList = [];
-let lastRawChunk = "";
 
 // 追加单条消息缓存，不再全量重绘
 function appendMsgCache(htmlStr) {
@@ -380,16 +379,18 @@ async function executeSilentTouchAction(secretMessage) {
         if (!res.body) throw Error("无流");
         const reader = res.body.getReader();
         const decoder = new TextDecoder("utf-8");
-        while (true) {
-            const {value,done} = await reader.read();
-            if (done) break;
+        const lineCache = new Set();
+while (true) {
+    const {value,done} = await reader.read();
+    if (done) break;
             const chunk = decoder.decode(value, {stream:true});
-            if (chunk === lastRawChunk) continue;
-            lastRawChunk = chunk;
             const lines = chunk.split('\n');
             for (const line of lines) {
                 const trim = line.trim();
                 if (!trim || trim.includes("[DONE]") || !trim.startsWith("data: ")) continue;
+                 // 新增单行去重
+        if (lineCache.has(trim)) continue;
+        lineCache.add(trim);
                 try {
                     const data = JSON.parse(trim.slice(6));
                     if (data.newBubble) {
@@ -623,16 +624,17 @@ async function executeSendAction(contentText) {
         if (!res.body) throw Error("无流");
         const reader = res.body.getReader();
         const decoder = new TextDecoder("utf-8");
-        while (true) {
-            const {value,done} = await reader.read();
-            if (done) break;
+        const lineCache = new Set();
+while (true) {
+    const {value,done} = await reader.read();
+    if (done) break;
             const chunk = decoder.decode(value, {stream:true});
-            if (chunk === lastRawChunk) continue;
-            lastRawChunk = chunk;
             const lines = chunk.split('\n');
             for (const line of lines) {
                 const trim = line.trim();
                 if (!trim || trim.includes("[DONE]") || !trim.startsWith("data: ")) continue;
+                        if (lineCache.has(trim)) continue;
+        lineCache.add(trim);
                 try {
                     const data = JSON.parse(trim.slice(6));
                     if (data.newBubble) {
