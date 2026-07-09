@@ -465,12 +465,11 @@ async function sendMessage() {
     sendBtn.disabled = true;
     input.value = "";
     await executeSendAction(text);
-    setTimeout(()=> sendBtn.disabled = false, DEBOUNCE_TIME);
+    setTimeout(() => sendBtn.disabled = false, DEBOUNCE_TIME);
 }
+
 async function executeSendAction(contentText) {
-    // 拦截并发
     if (isRequesting) return;
-    // 中断上一条请求，彻底杜绝后端双条写入
     if (globalAbort) globalAbort.abort();
     globalAbort = new AbortController();
     isRequesting = true;
@@ -480,81 +479,111 @@ async function executeSendAction(contentText) {
     const sendBtn = document.getElementById("sendBtn");
     const uAv = localStorage.getItem('rinka_avatar') || defaultUserAvatar;
     const aAv = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
-    const host = ['localhost','127.0.0.1'].includes(location.hostname) ? '' : BACKEND_URL;
+    const host = ['localhost', '127.0.0.1'].includes(location.hostname) ? '' : BACKEND_URL;
+    
     sendBtn.style.pointerEvents = "none";
-    input.disabled = true;
+    if (input) input.disabled = true;
     const currentTimeStr = formatBeijingTime(new Date());
     if (chatBox.innerHTML.includes("欢迎回家")) chatBox.innerHTML = "";
-        const userHtml = `<div class="msg-row user-row">< img class="avatar" src="${uAv}"><div class="message user-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div></div>`;
-    appendMsgCache(userHtml);
-    renderAllLocal(); // 👈 核心：立刻让缓存同步绘制到界面上，保持队列整齐！
 
+    // 1. 推进用户消息并实时通过 Local 渲染，确保干净利落只画一条
+    const userHtml = `<div class="msg-row user-row">< img class="avatar" src="${uAv}"><div class="message user-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div></div>`;
+    appendMsgCache(userHtml);
+    renderAllLocal(); 
+
+    // 2. 将 AI 的临时气泡直接作为纯文本追加进缓存并刷新，让 DOM 的树结构完全统一，消灭双条！
+    const aiHtmlPlaceholder = `<div class="msg-row ai-row" style="margin-top: 10px;">< img src="${aAv}" class="avatar"><div class="message ai-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text" id="streaming-ai-text"></div></div></div>`;
+    chatBox.insertAdjacentHTML('beforeend', aiHtmlPlaceholder);
+    setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 30);
+
+    const aiDom = document.getElementById('streaming-ai-text');
     let fullAiText = "";
-    let aiWrap = null;
-    function createAiBubble() {
-        const row = document.createElement('div');
-        row.className = "msg-row ai-row";
-        row.style.marginTop = "10px";
-        row.innerHTML = `<img src="${aAv}" class="avatar"><div class="message ai-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text"></div></div>`;
-        setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 30);
-        return row;
-    }
-    aiWrap = createAiBubble();
-    const aiDom = aiWrap.querySelector('.msg-text');
-    let sseBuffer = ""; // 修复：缓冲区定义在循环外
+    let sseBuffer = ""; 
+
     try {
         if (pendingSendContent !== contentText) {
             pendingSendContent = contentText;
-            const timeoutId = setTimeout(() => globalAbort.abort(), 10000);
+            const timeoutId = setTimeout(() => globalAbort.abort(), 12000);
+            
             const res = await fetch(`${host}/chat`, {
                 method: "POST",
                 signal: globalAbort.signal,
-                headers: {"Content-Type":"application/json"},
-                body: JSON.stringify({sessionId: currentSessionId, content: contentText}),
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ sessionId: currentSessionId, content: contentText }),
                 cache: "no-cache"
             });
             clearTimeout(timeoutId);
             if (!res.body) throw Error("无流");
+
             const reader = res.body.getReader();
             const decoder = new TextDecoder("utf-8");
             const lineCache = new Set();
+
             while (true) {
-                const {value,done} = await reader.read();
+                const { value, done } = await reader.read();
                 if (done) break;
-                sseBuffer += decoder.decode(value, {stream:true});
+                
+                sseBuffer += decoder.decode(value, { stream: true });
                 const lines = sseBuffer.split('\n');
                 sseBuffer = lines.pop() || "";
+
                 for (const line of lines) {
                     const trim = line.trim();
                     if (!trim || trim.includes("[DONE]") || !trim.startsWith("data: ")) continue;
                     if (lineCache.has(trim)) continue;
                     lineCache.add(trim);
+
                     try {
-                        const parsed = JSON.parse(trim.slice(6));
-                        const delta = parsed.choices[0]?.delta;
-                        if (delta?.content) {
-                            fullAiText += delta.content;
-                            await typeSingleBubble(aiDom, delta.content, fullAiText);
+                        // 💖 增强容错解析：兼顾标准格式与直接返回格式
+                        const rawData = trim.slice(5).trim();
+                        const parsed = JSON.parse(rawData);
+                        
+                        // 兼容 OpenRouter 标准流格式与普通的 flat 格式
+                        const textChunk = parsed.choices?.[0]?.delta?.content || parsed.content || "";
+                        
+                        if (textChunk) {
+                            fullAiText += textChunk;
+                            // 💖 实时吐字，不需要再刷新
+                            if (aiDom) {
+                                await typeSingleBubble(aiDom, textChunk, fullAiText);
+                            }
                         }
-                    } catch(parseErr) {
-                        clearTimeout(streamRenderTimer);
+                    } catch (parseErr) {
+                        // 如果解析失败，尝试看是不是直接发过来的纯字符串
+                        try {
+                            const directText = trim.slice(5).trim();
+                            if (directText && !directText.startsWith('{')) {
+                                fullAiText += directText;
+                                if (aiDom) await typeSingleBubble(aiDom, directText, fullAiText);
+                            }
+                        } catch (e) {}
                         continue;
                     }
                 }
             }
-            appendMsgCache(aiWrap.outerHTML);
+            
+            // 3. 传输彻底完成后，移除临时的 id 标识，将其完美转化为长效缓存
+            if (aiDom) aiDom.removeAttribute('id');
+            const finalAiRow = chatBox.querySelector('.ai-row:last-child');
+            if (finalAiRow) {
+                appendMsgCache(finalAiRow.outerHTML);
+            }
         }
     } catch (err) {
-        if (err.name !== "AbortError") console.error("发送失败", err);
+        if (err.name !== "AbortError") {
+            console.error("发送失败", err);
+            if (aiDom) aiDom.innerHTML = `<span style="color:#ff6b6b;">⚠️ 瑛的信号断开了，请重试...</span>`;
+        }
     } finally {
         clearTimeout(streamRenderTimer);
         isRequesting = false;
         globalAbort = null;
         pendingSendContent = null;
-        setTimeout(()=>{
+        setTimeout(() => {
             sendBtn.style.pointerEvents = "auto";
-        },800);
-        if(input) input.disabled = false;
+        }, 800);
+        if (input) input.disabled = false;
+        setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 50);
     }
 }
 window.onload = async function() {
