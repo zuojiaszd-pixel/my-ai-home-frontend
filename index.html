@@ -284,7 +284,7 @@
     <div id="memory-list-container" style="flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; padding-bottom: 40px;"></div>
 </div>
 
-<script>
+<script> 
 const defaultUserAvatar = "https://img.icons8.com/illustrations/96/cartoon-female-profile.png";
 const defaultAiAvatar = "https://img.icons8.com/illustrations/96/cartoon-male-profile.png";
 const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
@@ -296,6 +296,15 @@ const MAX_LOCAL_SHOW = 20;
 let localMsgList = [];
 const DEBOUNCE_TIME = 1200;
 let pendingSendContent = null;
+// 强行注销乱拦截的 Service Worker
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        for(let registration of registrations) {
+            registration.unbind(); // 强制解除
+            registration.unregister(); // 彻底注销
+        }
+    });
+}    
 
 function safeSendTrigger(callSendFunc) {
     if (isRequesting) return;
