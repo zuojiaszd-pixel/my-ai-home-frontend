@@ -515,8 +515,6 @@ async function executeSendAction(contentText) {
     signal: globalAbort.signal,
     headers: { 
         "Content-Type": "application/json",
-        "Cache-Control": "no-cache", // 告诉所有人别缓存我
-        "Pragma": "no-cache"
     },
     body: JSON.stringify({ sessionId: currentSessionId, content: contentText }),
     cache: "no-cache"
