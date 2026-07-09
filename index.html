@@ -6,31 +6,31 @@
     <title>Rinka & 瑛之家 °.∞.°</title>
     <style>
         * {
-    -webkit-text-size-adjust: 100%;
-    -webkit-tap-highlight-color: transparent;
-    box-sizing: border-box;
-}
-/* 修复移动端模糊、重复渲染卡顿 */
-.msg-row, .message {
-    will-change: transform;
-    transform: translateZ(0);
-}
-.chat-box {
-    overflow-y: auto;
-    /* 适配手机底部安全区，防止输入框遮挡 */
-    padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px)) !important;
-}
-.input-area {
-    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)) !important;
-}
-/* 兼容旧手机模糊滤镜失效 */
-@supports not (backdrop-filter: blur(10px)) {
-    .emoji-pop-panel, .touch-pop-panel, .settings-view {
-        background: rgba(255,255,255,0.94) !important;
-        backdrop-filter: none;
-        -webkit-backdrop-filter: none;
-    }
-}
+            -webkit-text-size-adjust: 100%;
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+        }
+        /* 修复移动端模糊、重复渲染卡顿 */
+        .msg-row, .message {
+            will-change: transform;
+            transform: translateZ(0);
+        }
+        .chat-box {
+            overflow-y: auto;
+            /* 适配手机底部安全区，防止输入框遮挡 */
+            padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px)) !important;
+        }
+        .input-area {
+            padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)) !important;
+        }
+        /* 兼容旧手机模糊滤镜失效 */
+        @supports not (backdrop-filter: blur(10px)) {
+            .emoji-pop-panel, .touch-pop-panel, .settings-view {
+                background: rgba(255,255,255,0.94) !important;
+                backdrop-filter: none;
+                -webkit-backdrop-filter: none;
+            }
+        }
         body {
             font-family: 'PingFang SC', 'Helvetica Neue', -apple-system, sans-serif;
             background: linear-gradient(135deg, #fff5f7 0%, #ffe3e8 100%) !important;
@@ -98,7 +98,7 @@
    
         /* 🌸 身体互动面板专属美化样式 */
         .touch-pop-panel {
-            display: none; /* 默认隐藏，由 JS 控制显示 */
+            display: none; 
             position: absolute;
             bottom: 75px;
             left: 16px;
@@ -174,15 +174,14 @@
         #touch-trigger:active { transform: scale(0.85); }
         
         #emoji-pop-panel {
-  pointer-events: auto !important;
-}
-#touch-layer-parts, #touch-layer-privacy, #touch-layer-actions {
-  pointer-events: auto !important;
-}
-/* 页面底层容器禁止弹窗点击向下穿透 */
-body {
-  touch-action: manipulation; /* 消除移动端300ms点击延迟根源 */
-}
+            pointer-events: auto !important;
+        }
+        #touch-layer-parts, #touch-layer-privacy, #touch-layer-actions {
+            pointer-events: auto !important;
+        }
+        body {
+            touch-action: manipulation; 
+        }
     </style>
 </head>
 <body>
@@ -192,7 +191,7 @@ body {
         <button class="menu-toggle-btn" onclick="toggleDropdown(event)"><span></span><span></span><span></span></button>
         <div id="header-dropdown" class="dropdown-menu">
             <div class="dropdown-item" style="color: #be185d; font-weight: bold;" onclick="location.href='./graph.html'">🧠 原子记忆图谱</div>
-            <div class="dropdown-item" onclick="location.href='./management.html'">⚙️ 管理室</div>
+            <div class="dropdown-item" onclick="loadMemories()">🧠 情感备忘录</div>
             <div class="dropdown-item" onclick="toggleSettings(true)">🖼️ 小屋装扮</div>
             <div class="dropdown-item" onclick="location.reload()">🏠 刷新</div>
             <div class="dropdown-item" style="color: #ff1493; font-weight: bold;" onclick="createNewSession()">➕ 新时空</div>
@@ -226,9 +225,8 @@ body {
                 <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/doubt1.jpg" onclick="safeSendTrigger(()=>sendSticker(this.src, event))">
             </div>
 
-            <!-- 🌸 身体互动面板 (完美融入并修正缺失) -->
+            <!-- 🌸 身体互动面板 -->
             <div id="touch-pop-panel" class="touch-pop-panel">
-                <!-- 第一层：部位选择 -->
                 <div id="touch-layer-parts" class="touch-layer">
                     <div class="touch-panel-title">你想触碰瑛的哪个部位？</div>
                     <div class="touch-buttons-grid">
@@ -240,7 +238,6 @@ body {
                         <button class="touch-part-btn" data-part="privacy">【隐私部位】</button>
                     </div>
                 </div>
-                <!-- 第二层：隐私部位子集 -->
                 <div id="touch-layer-privacy" class="touch-layer" style="display: none;">
                     <div class="touch-panel-title"><span class="back-to-parts">⬅️ 返回</span> 请选择隐私部位</div>
                     <div class="touch-buttons-grid">
@@ -248,7 +245,6 @@ body {
                         <button class="touch-part-btn" data-part="马眼">【马眼】</button>
                     </div>
                 </div>
-                <!-- 第三层：动作选择 -->
                 <div id="touch-layer-actions" class="touch-layer" style="display: none;">
                     <div class="touch-panel-title"><span class="back-to-prev">⬅️ 返回</span> 你想对该部位做什么？</div>
                     <div class="touch-actions-grid">
@@ -278,14 +274,16 @@ body {
         </div>
     </div>
 </div>
+
 <div id="memory-panel" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fcf8f9; z-index: 102; display: none; flex-direction: column; box-sizing: border-box;">
-    <div class="settings-header" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #fff; border-bottom: 1px solid #f0e4e6; min-height: 60px;">
+    <div class="settings-header">
         <button class="back-chat-btn" style="background: rgba(255, 192, 203, 0.4); color: #a11d48; border: none; padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: bold; cursor: pointer;" onclick="document.getElementById('memory-panel').style.display='none'">← 返回聊天</button>
         <div class="settings-center-title"><span class="main-t" style="font-size: 16px; font-weight: bold; color: #a11d48;">🧠 瑛的动态情感备忘录</span></div>
         <button class="back-chat-btn" style="background: #a11d48; color: white; border: none; padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: bold; cursor: pointer;" onclick="loadMemories()">🔄 刷新</button>
     </div>
     <div id="memory-list-container" style="flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; padding-bottom: 40px;"></div>
 </div>
+
 <script>
 const defaultUserAvatar = "https://img.icons8.com/illustrations/96/cartoon-female-profile.png";
 const defaultAiAvatar = "https://img.icons8.com/illustrations/96/cartoon-male-profile.png";
@@ -299,7 +297,6 @@ let localMsgList = [];
 const DEBOUNCE_TIME = 1200;
 let pendingSendContent = null;
 
-// 统一发送入口，全局单锁
 function safeSendTrigger(callSendFunc) {
     if (isRequesting) return;
     callSendFunc();
@@ -333,12 +330,12 @@ function formatBeijingTime(dateInput) {
     if (!dateInput) return "";
     try {
         const d = new Date(dateInput);
-        const m = String(d.getMonth() + 1).padStart(2);
-        const day = String(d.getDate()).padStart(2);
-        const h = String(d.getHours()).padStart(2);
-        const min = String(d.getMinutes()).padStart(2);
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const h = String(d.getHours()).padStart(2, '0');
+        const min = String(d.getMinutes()).padStart(2, '0');
         return `${m}/${day} ${h}:${min}`;
-    } catch (e) { return "7/9 09:00"; }
+    } catch (e) { return "07/09 16:00"; }
 }
 async function typeSingleBubble(el, addText, fullText) {
     clearTimeout(streamRenderTimer);
@@ -357,7 +354,7 @@ async function typeSingleBubble(el, addText, fullText) {
 function toggleDropdown(event) {
     event.stopPropagation();
     const dropdown = document.getElementById('header-dropdown');
-    dropdown.style.display = dropdown.style === "flex" ? "none" : "flex";
+    dropdown.style.display = dropdown.style.display === "flex" ? "none" : "flex";
 }
 function toggleSettings(show) {
     const panel = document.getElementById('settings-view');
@@ -370,8 +367,8 @@ function toggleSettings(show) {
 }
 function saveCosmetics() {
     const bg = document.getElementById('custom-bg-url').value.trim();
-    const userAv = document.getElementById('user-avatar-url').trim();
-    const aiAv = document.getElementById('ai-avatar-url').value.trim(); // 👈 加上 .value 并且改成 ai-avatar-url
+    const userAv = document.getElementById('user-avatar-url').value.trim();
+    const aiAv = document.getElementById('ai-avatar-url').value.trim();
     if (bg) {
         localStorage.setItem('rinka_home_bg', bg);
         document.body.style.background = `url(${bg}) center/cover fixed`;
@@ -409,7 +406,8 @@ async function loadMemories() {
         }
         let html = "";
         data.forEach(item => {
-            html += `<div class="config-card"><div style="font-size:13px;color:#444;">${item.subject} ${item.predicate}：${item.object}</div><div style="font-size:10px;color:#aaa;margin-top:8px;">权重：${item.weight.toFixed(1)}</div></div>`;
+            const displayStr = item.fact || `${item.subject} ${item.predicate}：${item.object}`;
+            html += `<div class="config-card"><div style="font-size:13px;color:#444;">${displayStr}</div><div style="font-size:10px;color:#aaa;margin-top:8px;">权重：${(item.weight || 1).toFixed(1)}</div></div>`;
         });
         container.innerHTML = html;
     } catch (e) {
@@ -449,7 +447,7 @@ async function executeSilentTouchAction(text) {
     await executeSendAction(text);
 }
 async function sendSticker(url, e) {
-if(isRequesting) return;
+    if(isRequesting) return;
     if(e) {
         e.stopPropagation();
         e.preventDefault();
@@ -486,12 +484,10 @@ async function executeSendAction(contentText) {
     const currentTimeStr = formatBeijingTime(new Date());
     if (chatBox.innerHTML.includes("欢迎回家")) chatBox.innerHTML = "";
 
-    // 1. 将用户消息存入缓存并统一渲染，确保页面永远只干净利落地画出一条
     const userHtml = `<div class="msg-row user-row"><img class="avatar" src="${uAv}"><div class="message user-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div></div>`;
     appendMsgCache(userHtml);
     renderAllLocal(); 
 
-    // 2. 预先在网页最底部插入一个带特定临时 ID 的 AI 回复气泡占位符，彻底解决重复显示的冲突！
     const aiHtmlPlaceholder = `<div class="msg-row ai-row" style="margin-top: 10px;"><img src="${aAv}" class="avatar"><div class="message ai-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text" id="streaming-ai-text"></div></div></div>`;
     chatBox.insertAdjacentHTML('beforeend', aiHtmlPlaceholder);
     setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 30);
@@ -523,7 +519,6 @@ async function executeSendAction(contentText) {
                 const { value, done } = await reader.read();
                 if (done) break;
                 
-                // 💖 关键修正：将数据合并至缓冲区并按换行符正确切割，绝不丢字卡死
                 sseBuffer += decoder.decode(value, { stream: true });
                 const lines = sseBuffer.split('\n');
                 sseBuffer = lines.pop() || "";
@@ -537,19 +532,15 @@ async function executeSendAction(contentText) {
                     try {
                         const rawData = trim.slice(5).trim();
                         const parsed = JSON.parse(rawData);
-                        
-                        // 兼顾 OpenRouter 标准流格式与普通的扁平化格式
                         const textChunk = parsed.choices?.[0]?.delta?.content || parsed.content || "";
                         
                         if (textChunk) {
                             fullAiText += textChunk;
                             if (aiDom) {
-                                // 💖 边收边渲染，打字机实时工作，不需要再刷新页面了！
                                 await typeSingleBubble(aiDom, textChunk, fullAiText);
                             }
                         }
                     } catch (parseErr) {
-                        // 💖 二次兜底：如果 JSON 解析报错，尝试看是不是直接发过来的纯字符串片段，防止系统静默拦截
                         try {
                             const directText = trim.slice(5).trim();
                             if (directText && !directText.startsWith('{')) {
@@ -562,7 +553,6 @@ async function executeSendAction(contentText) {
                 }
             }
             
-            // 3. 传输彻底完成后，移除临时的 ID 标识，并将最后生成的完整结构稳固地推进本地长效缓存中
             if (aiDom) aiDom.removeAttribute('id');
             const finalAiRow = chatBox.querySelector('.ai-row:last-child');
             if (finalAiRow) {
@@ -586,6 +576,7 @@ async function executeSendAction(contentText) {
         setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 50);
     }
 }
+
 window.onload = async function() {
     isRequesting = false;
     globalAbort = null;
@@ -594,7 +585,6 @@ window.onload = async function() {
     currentSessionId = localStorage.getItem('currentSessionId') || 'default_room';
     await fetchHistory();
     renderAllLocal();
-    // 页面加载后绑定回车，唯一一处回车发送逻辑
     const inputBox = document.getElementById("user-input");
     inputBox.addEventListener("keydown", (e)=>{
         if(e.key === "Enter"){
@@ -603,7 +593,7 @@ window.onload = async function() {
         }
     })
 }
-// 弹窗交互绑定不变
+
 const emojiTrigger = document.getElementById('emoji-trigger');
 if (emojiTrigger) {
     emojiTrigger.addEventListener('click', e => {
@@ -611,7 +601,7 @@ if (emojiTrigger) {
         const ep = document.getElementById('emoji-pop-panel');
         const tp = document.getElementById('touch-pop-panel');
         if (tp) tp.style.display = "none";
-        ep.style.display = ep.style === "grid" ? "none" : "grid";
+        ep.style.display = ep.style.display === "grid" ? "none" : "grid";
     })
 }
 const touchTrigger = document.getElementById('touch-trigger');
@@ -622,7 +612,7 @@ if (touchTrigger) {
         const tp = document.getElementById('touch-pop-panel');
         if (ep) ep.style.display = "none";
         if (!tp) return;
-        tp.style.display = tp.style === "block" ? "none" : "block";
+        tp.style.display = tp.style.display === "block" ? "none" : "block";
         if (tp.style.display === "block") {
             document.getElementById('touch-layer-parts').style.display = "block";
             document.getElementById('touch-layer-privacy').style.display = "none";
