@@ -305,8 +305,10 @@ if ('serviceWorker' in navigator) {
     });
 }
 function safeSendTrigger(callSendFunc) {
-    if (isRequesting) return;
-    callSendFunc();
+    // 🌸 解毒：废除卡死拦截，变成无阻碍直通车！
+    if (typeof callSendFunc === 'function') {
+        callSendFunc();
+    }
 }
 function appendMsgCache(htmlStr) {
     localMsgList.push({ html: htmlStr });
@@ -329,7 +331,7 @@ function createNewSession() {
 function renderTextOrImage(contentStr) {
     const trimmed = contentStr.trim();
     if (/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)$/.test(trimmed)) {
-        return `<img src="${trimmed}" class="chat-sticker-img" alt="表情包">`;
+        return `< img src="${trimmed}" class="chat-sticker-img" alt="表情包">`;
     }
     return contentStr.replaceAll('\n','<br>');
 }
@@ -437,10 +439,10 @@ async function fetchHistory() {
             let html = "";
             const timeStr = formatBeijingTime(item.timestamp);
             if (item.role === "user") {
-                html = `<div class="msg-row user-row"><img class="avatar" src="${uAv}"><div class="message user-msg"><div style="font-size:10px;color:#aaa;">${timeStr}</div><div class="msg-text">${renderTextOrImage(item.content)}</div></div></div>`;
+                html = `<div class="msg-row user-row">< img class="avatar" src="${uAv}"><div class="message user-msg"><div style="font-size:10px;color:#aaa;">${timeStr}</div><div class="msg-text">${renderTextOrImage(item.content)}</div></div></div>`;
             } else {
                 const token = item.tokens_used ? `<span class="token-tag">${item.tokens_used}tokens</span>` : "";
-                html = `<div class="msg-row ai-row" style="margin-top:-12px"><img src="${aAv}" class="avatar"><div class="message ai-msg"><div style="font-size:10px;color:#aaa;">${timeStr}</div><div class="msg-text">${renderTextOrImage(item.content)}</div>${token}</div></div>`;
+                html = `<div class="msg-row ai-row" style="margin-top:-12px">< img src="${aAv}" class="avatar"><div class="message ai-msg"><div style="font-size:10px;color:#aaa;">${timeStr}</div><div class="msg-text">${renderTextOrImage(item.content)}</div>${token}</div></div>`;
             }
             appendMsgCache(html);
         });
@@ -454,7 +456,7 @@ async function executeSilentTouchAction(text) {
     await executeSendAction(text);
 }
 async function sendSticker(url, e) {
-    if(isRequesting) return;
+    // 🌸 解毒：删去此处的 isRequesting 拦截
     if(e) {
         e.stopPropagation();
         e.preventDefault();
@@ -463,36 +465,24 @@ async function sendSticker(url, e) {
     await executeSendAction(url);
 }
     
-// 🌸 极简无阻碍发送：删掉了容易卡死的锁和复杂限制，点击就直接发起冲锋！
 async function sendMessage() {
     const input = document.getElementById('user-input');
     const text = input.value.trim();
-    
-    // 如果没有输入内容，直接返回，不发空消息
     if (!text) return;
-    isRequesting = false; 
 
     const sendBtn = document.getElementById('sendBtn');
     if (sendBtn) sendBtn.disabled = true;
-    
-    // 清空输入框
     input.value = "";
 
-    // 强行把 isRequesting 拨回正常状态，直接去触发实际发送，绝不被之前的错误卡死
-    isRequesting = false; 
-    
     // 呼叫真正发网络请求和接流的函数
     await executeSendAction(text);
-    
-    // 发送完立即恢复按钮，保证下一句话随时能发
     if (sendBtn) sendBtn.disabled = false;
 }
 
 async function executeSendAction(contentText) {
-    if (isRequesting) return;
+    // 🌸 解毒：彻底拔掉开头的 isRequesting 拦截阻挡
     if (globalAbort) globalAbort.abort();
     globalAbort = new AbortController();
-    isRequesting = true;
 
     const chatBox = document.getElementById('chat-box');
     const input = document.getElementById('user-input');
@@ -501,16 +491,16 @@ async function executeSendAction(contentText) {
     const aAv = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
     const host = ['localhost', '127.0.0.1'].includes(location.hostname) ? '' : BACKEND_URL;
     
-    sendBtn.style.pointerEvents = "none";
+    if (sendBtn) sendBtn.style.pointerEvents = "none";
     if (input) input.disabled = true;
     const currentTimeStr = formatBeijingTime(new Date());
     if (chatBox.innerHTML.includes("欢迎回家")) chatBox.innerHTML = "";
 
-    const userHtml = `<div class="msg-row user-row"><img class="avatar" src="${uAv}"><div class="message user-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div></div>`;
+    const userHtml = `<div class="msg-row user-row">< img class="avatar" src="${uAv}"><div class="message user-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div></div>`;
     appendMsgCache(userHtml);
     renderAllLocal(); 
 
-    const aiHtmlPlaceholder = `<div class="msg-row ai-row" style="margin-top: 10px;"><img src="${aAv}" class="avatar"><div class="message ai-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text" id="streaming-ai-text"></div></div></div>`;
+    const aiHtmlPlaceholder = `<div class="msg-row ai-row" style="margin-top: 10px;">< img src="${aAv}" class="avatar"><div class="message ai-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text" id="streaming-ai-text"></div></div></div>`;
     chatBox.insertAdjacentHTML('beforeend', aiHtmlPlaceholder);
     setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 30);
 
@@ -591,11 +581,11 @@ async function executeSendAction(contentText) {
         }
     } finally {
         clearTimeout(streamRenderTimer);
-        isRequesting = false;
+        // 🌸 解毒：丢弃容易导致后续锁死的无用状态拨动
         globalAbort = null;
         pendingSendContent = null;
         setTimeout(() => {
-            sendBtn.style.pointerEvents = "auto";
+            if (sendBtn) sendBtn.style.pointerEvents = "auto";
         }, 800);
         if (input) input.disabled = false;
         setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 50);
