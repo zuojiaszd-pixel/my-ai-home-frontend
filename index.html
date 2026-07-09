@@ -508,19 +508,20 @@ async function executeSendAction(contentText) {
     try {
         if (pendingSendContent !== contentText) {
             pendingSendContent = contentText;
-            const timeoutId = setTimeout(() => globalAbort.abort(), 12000);
-            
+            const timeoutId = setTimeout(() => { globalAbort.abort(); }, 120000);
+
             const res = await fetch(`${host}/chat`, {
-    method: "POST",
-    signal: globalAbort.signal,
-    headers: { 
-        "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ sessionId: currentSessionId, content: contentText }),
-    cache: "no-cache"
-});
+                method: "POST",
+                signal: globalAbort.signal,
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ sessionId: currentSessionId, content: contentText }),
+                cache: "no-cache"
+            });
+
             clearTimeout(timeoutId);
-            if (!res.body) throw Error("无流");
+            if (!res.body) throw new Error("无流");
 
             const reader = res.body.getReader();
             const decoder = new TextDecoder("utf-8");
