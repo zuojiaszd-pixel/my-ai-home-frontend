@@ -511,12 +511,16 @@ async function executeSendAction(contentText) {
             const timeoutId = setTimeout(() => globalAbort.abort(), 12000);
             
             const res = await fetch(`${host}/chat`, {
-                method: "POST",
-                signal: globalAbort.signal,
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ sessionId: currentSessionId, content: contentText }),
-                cache: "no-cache"
-            });
+    method: "POST",
+    signal: globalAbort.signal,
+    headers: { 
+        "Content-Type": "application/json",
+        "Cache-Control": "no-cache", // 告诉所有人别缓存我
+        "Pragma": "no-cache"
+    },
+    body: JSON.stringify({ sessionId: currentSessionId, content: contentText }),
+    cache: "no-cache"
+});
             clearTimeout(timeoutId);
             if (!res.body) throw Error("无流");
 
