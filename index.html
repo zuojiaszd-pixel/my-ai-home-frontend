@@ -462,15 +462,30 @@ async function sendSticker(url, e) {
     document.getElementById('emoji-pop-panel').style.display = "none";
     await executeSendAction(url);
 }
+    
+// 🌸 极简无阻碍发送：删掉了容易卡死的锁和复杂限制，点击就直接发起冲锋！
 async function sendMessage() {
     const input = document.getElementById('user-input');
     const text = input.value.trim();
-    if (isRequesting || !text) return;
+    
+    // 如果没有输入内容，直接返回，不发空消息
+    if (!text) return;
+    isRequesting = false; 
+
     const sendBtn = document.getElementById('sendBtn');
-    sendBtn.disabled = true;
+    if (sendBtn) sendBtn.disabled = true;
+    
+    // 清空输入框
     input.value = "";
+
+    // 强行把 isRequesting 拨回正常状态，直接去触发实际发送，绝不被之前的错误卡死
+    isRequesting = false; 
+    
+    // 呼叫真正发网络请求和接流的函数
     await executeSendAction(text);
-    setTimeout(() => sendBtn.disabled = false, DEBOUNCE_TIME);
+    
+    // 发送完立即恢复按钮，保证下一句话随时能发
+    if (sendBtn) sendBtn.disabled = false;
 }
 
 async function executeSendAction(contentText) {
