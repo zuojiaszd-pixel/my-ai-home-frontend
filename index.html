@@ -371,7 +371,7 @@ function toggleSettings(show) {
 function saveCosmetics() {
     const bg = document.getElementById('custom-bg-url').value.trim();
     const userAv = document.getElementById('user-avatar-url').trim();
-    const aiAv = document.getElementById('user-avatar-url').trim();
+    const aiAv = document.getElementById('ai-avatar-url').value.trim(); // 👈 加上 .value 并且改成 ai-avatar-url
     if (bg) {
         localStorage.setItem('rinka_home_bg', bg);
         document.body.style.background = `url(${bg}) center/cover fixed`;
@@ -485,11 +485,9 @@ async function executeSendAction(contentText) {
     input.disabled = true;
     const currentTimeStr = formatBeijingTime(new Date());
     if (chatBox.innerHTML.includes("欢迎回家")) chatBox.innerHTML = "";
-    const userHtml = `<div class="msg-row user-row"><img class="avatar" src="${uAv}"><div class="message user-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div></div>`;
-    const userDom = document.createElement('div');
-    userDom.innerHTML = userHtml;
+        const userHtml = `<div class="msg-row user-row">< img class="avatar" src="${uAv}"><div class="message user-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div></div>`;
     appendMsgCache(userHtml);
-    setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 30);
+    renderAllLocal(); // 👈 核心：立刻让缓存同步绘制到界面上，保持队列整齐！
 
     let fullAiText = "";
     let aiWrap = null;
