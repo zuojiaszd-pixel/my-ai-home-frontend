@@ -488,7 +488,6 @@ async function executeSendAction(contentText) {
     const userHtml = `<div class="msg-row user-row"><img class="avatar" src="${uAv}"><div class="message user-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div></div>`;
     const userDom = document.createElement('div');
     userDom.innerHTML = userHtml;
-    chatBox.appendChild(userDom.firstElementChild);
     appendMsgCache(userHtml);
     setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 30);
 
@@ -499,7 +498,6 @@ async function executeSendAction(contentText) {
         row.className = "msg-row ai-row";
         row.style.marginTop = "10px";
         row.innerHTML = `<img src="${aAv}" class="avatar"><div class="message ai-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text"></div></div>`;
-        chatBox.appendChild(row);
         setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 30);
         return row;
     }
@@ -526,7 +524,7 @@ async function executeSendAction(contentText) {
                 const {value,done} = await reader.read();
                 if (done) break;
                 sseBuffer += decoder.decode(value, {stream:true});
-                const lines = sse.split('\n');
+                const lines = sseBuffer.split('\n');
                 sseBuffer = lines.pop() || "";
                 for (const line of lines) {
                     const trim = line.trim();
