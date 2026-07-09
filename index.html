@@ -486,12 +486,12 @@ async function executeSendAction(contentText) {
     const currentTimeStr = formatBeijingTime(new Date());
     if (chatBox.innerHTML.includes("欢迎回家")) chatBox.innerHTML = "";
 
-    // 1. 推进用户消息并实时通过 Local 渲染，确保干净利落只画一条
+    // 1. 将用户消息存入缓存并统一渲染，确保页面永远只干净利落地画出一条
     const userHtml = `<div class="msg-row user-row">< img class="avatar" src="${uAv}"><div class="message user-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div></div>`;
     appendMsgCache(userHtml);
     renderAllLocal(); 
 
-    // 2. 将 AI 的临时气泡直接作为纯文本追加进缓存并刷新，让 DOM 的树结构完全统一，消灭双条！
+    // 2. 预先在网页最底部插入一个带特定临时 ID 的 AI 回复气泡占位符，彻底解决重复显示的冲突！
     const aiHtmlPlaceholder = `<div class="msg-row ai-row" style="margin-top: 10px;">< img src="${aAv}" class="avatar"><div class="message ai-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text" id="streaming-ai-text"></div></div></div>`;
     chatBox.insertAdjacentHTML('beforeend', aiHtmlPlaceholder);
     setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 30);
@@ -523,6 +523,7 @@ async function executeSendAction(contentText) {
                 const { value, done } = await reader.read();
                 if (done) break;
                 
+                // 💖 关键修正：将数据合并至缓冲区并按换行符正确切割，绝不丢字卡死
                 sseBuffer += decoder.decode(value, { stream: true });
                 const lines = sseBuffer.split('\n');
                 sseBuffer = lines.pop() || "";
@@ -534,22 +535,21 @@ async function executeSendAction(contentText) {
                     lineCache.add(trim);
 
                     try {
-                        // 💖 增强容错解析：兼顾标准格式与直接返回格式
                         const rawData = trim.slice(5).trim();
                         const parsed = JSON.parse(rawData);
                         
-                        // 兼容 OpenRouter 标准流格式与普通的 flat 格式
+                        // 兼顾 OpenRouter 标准流格式与普通的扁平化格式
                         const textChunk = parsed.choices?.[0]?.delta?.content || parsed.content || "";
                         
                         if (textChunk) {
                             fullAiText += textChunk;
-                            // 💖 实时吐字，不需要再刷新
                             if (aiDom) {
+                                // 💖 边收边渲染，打字机实时工作，不需要再刷新页面了！
                                 await typeSingleBubble(aiDom, textChunk, fullAiText);
                             }
                         }
                     } catch (parseErr) {
-                        // 如果解析失败，尝试看是不是直接发过来的纯字符串
+                        // 💖 二次兜底：如果 JSON 解析报错，尝试看是不是直接发过来的纯字符串片段，防止系统静默拦截
                         try {
                             const directText = trim.slice(5).trim();
                             if (directText && !directText.startsWith('{')) {
@@ -562,7 +562,7 @@ async function executeSendAction(contentText) {
                 }
             }
             
-            // 3. 传输彻底完成后，移除临时的 id 标识，将其完美转化为长效缓存
+            // 3. 传输彻底完成后，移除临时的 ID 标识，并将最后生成的完整结构稳固地推进本地长效缓存中
             if (aiDom) aiDom.removeAttribute('id');
             const finalAiRow = chatBox.querySelector('.ai-row:last-child');
             if (finalAiRow) {
