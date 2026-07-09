@@ -296,16 +296,14 @@ const MAX_LOCAL_SHOW = 20;
 let localMsgList = [];
 const DEBOUNCE_TIME = 1200;
 let pendingSendContent = null;
-// 强行注销乱拦截的 Service Worker
+// 🌸 干净安全地注销 Service Worker，绝不报错
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.getRegistrations().then(function(registrations) {
         for(let registration of registrations) {
-            registration.unbind(); // 强制解除
-            registration.unregister(); // 彻底注销
+            registration.unregister().catch(err => console.log('注销失败:', err)); // 彻底注销即可，不需要也不能用 unbind
         }
     });
-}    
-
+}
 function safeSendTrigger(callSendFunc) {
     if (isRequesting) return;
     callSendFunc();
