@@ -191,7 +191,6 @@
         <button class="menu-toggle-btn" onclick="toggleDropdown(event)"><span></span><span></span><span></span></button>
         <div id="header-dropdown" class="dropdown-menu">
             <div class="dropdown-item" style="color: #be185d; font-weight: bold;" onclick="location.href='./graph.html'">🧠 原子记忆图谱</div>
-            <div class="dropdown-item" onclick="loadMemories()">🧠 情感备忘录</div>
             <div class="dropdown-item" onclick="toggleSettings(true)">🖼️ 小屋装扮</div>
             <div class="dropdown-item" onclick="location.reload()">🏠 刷新</div>
             <div class="dropdown-item" style="color: #ff1493; font-weight: bold;" onclick="createNewSession()">➕ 新时空</div>
@@ -273,15 +272,6 @@
             <button class="clear-db-btn" onclick="clearCloudHistory()" style="background-color: #ff4d6d; padding: 12px; width: 100%; margin-top: 20px; font-weight: bold; border-radius: 8px; color: white; border: none; cursor: pointer;">🗑️ 彻底清空云端对话记录</button>
         </div>
     </div>
-</div>
-
-<div id="memory-panel" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fcf8f9; z-index: 102; display: none; flex-direction: column; box-sizing: border-box;">
-    <div class="settings-header">
-        <button class="back-chat-btn" style="background: rgba(255, 192, 203, 0.4); color: #a11d48; border: none; padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: bold; cursor: pointer;" onclick="document.getElementById('memory-panel').style.display='none'">← 返回聊天</button>
-        <div class="settings-center-title"><span class="main-t" style="font-size: 16px; font-weight: bold; color: #a11d48;">🧠 瑛的动态情感备忘录</span></div>
-        <button class="back-chat-btn" style="background: #a11d48; color: white; border: none; padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: bold; cursor: pointer;" onclick="loadMemories()">🔄 刷新</button>
-    </div>
-    <div id="memory-list-container" style="flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; padding-bottom: 40px;"></div>
 </div>
 
 <script> 
@@ -418,30 +408,7 @@ async function clearCloudHistory() {
         alert("清空失败，请检查后端");
     }
 }
-    
-async function loadMemories() {
-    const host = ['localhost','127.0.0.1'].includes(location.hostname) ? '' : BACKEND_URL;
-    const container = document.getElementById("memory-list-container");
-    container.innerHTML = "<div style='text-align:center;padding:30px;'>加载记忆数据中...</div>";
-    try {
-        const res = await fetch(`${host}/atomic-facts`);
-        const data = await res.json();
-        if (!data.length) {
-            container.innerHTML = "<div style='text-align:center;color:#999;padding:30px;'>暂无长期记忆</div>";
-            return;
-        }
-        let html = "";
-        data.forEach(item => {
-            const displayStr = item.fact || `${item.subject} ${item.predicate}：${item.object}`;
-            html += `<div class="config-card"><div style="font-size:13px;color:#444;">${displayStr}</div><div style="font-size:10px;color:#aaa;margin-top:8px;">权重：${(item.weight || 1).toFixed(1)}</div></div>`;
-        });
-        container.innerHTML = html;
-    } catch (e) {
-        container.innerHTML = "<div style='text-align:center;color:red;padding:30px;'>读取记忆失败</div>";
-    }
-    document.getElementById('memory-panel').style.display = "flex";
-}
-    
+       
 async function fetchHistory() {
     const chatBox = document.getElementById('chat-box');
     if (!chatBox) return;
