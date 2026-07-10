@@ -328,12 +328,18 @@ function createNewSession() {
     localMsgList = [];
     renderAllLocal();
 }
+
 function renderTextOrImage(contentStr) {
-    const trimmed = contentStr.trim();
+    // 🌟 第一层盾牌：如果内容根本不存在，直接返回空字串，绝不往下走去引发崩溃！
+    if (!contentStr) return ''; 
+    
+    // 🌟 第二层盾牌：强制把内容转换成标准的字符串，防止意外情况
+    const trimmed = String(contentStr).trim(); 
+    
     if (/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)$/.test(trimmed)) {
-        return `<img src="${trimmed}" class="chat-sticker-img" alt="表情包">`;
+        return `< img src="${trimmed}" class="chat-sticker-img" alt="表情包">`;
     }
-    return contentStr.replaceAll('\n','<br>');
+    return String(contentStr).replaceAll('\n','<br>');
 }
 function formatBeijingTime(dateInput) {
     if (!dateInput) return "";
