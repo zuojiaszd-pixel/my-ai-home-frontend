@@ -310,10 +310,25 @@ function safeSendTrigger(callSendFunc) {
         callSendFunc();
     }
 }
+
+    // 🚀 【强行矫正器】在前端代码最开头加入这段代码
+    (function() {
+        const originalFetch = window.fetch;
+        window.fetch = function(...args) {
+            let url = args[0];
+            if (typeof url === 'string' && (url.endsWith('/chat') || url.includes('/chat'))) {
+                args[0] = 'https://my-ai-home-backend.onrender.com/chat';             
+                console.log('📡 [雷达拦截] 成功拦截到聊天请求，已强行转播至：', args[0]);
+            }
+            return originalFetch.apply(this, args);
+        };
+    })();
+    
 function appendMsgCache(htmlStr) {
     localMsgList.push({ html: htmlStr });
     if (localMsgList.length > MAX_LOCAL_SHOW) localMsgList.shift();
 }
+    
 function renderAllLocal() {
     const chatBox = document.getElementById("chat-box");
     let allHtml = "";
