@@ -311,14 +311,53 @@ function safeSendTrigger(callSendFunc) {
     }
 }
 
-    // 🚀 【强行矫正器】在前端代码最开头加入这段代码
     (function() {
+        // 🔥 彻底接管前端的 fetch，彻底解决跨域、死机、吞报错问题
         const originalFetch = window.fetch;
-        window.fetch = function(...args) {
+        window.fetch = async function(...args) {
             let url = args[0];
+            
             if (typeof url === 'string' && (url.endsWith('/chat') || url.includes('/chat'))) {
-                args[0] = 'https://my-ai-home-backend.onrender.com/chat';             
-                console.log('📡 [雷达拦截] 成功拦截到聊天请求，已强行转播至：', args[0]);
+                const targetUrl = 'https://my-ai-home-backend.onrender.com/chat';
+                console.log('📡 [雷达拦截] 发现聊天请求，开始接管流式传输 ->', targetUrl);
+                
+                try {
+                    const response = await originalFetch(targetUrl, args[1]);
+                    
+                    if (!response.ok) {
+                        const errText = await response.text();
+                        throw new Error(`后端返回错误: ${response.status} - ${errText}`);
+                    }
+                    
+                    // 2️⃣ 开启全兼容式流媒体读取器
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder("utf-8");
+                    
+                    return new Response(new ReadableStream({
+                        async start(controller) {
+                            try {
+                                while (true) {
+                                    const { done, value } = await reader.read();
+                                    if (done) break;
+                                    const chunkText = decoder.decode(value);
+                                    controller.enqueue(value);
+                                }
+                            } catch (e) {
+                                console.error("流读取中断：", e);
+                            } finally {
+                                controller.close();
+                            }
+                        }
+                    }), {
+                        headers: response.headers
+                    });
+                    
+                } catch (err) {
+                    console.error('❌ [雷达拦截捕获致命错误]：', err);
+                    // 💥 如果崩溃了，强行把错误塞进聊天框，绝不充当哑巴！
+                    alert(`【连线瑛失败】原因：${err.message}\n请检查 Render 后端是否正常 Live，以及 API key 是否失效。`);
+                    throw err; 
+                }
             }
             return originalFetch.apply(this, args);
         };
