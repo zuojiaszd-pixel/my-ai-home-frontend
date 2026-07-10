@@ -499,7 +499,6 @@ async function sendMessage() {
 }
 
 async function executeSendAction(contentText) {
-    // 🌸 解毒：彻底拔掉开头的 isRequesting 拦截阻挡
     if (globalAbort) globalAbort.abort();
     globalAbort = new AbortController();
 
@@ -509,109 +508,69 @@ async function executeSendAction(contentText) {
     const uAv = localStorage.getItem('rinka_avatar') || defaultUserAvatar;
     const aAv = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
     const host = ['localhost', '127.0.0.1'].includes(location.hostname) ? '' : BACKEND_URL;
-    
+
     if (sendBtn) sendBtn.style.pointerEvents = "none";
     if (input) input.disabled = true;
     const currentTimeStr = formatBeijingTime(new Date());
     if (chatBox.innerHTML.includes("欢迎回家")) chatBox.innerHTML = "";
 
-    const userHtml = `<div class="msg-row user-row"><img class="avatar" src="${uAv}"><div class="message user-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div></div>`;
+    // 添加用户消息
+    const userHtml = `<div class="msg-row user-row">< img class="avatar" src="${uAv}"><div class="message user-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div></div>`;
     appendMsgCache(userHtml);
-    renderAllLocal(); 
+    renderAllLocal();
 
-    const aiHtmlPlaceholder = `<div class="msg-row ai-row" style="margin-top: 10px;"><img src="${aAv}" class="avatar"><div class="message ai-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text" id="streaming-ai-text"></div></div></div>`;
+    // 添加AI占位（显示“思考中...”）
+    const aiHtmlPlaceholder = `<div class="msg-row ai-row" style="margin-top: 10px;">< img src="${aAv}" class="avatar"><div class="message ai-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text" id="streaming-ai-text">⏳ 思考中...</div></div></div>`;
     chatBox.insertAdjacentHTML('beforeend', aiHtmlPlaceholder);
     setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 30);
 
     const aiDom = document.getElementById('streaming-ai-text');
-    let fullAiText = "";
-    let sseBuffer = ""; 
 
     try {
-        if (pendingSendContent !== contentText) {
-            pendingSendContent = contentText;
-            const timeoutId = setTimeout(() => { globalAbort.abort(); }, 120000);
+        // 发送普通 JSON 请求（非流式）
+        const res = await fetch(`${host}/chat`, {
+            method: "POST",
+            signal: globalAbort.signal,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sessionId: currentSessionId, message: contentText }),
+            cache: "no-cache"
+        });
 
-            const res = await fetch('https://my-ai-home-backend.onrender.com/chat', { 
-                method: "POST",
-                signal: globalAbort.signal,
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ 
-        sessionId: currentSessionId, 
-        message: contentText 
-    }),
-    cache: "no-cache"
-});
-
-            clearTimeout(timeoutId);
-            if (!res.body) throw new Error("无流");
-
-            const reader = res.body.getReader();
-            const decoder = new TextDecoder("utf-8");
-            const lineCache = new Set();
-
-            while (true) {
-                const { value, done } = await reader.read();
-                if (done) break;
-                
-                sseBuffer += decoder.decode(value, { stream: true });
-                const lines = sseBuffer.split('\n');
-                sseBuffer = lines.pop() || "";
-
-                for (const line of lines) {
-                    const trim = line.trim();
-                    if (!trim || trim.includes("[DONE]") || !trim.startsWith("data: ")) continue;
-                    if (lineCache.has(trim)) continue;
-                    lineCache.add(trim);
-
-                    try {
-                        const rawData = trim.slice(5).trim();
-                        const parsed = JSON.parse(rawData);
-                        const textChunk = parsed.choices?.[0]?.delta?.content || parsed.content || "";
-                        
-                        if (textChunk) {
-                            fullAiText += textChunk;
-                            if (aiDom) {
-                                await typeSingleBubble(aiDom, textChunk, fullAiText);
-                            }
-                        }
-                    } catch (parseErr) {
-                        try {
-                            const directText = trim.slice(5).trim();
-                            if (directText && !directText.startsWith('{')) {
-                                fullAiText += directText;
-                                if (aiDom) await typeSingleBubble(aiDom, directText, fullAiText);
-                            }
-                        } catch (e) {}
-                        continue;
-                    }
-                }
-            }
-            
-            if (aiDom) aiDom.removeAttribute('id');
-            const finalAiRow = chatBox.querySelector('.ai-row:last-child');
-            if (finalAiRow) {
-                appendMsgCache(finalAiRow.outerHTML);
-            }
+        if (!res.ok) {
+            const errText = await res.text();
+            throw new Error(`请求失败 (${res.status}): ${errText}`);
         }
+
+        const data = await res.json();
+        const reply = data.reply || "【无回复内容】";
+
+        // 更新AI消息气泡
+        if (aiDom) {
+            aiDom.innerHTML = renderTextOrImage(reply);
+            aiDom.removeAttribute('id'); // 去除id，防止后续干扰
+        }
+
+        // 将完整的AI消息存入本地缓存（用于刷新后恢复）
+        const finalAiRow = chatBox.querySelector('.ai-row:last-child');
+        if (finalAiRow) {
+            appendMsgCache(finalAiRow.outerHTML);
+        }
+
+        chatBox.scrollTop = chatBox.scrollHeight;
+
     } catch (err) {
         if (err.name !== "AbortError") {
             console.error("发送失败", err);
-            if (aiDom) aiDom.innerHTML = `<span style="color:#ff6b6b;">⚠️ 瑛的信号断开了，请重试...</span>`;
+            if (aiDom) {
+                aiDom.innerHTML = `<span style="color:#ff6b6b;">⚠️ 请求失败，请重试</span>`;
+            }
         }
     } finally {
-        clearTimeout(streamRenderTimer);
-        // 🌸 解毒：丢弃容易导致后续锁死的无用状态拨动
-        globalAbort = null;
-        pendingSendContent = null;
-        setTimeout(() => {
-            if (sendBtn) sendBtn.style.pointerEvents = "auto";
-        }, 800);
+        if (sendBtn) sendBtn.style.pointerEvents = "auto";
         if (input) input.disabled = false;
         setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 50);
     }
+}
 }
 
 window.onload = async function() {
