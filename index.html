@@ -532,7 +532,7 @@ async function executeSendAction(contentText) {
             pendingSendContent = contentText;
             const timeoutId = setTimeout(() => { globalAbort.abort(); }, 120000);
 
-            const res = await fetch(`${host}/chat`, {
+            const res = await fetch('https://my-ai-home-backend.onrender.com', { 
                 method: "POST",
                 signal: globalAbort.signal,
                 headers: {
