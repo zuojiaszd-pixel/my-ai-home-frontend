@@ -304,65 +304,14 @@ if ('serviceWorker' in navigator) {
         }
     });
 }
+    
 function safeSendTrigger(callSendFunc) {
     // 🌸 解毒：废除卡死拦截，变成无阻碍直通车！
     if (typeof callSendFunc === 'function') {
         callSendFunc();
     }
 }
-
-    (function() {
-        // 🔥 彻底接管前端的 fetch，彻底解决跨域、死机、吞报错问题
-        const originalFetch = window.fetch;
-        window.fetch = async function(...args) {
-            let url = args[0];
-            
-            if (typeof url === 'string' && (url.endsWith('/chat') || url.includes('/chat'))) {
-                const targetUrl = 'https://my-ai-home-backend.onrender.com/chat';
-                console.log('📡 [雷达拦截] 发现聊天请求，开始接管流式传输 ->', targetUrl);
-                
-                try {
-                    const response = await originalFetch(targetUrl, args[1]);
-                    
-                    if (!response.ok) {
-                        const errText = await response.text();
-                        throw new Error(`后端返回错误: ${response.status} - ${errText}`);
-                    }
-                    
-                    // 2️⃣ 开启全兼容式流媒体读取器
-                    const reader = response.body.getReader();
-                    const decoder = new TextDecoder("utf-8");
-                    
-                    return new Response(new ReadableStream({
-                        async start(controller) {
-                            try {
-                                while (true) {
-                                    const { done, value } = await reader.read();
-                                    if (done) break;
-                                    const chunkText = decoder.decode(value);
-                                    controller.enqueue(value);
-                                }
-                            } catch (e) {
-                                console.error("流读取中断：", e);
-                            } finally {
-                                controller.close();
-                            }
-                        }
-                    }), {
-                        headers: response.headers
-                    });
-                    
-                } catch (err) {
-                    console.error('❌ [雷达拦截捕获致命错误]：', err);
-                    // 💥 如果崩溃了，强行把错误塞进聊天框，绝不充当哑巴！
-                    alert(`【连线瑛失败】原因：${err.message}\n请检查 Render 后端是否正常 Live，以及 API key 是否失效。`);
-                    throw err; 
-                }
-            }
-            return originalFetch.apply(this, args);
-        };
-    })();
-    
+   
 function appendMsgCache(htmlStr) {
     localMsgList.push({ html: htmlStr });
     if (localMsgList.length > MAX_LOCAL_SHOW) localMsgList.shift();
@@ -375,6 +324,7 @@ function renderAllLocal() {
     chatBox.innerHTML = allHtml || `<div style="text-align:center; color:#a11d48; font-size:13px; margin-top:20px;">🌸 欢迎回家，快来聊聊天吧～</div>`;
     setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 50);
 }
+    
 function createNewSession() {
     const newSid = 'room_' + Date.now();
     currentSessionId = newSid;
@@ -395,6 +345,7 @@ function renderTextOrImage(contentStr) {
     }
     return String(contentStr).replaceAll('\n','<br>');
 }
+    
 function formatBeijingTime(dateInput) {
     if (!dateInput) return "";
     try {
@@ -406,6 +357,7 @@ function formatBeijingTime(dateInput) {
         return `${m}/${day} ${h}:${min}`;
     } catch (e) { return "07/09 16:00"; }
 }
+    
 async function typeSingleBubble(el, addText, fullText) {
     clearTimeout(streamRenderTimer);
     let temp = fullText.slice(0, fullText.length - addText.length);
@@ -420,11 +372,13 @@ async function typeSingleBubble(el, addText, fullText) {
         await new Promise(r => setTimeout(r, 60));
     }
 }
+    
 function toggleDropdown(event) {
     event.stopPropagation();
     const dropdown = document.getElementById('header-dropdown');
     dropdown.style.display = dropdown.style.display === "flex" ? "none" : "flex";
 }
+    
 function toggleSettings(show) {
     const panel = document.getElementById('settings-view');
     panel.style.display = show ? "flex" : "none";
@@ -434,6 +388,7 @@ function toggleSettings(show) {
         document.getElementById('ai-avatar-url').value = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
     }
 }
+    
 function saveCosmetics() {
     const bg = document.getElementById('custom-bg-url').value.trim();
     const userAv = document.getElementById('user-avatar-url').value.trim();
@@ -451,6 +406,7 @@ function saveCosmetics() {
     toggleSettings(false);
     renderAllLocal();
 }
+    
 async function clearCloudHistory() {
     const host = ['localhost','127.0.0.1'].includes(location.hostname) ? '' : BACKEND_URL;
     try {
@@ -462,6 +418,7 @@ async function clearCloudHistory() {
         alert("清空失败，请检查后端");
     }
 }
+    
 async function loadMemories() {
     const host = ['localhost','127.0.0.1'].includes(location.hostname) ? '' : BACKEND_URL;
     const container = document.getElementById("memory-list-container");
@@ -484,6 +441,7 @@ async function loadMemories() {
     }
     document.getElementById('memory-panel').style.display = "flex";
 }
+    
 async function fetchHistory() {
     const chatBox = document.getElementById('chat-box');
     if (!chatBox) return;
@@ -512,6 +470,7 @@ async function fetchHistory() {
         chatBox.innerHTML = `<div style="text-align:center;padding:20px;color:red;">加载对话失败，请检查后端</div>`;
     }
 }
+    
 async function executeSilentTouchAction(text) {
     await executeSendAction(text);
 }
