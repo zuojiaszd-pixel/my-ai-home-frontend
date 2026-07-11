@@ -521,6 +521,7 @@ async function sendSticker(url, e) {
     
 async function sendMessage() {
     console.log("📨 sendMessage 执行，时间戳:", Date.now());
+    console.log("📨 sendMessage 被调用，堆栈:", new Error().stack);
     const input = document.getElementById('user-input');
     const text = input.value.trim();
     if (!text) {
