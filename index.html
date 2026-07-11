@@ -348,28 +348,62 @@ function renderTextOrImage(contentStr) {
 
     let text = String(contentStr);
 
-    // 匹配所有图片链接（支持 jpg、jpeg、png、gif、webp，忽略大小写）
+    // ---- 1. 处理图片链接（保持原有逻辑） ----
     const imageRegex = /(https?:\/\/[^\s]+\.(?:jpg|jpeg|png|gif|webp))/gi;
-
-    // 检查是否包含图片链接
     const matches = text.match(imageRegex);
-
     if (matches) {
-        // 如果整条消息就是纯链接（没有其他文字），直接显示图片
         if (text.trim() === matches[0]) {
-            return `<img src="${matches[0]}" class="chat-sticker-img" alt="表情包" style="max-width:140px;max-height:140px;display:block;margin:4px 0;">`;
+            return `< img src="${matches[0]}" class="chat-sticker-img" alt="表情包" style="max-width:140px;max-height:140px;display:block;margin:4px 0;">`;
         }
-
-        // 否则，把每个图片链接替换成 <img> 标签，保持其他文字不变
         let result = text.replace(imageRegex, function(url) {
-            return `<img src="${url}" class="chat-sticker-img" alt="表情包" style="max-width:140px;max-height:140px;display:block;margin:4px 0;">`;
+            return `< img src="${url}" class="chat-sticker-img" alt="表情包" style="max-width:140px;max-height:140px;display:block;margin:4px 0;">`;
         });
-
-        // 把换行转为 <br>
-        return result.replace(/\n/g, '<br>');
+        text = result;
     }
 
-    // 没有图片链接时，只处理换行
+    // ---- 2. 处理思考链 ----
+    // 匹配格式：【🤔 瑛的思考】...（内容）...【💕 瑛的回答】
+    const thinkRegex = /【🤔\s*瑛的思考】\s*([\s\S]*?)\s*【💕\s*瑛的回答】\s*/;
+    const thinkMatch = text.match(thinkRegex);
+
+    if (thinkMatch) {
+        const thinking = thinkMatch[1].trim();
+        // 移除思考部分，剩下的就是最终回答
+        const answer = text.replace(thinkRegex, '').trim();
+
+        // 估算思考时长（从思考内容中提取，或计算字符数）
+        let thinkingTime = '';
+        const timeMatch = thinking.match(/(\d+)\s*秒|(\d+)\s*s/);
+        if (timeMatch) {
+            thinkingTime = `思考了 ${timeMatch[1] || timeMatch[2]}s `;
+        } else {
+            // 如果没有明确时间，根据长度估算
+            const charCount = thinking.length;
+            if (charCount > 200) thinkingTime = '深度思考 ';
+            else if (charCount > 50) thinkingTime = '思考了 ';
+            else thinkingTime = '快速思考 ';
+        }
+
+        let html = '';
+        if (thinking) {
+            html += `
+                <div style="background:#f9f0f2; padding:8px 12px; border-radius:8px; margin-bottom:10px; border-left:3px solid #ffb6c1;">
+                    <details>
+                        <summary style="cursor:pointer; color:#a11d48; font-weight:500; font-size:13px; list-style:none; display:flex; align-items:center; gap:6px;">
+                            <span>🧠 ${thinkingTime}></span>
+                            <span style="font-size:11px; color:#aaa; font-weight:normal;">（点击展开）</span>
+                        </summary>
+                        <div style="margin-top:8px; color:#666; font-size:13px; line-height:1.7; white-space:pre-wrap; padding:8px 4px; border-top:1px dashed #f0d0d8;">${thinking.replace(/\n/g, '<br>')}</div>
+                    </details>
+                </div>
+            `;
+        }
+        // 最终回答
+        html += answer.replace(/\n/g, '<br>');
+        return html;
+    }
+
+    // ---- 3. 普通文本 ----
     return text.replace(/\n/g, '<br>');
 }
     
