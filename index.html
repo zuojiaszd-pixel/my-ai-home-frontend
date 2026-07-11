@@ -344,18 +344,34 @@ function createNewSession() {
 }
 
 function renderTextOrImage(contentStr) {
-    // 🌟 第一层盾牌：如果内容根本不存在，直接返回空字串，绝不往下走去引发崩溃！
-    if (!contentStr) return ''; 
-    
-    // 🌟 第二层盾牌：强制把内容转换成标准的字符串，防止意外情况
-    const trimmed = String(contentStr).trim(); 
-    
-    if (/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)$/.test(trimmed)) {
-        return `<img src="${trimmed}" class="chat-sticker-img" alt="表情包">`;
+    if (!contentStr) return '';
+
+    let text = String(contentStr);
+
+    // 匹配所有图片链接（支持 jpg、jpeg、png、gif、webp，忽略大小写）
+    const imageRegex = /(https?:\/\/[^\s]+\.(?:jpg|jpeg|png|gif|webp))/gi;
+
+    // 检查是否包含图片链接
+    const matches = text.match(imageRegex);
+
+    if (matches) {
+        // 如果整条消息就是纯链接（没有其他文字），直接显示图片
+        if (text.trim() === matches[0]) {
+            return `< img src="${matches[0]}" class="chat-sticker-img" alt="表情包">`;
+        }
+
+        // 否则，把每个图片链接替换成 <img> 标签，保持其他文字不变
+        let result = text.replace(imageRegex, function(url) {
+            return `< img src="${url}" class="chat-sticker-img" alt="表情包" style="max-width:140px;max-height:140px;display:block;margin:4px 0;">`;
+        });
+
+        // 把换行转为 <br>
+        return result.replace(/\n/g, '<br>');
     }
-    return String(contentStr).replaceAll('\n','<br>');
-}
-    
+
+    // 没有图片链接时，只处理换行
+    return text.replace(/\n/g, '<br>');
+}    
 function formatBeijingTime(dateInput) {
     if (!dateInput) return "";
     try {
