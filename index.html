@@ -353,10 +353,10 @@ function renderTextOrImage(contentStr) {
     const matches = text.match(imageRegex);
     if (matches) {
         if (text.trim() === matches[0]) {
-            return `< img src="${matches[0]}" class="chat-sticker-img" alt="表情包" style="max-width:140px;max-height:140px;display:block;margin:4px 0;">`;
+            return `<img src="${matches[0]}" class="chat-sticker-img" alt="表情包" style="max-width:140px;max-height:140px;display:block;margin:4px 0;">`;
         }
         let result = text.replace(imageRegex, function(url) {
-            return `< img src="${url}" class="chat-sticker-img" alt="表情包" style="max-width:140px;max-height:140px;display:block;margin:4px 0;">`;
+            return `<img src="${url}" class="chat-sticker-img" alt="表情包" style="max-width:140px;max-height:140px;display:block;margin:4px 0;">`;
         });
         text = result;
     }
