@@ -520,34 +520,49 @@ async function sendSticker(url, e) {
 }
 
 let sendMessageLastTime = 0;
-    
+let sendMessageLock = false; // 执行锁（与防抖互补）
+
 async function sendMessage() {
+    // ----- 执行锁（防止并发执行） -----
+    if (sendMessageLock) {
+        console.warn("⛔ sendMessage 执行锁拦截");
+        return;
+    }
+
+    // ----- 防抖检查（1.5秒内重复调用拦截） -----
     const now = Date.now();
     if (now - sendMessageLastTime < 1500) {
         console.warn("⛔ sendMessage 防抖拦截");
         return;
     }
     sendMessageLastTime = now;
+    sendMessageLock = true;
+
     console.log("📨 sendMessage 执行，时间戳:", Date.now());
     console.log("📨 sendMessage 被调用，堆栈:", new Error().stack);
-    const input = document.getElementById('user-input');
-    const text = input.value.trim();
-    if (!text) {
-        console.log("⏭️ 空消息，不发送");
-        return;
-    }
-
-    const sendBtn = document.getElementById('sendBtn');
-    if (sendBtn) sendBtn.disabled = true;
-    input.value = "";
 
     try {
-        await executeSendAction(text);
-    } catch (err) {
-        console.error("发送失败:", err);
+        const input = document.getElementById('user-input');
+        const text = input.value.trim();
+        if (!text) {
+            console.log("⏭️ 空消息，不发送");
+            return;
+        }
+
+        const sendBtn = document.getElementById('sendBtn');
+        if (sendBtn) sendBtn.disabled = true;
+        input.value = "";
+
+        try {
+            await executeSendAction(text);
+        } catch (err) {
+            console.error("发送失败:", err);
+        } finally {
+            if (sendBtn) sendBtn.disabled = false;
+        }
     } finally {
-        if (sendBtn) sendBtn.disabled = false;
-        // 注意：锁由 safeSendTrigger 管理，这里不释放
+        // 解锁（确保异常情况下也能释放）
+        sendMessageLock = false;
     }
 }
     
