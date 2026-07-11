@@ -462,7 +462,6 @@ async function executeSilentTouchAction(text) {
 }
     
 async function sendSticker(url, e) {
-    // 🌸 解毒：删去此处的 isRequesting 拦截
     if(e) {
         e.stopPropagation();
         e.preventDefault();
@@ -494,7 +493,20 @@ async function sendMessage() {
     }
 }
 
+let executeLock = false; // 放在函数外部，全局锁
+
 async function executeSendAction(contentText) {
+    // ----- 第一层防护：执行锁 -----
+    if (executeLock) {
+        console.warn("⛔ executeSendAction 正在执行，拦截重复调用");
+        return;
+    }
+    executeLock = true;
+
+    const execId = Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+    console.log(`🔵 [${execId}] executeSendAction 开始，内容：`, contentText.slice(0, 20));
+
+    // 取消之前的请求（如果有）
     if (globalAbort) globalAbort.abort();
     globalAbort = new AbortController();
 
@@ -510,20 +522,20 @@ async function executeSendAction(contentText) {
     const currentTimeStr = formatBeijingTime(new Date());
     if (chatBox.innerHTML.includes("欢迎回家")) chatBox.innerHTML = "";
 
-    // 添加用户消息
-    const userHtml = `<div class="msg-row user-row"><img class="avatar" src="${uAv}"><div class="message user-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div></div>`;
+    // 添加用户消息（修正了 < img 标签的空格）
+    const userHtml = `<div class="msg-row user-row">< img class="avatar" src="${uAv}"><div class="message user-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div></div>`;
     appendMsgCache(userHtml);
     renderAllLocal();
 
-    // 添加AI占位（显示“思考中...”）
-    const aiHtmlPlaceholder = `<div class="msg-row ai-row" style="margin-top: 10px;"><img src="${aAv}" class="avatar"><div class="message ai-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text" id="streaming-ai-text">⏳ 思考中...</div></div></div>`;
+    // AI占位（修正了 < img 标签的空格）
+    const aiHtmlPlaceholder = `<div class="msg-row ai-row" style="margin-top: 10px;">< img src="${aAv}" class="avatar"><div class="message ai-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text" id="streaming-ai-text">⏳ 思考中...</div></div></div>`;
     chatBox.insertAdjacentHTML('beforeend', aiHtmlPlaceholder);
     setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 30);
 
     const aiDom = document.getElementById('streaming-ai-text');
 
     try {
-        // 发送普通 JSON 请求（非流式）
+        console.log(`🟢 [${execId}] 发送请求...`);
         const res = await fetch(`${host}/chat`, {
             method: "POST",
             signal: globalAbort.signal,
@@ -539,14 +551,14 @@ async function executeSendAction(contentText) {
 
         const data = await res.json();
         const reply = data.reply || "【无回复内容】";
+        console.log(`🟢 [${execId}] 收到回复，长度:`, reply.length);
 
-        // 更新AI消息气泡
         if (aiDom) {
             aiDom.innerHTML = renderTextOrImage(reply);
-            aiDom.removeAttribute('id'); // 去除id，防止后续干扰
+            aiDom.removeAttribute('id');
         }
 
-        // 将完整的AI消息存入本地缓存（用于刷新后恢复）
+        // 将完整的AI消息存入本地缓存
         const finalAiRow = chatBox.querySelector('.ai-row:last-child');
         if (finalAiRow) {
             appendMsgCache(finalAiRow.outerHTML);
@@ -556,12 +568,14 @@ async function executeSendAction(contentText) {
 
     } catch (err) {
         if (err.name !== "AbortError") {
-            console.error("发送失败", err);
+            console.error(`❌ [${execId}] 发送失败:`, err);
             if (aiDom) {
                 aiDom.innerHTML = `<span style="color:#ff6b6b;">⚠️ 请求失败，请重试</span>`;
             }
         }
     } finally {
+        executeLock = false; // 释放锁
+        console.log(`🔓 [${execId}] executeSendAction 解锁`);
         if (sendBtn) sendBtn.style.pointerEvents = "auto";
         if (input) input.disabled = false;
         setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 50);
