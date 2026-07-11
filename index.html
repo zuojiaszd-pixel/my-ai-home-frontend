@@ -357,7 +357,7 @@ function renderTextOrImage(contentStr) {
     if (matches) {
         // 如果整条消息就是纯链接（没有其他文字），直接显示图片
         if (text.trim() === matches[0]) {
-            return `< img src="${matches[0]}" class="chat-sticker-img" alt="表情包">`;
+            return `< img src="${matches[0]}" class="chat-sticker-img" alt="表情包" style="max-width:140px;max-height:140px;display:block;margin:4px 0;">`;
         }
 
         // 否则，把每个图片链接替换成 <img> 标签，保持其他文字不变
@@ -371,7 +371,8 @@ function renderTextOrImage(contentStr) {
 
     // 没有图片链接时，只处理换行
     return text.replace(/\n/g, '<br>');
-}    
+}
+    
 function formatBeijingTime(dateInput) {
     if (!dateInput) return "";
     try {
