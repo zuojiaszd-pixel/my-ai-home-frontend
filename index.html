@@ -441,6 +441,7 @@ async function fetchHistory() {
 async function executeSilentTouchAction(text) {
     await executeSendAction(text);
 }
+    
 async function sendSticker(url, e) {
     // 🌸 解毒：删去此处的 isRequesting 拦截
     if(e) {
@@ -451,19 +452,31 @@ async function sendSticker(url, e) {
     await executeSendAction(url);
 }
     
+let sendLock = false; // 放在函数外面
 async function sendMessage() {
-    console.log("🟢 sendMessage 被调用了一次", Date.now());
+    // 如果已经有请求在进行，直接忽略本次调用
+    if (sendLock) {
+        console.log("⛔ 重复调用已被拦截");
+        return;
+    }
+
     const input = document.getElementById('user-input');
     const text = input.value.trim();
     if (!text) return;
 
+    sendLock = true;
     const sendBtn = document.getElementById('sendBtn');
     if (sendBtn) sendBtn.disabled = true;
     input.value = "";
 
-    // 呼叫真正发网络请求和接流的函数
-    await executeSendAction(text);
-    if (sendBtn) sendBtn.disabled = false;
+    try {
+        await executeSendAction(text);
+    } catch (err) {
+        console.error("发送失败:", err);
+    } finally {
+        sendLock = false;
+        if (sendBtn) sendBtn.disabled = false;
+    }
 }
 
 async function executeSendAction(contentText) {
