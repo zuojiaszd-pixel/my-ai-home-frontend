@@ -322,6 +322,7 @@ function safeSendTrigger(callSendFunc) {
 }
    
 function appendMsgCache(htmlStr) {
+    console.log("📦 appendMsgCache 被调用，当前长度:", localMsgList.length);
     localMsgList.push({ html: htmlStr });
     if (localMsgList.length > MAX_LOCAL_SHOW) localMsgList.shift();
 }
@@ -551,7 +552,7 @@ async function executeSendAction(contentText) {
 
         const data = await res.json();
         const reply = data.reply || "【无回复内容】";
-        console.log(`🟢 [${execId}] 收到回复，长度:`, reply.length);
+        console.log(`📝 [${execId}] reply 内容:`, reply);
 
         if (aiDom) {
             aiDom.innerHTML = renderTextOrImage(reply);
