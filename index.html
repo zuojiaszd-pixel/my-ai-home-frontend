@@ -204,7 +204,7 @@
             <button id="touch-trigger" title="身体互动">🌸</button>
             <button class="emoji-toggle-btn" id="emoji-trigger">😀</button>
             <input type="text" id="user-input" placeholder="和瑛聊聊天吧...">
-            <button class="send-btn" id="sendBtn" onclick="safeSendTrigger(()=>sendMessage())">发送</button>
+            <button class="send-btn" id="sendBtn">发送</button>
             
             <!-- 🌐 表情包面板 -->
             <div id="emoji-pop-panel" class="emoji-pop-panel">
@@ -518,8 +518,16 @@ async function sendSticker(url, e) {
     document.getElementById('emoji-pop-panel').style.display = "none";
     await executeSendAction(url);
 }
+
+let sendMessageLastTime = 0;
     
 async function sendMessage() {
+    const now = Date.now();
+    if (now - sendMessageLastTime < 1500) {
+        console.warn("⛔ sendMessage 防抖拦截");
+        return;
+    }
+    sendMessageLastTime = now;
     console.log("📨 sendMessage 执行，时间戳:", Date.now());
     console.log("📨 sendMessage 被调用，堆栈:", new Error().stack);
     const input = document.getElementById('user-input');
@@ -649,9 +657,15 @@ window.onload = async function() {
     await fetchHistory();
     renderAllLocal();
 
-    // 绑定回车键（只绑定一次）
+    const sendBtn = document.getElementById('sendBtn');
+    sendBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        safeSendTrigger(() => sendMessage());
+    });
+
+    // 绑定回车键
     const inputBox = document.getElementById('user-input');
-    inputBox.addEventListener("keydown", function(e) {
+    inputBox.addEventListener('keydown', function(e) {
         if (e.key === "Enter") {
             e.preventDefault();
             safeSendTrigger(() => sendMessage());
