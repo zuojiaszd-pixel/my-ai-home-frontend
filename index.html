@@ -295,10 +295,20 @@ if ('serviceWorker' in navigator) {
     });
 }
     
+let globalSendLock = false;
 function safeSendTrigger(callSendFunc) {
-    // 🌸 解毒：废除卡死拦截，变成无阻碍直通车！
+    if (globalSendLock) {
+        console.log("⛔ safeSendTrigger 拦截了重复调用");
+        return;
+    }
     if (typeof callSendFunc === 'function') {
-        callSendFunc();
+        globalSendLock = true;
+        try {
+            callSendFunc();
+        } finally {
+            // 延迟释放锁，确保异步请求已经开始
+            setTimeout(() => { globalSendLock = false; }, 300);
+        }
     }
 }
    
