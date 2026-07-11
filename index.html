@@ -541,13 +541,22 @@ async function sendMessage() {
         // 注意：锁由 safeSendTrigger 管理，这里不释放
     }
 }
-
-let executeLock = false; // 放在函数外部，全局锁
-
+    
+let executeLock = false;
+let lastExecuteTime = 0;
+    
 async function executeSendAction(contentText) {
-    // ----- 第一层防护：执行锁 -----
+    // ----- 防抖：1 秒内重复调用直接忽略 -----
+    const now = Date.now();
+    if (now - lastExecuteTime < 1000) {
+        console.warn("⛔ 防抖拦截：1秒内重复调用");
+        return;
+    }
+    lastExecuteTime = now;
+
+    // ----- 原有的执行锁（双重保险） -----
     if (executeLock) {
-        console.warn("⛔ executeSendAction 正在执行，拦截重复调用");
+        console.warn("⛔ 执行锁拦截");
         return;
     }
     executeLock = true;
