@@ -452,6 +452,7 @@ async function sendSticker(url, e) {
 }
     
 async function sendMessage() {
+    console.log("🟢 sendMessage 被调用了一次", Date.now());
     const input = document.getElementById('user-input');
     const text = input.value.trim();
     if (!text) return;
