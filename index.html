@@ -603,7 +603,7 @@ const reply = data.reply || "【无回复内容】";
 
 // ---- 渲染最终回答到消息气泡内 ----
 if (aiDom) {
-    aiDom.innerHTML = renderTextOrImage(answerContent);
+    aiDom.innerHTML = renderTextOrImage(reply);
     aiDom.removeAttribute('id');
 }
         // 将完整的AI消息存入本地缓存
