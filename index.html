@@ -576,19 +576,15 @@ window.onload = async function() {
     currentSessionId = localStorage.getItem('currentSessionId') || 'default_room';
     await fetchHistory();
     renderAllLocal();
-    const inputBox = document.getElementById("user-input");
-    inputBox.addEventListener("keydown", (e)=>{
-         const inputBox = document.getElementById("user-input");
-    inputBox.removeEventListener("keydown", handleEnter);
-    inputBox.addEventListener("keydown", handleEnter);
-};
 
-function handleEnter(e) {
-    if (e.key === "Enter") {
-        e.preventDefault();
-        safeSendTrigger(() => sendMessage());
-    }
-}
+    // 绑定回车键（只绑定一次）
+    const inputBox = document.getElementById('user-input');
+    inputBox.addEventListener("keydown", function(e) {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            safeSendTrigger(() => sendMessage());
+        }
+    });
 
 const emojiTrigger = document.getElementById('emoji-trigger');
 if (emojiTrigger) {
