@@ -295,19 +295,28 @@ if ('serviceWorker' in navigator) {
     });
 }
     
+// ---------- 全局锁 ----------
 let globalSendLock = false;
+let sendLockTimer = null;
+
 function safeSendTrigger(callSendFunc) {
+    console.log("🔔 safeSendTrigger 被调用，当前锁状态:", globalSendLock);
     if (globalSendLock) {
-        console.log("⛔ safeSendTrigger 拦截了重复调用");
+        console.warn("⛔ 拦截重复调用");
         return;
     }
     if (typeof callSendFunc === 'function') {
         globalSendLock = true;
+        console.log("🔒 加锁成功");
         try {
             callSendFunc();
         } finally {
-            // 延迟释放锁，确保异步请求已经开始
-            setTimeout(() => { globalSendLock = false; }, 300);
+            // 延迟释放锁，确保异步操作已启动
+            clearTimeout(sendLockTimer);
+            sendLockTimer = setTimeout(() => {
+                globalSendLock = false;
+                console.log("🔓 锁已释放");
+            }, 500);
         }
     }
 }
@@ -462,19 +471,15 @@ async function sendSticker(url, e) {
     await executeSendAction(url);
 }
     
-let sendLock = false; // 放在函数外面
 async function sendMessage() {
-    // 如果已经有请求在进行，直接忽略本次调用
-    if (sendLock) {
-        console.log("⛔ 重复调用已被拦截");
+    console.log("📨 sendMessage 执行，时间戳:", Date.now());
+    const input = document.getElementById('user-input');
+    const text = input.value.trim();
+    if (!text) {
+        console.log("⏭️ 空消息，不发送");
         return;
     }
 
-    const input = document.getElementById('user-input');
-    const text = input.value.trim();
-    if (!text) return;
-
-    sendLock = true;
     const sendBtn = document.getElementById('sendBtn');
     if (sendBtn) sendBtn.disabled = true;
     input.value = "";
@@ -484,8 +489,8 @@ async function sendMessage() {
     } catch (err) {
         console.error("发送失败:", err);
     } finally {
-        sendLock = false;
         if (sendBtn) sendBtn.disabled = false;
+        // 注意：锁由 safeSendTrigger 管理，这里不释放
     }
 }
 
@@ -573,11 +578,16 @@ window.onload = async function() {
     renderAllLocal();
     const inputBox = document.getElementById("user-input");
     inputBox.addEventListener("keydown", (e)=>{
-        if(e.key === "Enter"){
-            e.preventDefault();
-            safeSendTrigger(()=>sendMessage());
-        }
-    })
+         const inputBox = document.getElementById("user-input");
+    inputBox.removeEventListener("keydown", handleEnter);
+    inputBox.addEventListener("keydown", handleEnter);
+};
+
+function handleEnter(e) {
+    if (e.key === "Enter") {
+        e.preventDefault();
+        safeSendTrigger(() => sendMessage());
+    }
 }
 
 const emojiTrigger = document.getElementById('emoji-trigger');
