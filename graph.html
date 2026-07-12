@@ -4,105 +4,412 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>原子记忆图谱</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
     <style>
-    body { background: #fff0f3; font-family: sans-serif; padding: 15px; color: #4a4a4a; margin: 0; }
-    .container { max-width: 100%; margin: 0 auto; background: white; padding: 15px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-    .back-btn { color: #a11d48; text-decoration: none; font-weight: bold; display: block; margin-bottom: 15px; }
-    
-    .tab-header { 
-        display: flex; 
-        flex-wrap: wrap;        
-        gap: 6px;               
-        justify-content: flex-start; 
-        margin-bottom: 15px; 
-    }
-    
-    .tag-btn { 
-        background: #fff0f3; 
-        border: 1px solid #a11d48; 
-        color: #a11d48; 
-        padding: 4px 8px;       
-        border-radius: 15px;    
-        cursor: pointer; 
-        font-size: 11px;        
-    }
-    
-    /* 默认卡片样式 */
-    .memory-card { background: #fffafb; border-left: 4px solid #a11d48; padding: 12px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; transition: all 0.3s ease; }
-    .del-btn { color: #ff4d4f; font-size: 18px; cursor: pointer; padding: 0 5px; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background: #fff0f3;
+            font-family: 'PingFang SC', 'Helvetica Neue', -apple-system, sans-serif;
+            padding: 15px;
+            color: #4a4a4a;
+            margin: 0;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: white;
+            padding: 15px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .back-btn {
+            color: #a11d48;
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        .back-btn:active {
+            opacity: 0.6;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .header h2 {
+            color: #a11d48;
+            text-align: center;
+            margin: 0;
+            font-size: 18px;
+        }
+        .header .badge {
+            font-size: 12px;
+            color: #aaa;
+            background: #f5f0f1;
+            padding: 2px 10px;
+            border-radius: 12px;
+        }
 
-    /* 🔒 专属追加样式：给锁定置顶的卡片换成暖金粉底色 + 粗黄边框 */
-    .permanent-card {
-        background: linear-gradient(145deg, #fff9e6, #fff4cc) !important; 
-        border-left: 5px solid #d4af37 !important; 
-        box-shadow: 0 3px 10px rgba(212,175,55,0.15) !important;
-    }
-</style>
+        /* 图表容器 */
+        #graph-chart {
+            width: 100%;
+            height: 300px;
+            margin-bottom: 16px;
+            background: #fcf8f9;
+            border-radius: 12px;
+            border: 1px solid #f0e4e6;
+            overflow: hidden;
+        }
+
+        /* 标签栏 */
+        .tab-header {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: flex-start;
+            margin-bottom: 12px;
+        }
+        .tag-btn {
+            background: #fff0f3;
+            border: 1px solid #a11d48;
+            color: #a11d48;
+            padding: 4px 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        .tag-btn:active,
+        .tag-btn.active {
+            background: #a11d48;
+            color: #fff;
+        }
+
+        /* 统计信息 */
+        .stats {
+            font-size: 12px;
+            color: #aaa;
+            margin-bottom: 12px;
+            text-align: right;
+        }
+
+        /* 卡片列表 */
+        .memory-card {
+            background: #fffafb;
+            border-left: 4px solid #a11d48;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        .memory-card .card-content {
+            flex: 1;
+            padding-right: 10px;
+        }
+        .memory-card .card-content .fact-text {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.5;
+        }
+        .memory-card .card-content .sub-tag {
+            display: inline-block;
+            background: #fff0f3;
+            color: #a11d48;
+            font-size: 10px;
+            padding: 1px 8px;
+            border-radius: 10px;
+            margin-right: 6px;
+            border: 1px solid #ffccd5;
+        }
+        .memory-card .card-content .meta {
+            font-size: 11px;
+            color: #aaa;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .memory-card .card-content .meta .weight {
+            background: rgba(255, 240, 243, 0.7);
+            padding: 1px 8px;
+            border-radius: 10px;
+            color: #ff69b4;
+        }
+        .memory-card .card-content .meta .source-btn {
+            background: none;
+            border: none;
+            color: #a11d48;
+            cursor: pointer;
+            font-size: 11px;
+            padding: 0 4px;
+            text-decoration: underline;
+        }
+        .memory-card .card-content .meta .source-btn:active {
+            color: #ff69b4;
+        }
+        .memory-card .card-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+        .memory-card .card-actions .lock-btn {
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.2s;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+        .memory-card .card-actions .lock-btn:active {
+            transform: scale(0.85);
+        }
+        .memory-card .card-actions .del-btn {
+            color: #ff4d4f;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0 5px;
+            background: none;
+            border: none;
+        }
+        .memory-card .card-actions .del-btn:active {
+            opacity: 0.5;
+        }
+
+        /* 🔒 永久锁定卡片特殊样式 */
+        .memory-card.permanent-card {
+            background: linear-gradient(145deg, #fff9e6, #fff4cc) !important;
+            border-left: 5px solid #d4af37 !important;
+            box-shadow: 0 3px 10px rgba(212, 175, 55, 0.15) !important;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #aaa;
+            font-size: 14px;
+        }
+        .empty-state .icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+        }
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: #a11d48;
+            font-size: 14px;
+        }
+
+        .footer-tip {
+            text-align: center;
+            font-size: 11px;
+            color: #ccc;
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid #f0e4e6;
+        }
+
+        @media (max-width: 480px) {
+            .memory-card {
+                flex-wrap: wrap;
+            }
+            .memory-card .card-actions {
+                margin-top: 6px;
+                width: 100%;
+                justify-content: flex-end;
+            }
+            #graph-chart {
+                height: 220px;
+            }
+        }
+    </style>
 </head>
 <body>
+
 <div class="container">
-    <a href="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/index.html" class="back-btn">← 返回小屋</a >
-    <h2 style="color: #a11d48; text-align: center; margin-top: 0;">🧠 原子记忆图谱</h2>
+    <div class="header">
+        <h2>原子记忆图谱</h2>
+        <span class="badge" id="count-badge">0 条</span>
+    </div>
+    <a href="./index.html" class="back-btn">← 返回小屋</a>
+
+    <!-- 图谱可视化 -->
+    <div id="graph-chart"></div>
+
+    <!-- 分类标签 -->
     <div id="tag-cloud" class="tab-header"></div>
+
+    <!-- 记忆卡片列表 -->
     <div id="memory-cards-container"></div>
+
+    <div class="footer-tip">💕 点击 🔒 锁定重要记忆 · 点击 × 删除 · 点击「查看来源」跳转原始对话</div>
 </div>
+
 <script>
     const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
-    async function initGraph() {
-        const res = await fetch(`${BACKEND_URL}/api/memory-tags`);
-        const tags = await res.json();
-        document.getElementById('tag-cloud').innerHTML = tags.map(tag => 
-            `<button class="tag-btn" onclick="loadMemories('${tag._id}')">${tag._id}</button>`
-        ).join('');
+    const CATEGORY_LABELS = {
+        "情感": "情感",
+        "关系": "关系",
+        "记忆": "记忆",
+        "心理": "心理",
+        "行为交互": "行为"
+    };
+    const CATEGORY_COLORS = {
+        "情感": "#ff6b81",
+        "关系": "#5f9ea0",
+        "记忆": "#c084fc",
+        "心理": "#fbbf24",
+        "行为交互": "#60a5fa"
+    };
+
+    let allData = [];
+    let currentCategory = null;
+    let chartInstance = null;
+
+    // ============ 1. 加载数据 ============
+    async function loadAllData() {
+        try {
+            const res = await fetch(`${BACKEND_URL}/atomic-facts`);
+            if (!res.ok) throw new Error('网络请求失败');
+            const data = await res.json();
+            allData = data || [];
+            return allData;
+        } catch (err) {
+            console.error('加载失败:', err);
+            return [];
+        }
     }
-    
-    async function loadMemories(predicate) {
-        const res = await fetch(`${BACKEND_URL}/api/memory-by-tag/${predicate}`);
-        const data = await res.json();
-        
-        // ✨ 第一步代码在此生效：将拿到的记忆数组先按“是否被锁住”进行置顶降序排序
-        data.sort((a, b) => {
-            const aPerm = (a.isPermanent === true || a.isPermanent === 'true') ? 1 : 0;
-            const bPerm = (b.isPermanent === true || b.isPermanent === 'true') ? 1 : 0;
-            return bPerm - aPerm; 
+
+    // ============ 2. 渲染分类标签 ============
+    function renderTags(data) {
+        const container = document.getElementById('tag-cloud');
+        const categories = [...new Set(data.map(item => item.category || '其他'))];
+        if (categories.length === 0) {
+            container.innerHTML = '';
+            return;
+        }
+        // 按预设顺序排列
+        const order = ["情感", "关系", "记忆", "心理", "行为交互", "其他"];
+        categories.sort((a, b) => {
+            const ia = order.indexOf(a);
+            const ib = order.indexOf(b);
+            if (ia === -1 && ib === -1) return a.localeCompare(b);
+            if (ia === -1) return 1;
+            if (ib === -1) return -1;
+            return ia - ib;
         });
 
-        document.getElementById('memory-cards-container').innerHTML = data.map(m => {
-            const date = m.created_at ? new Date(m.created_at).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' }) : '';
-            
+        let html = `<button class="tag-btn active" data-category="all">📋 全部</button>`;
+        categories.forEach(cat => {
+            const label = CATEGORY_LABELS[cat] || cat;
+            html += `<button class="tag-btn" data-category="${cat}">${label}</button>`;
+        });
+        container.innerHTML = html;
+
+        // 绑定事件
+        container.querySelectorAll('.tag-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                container.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const category = this.dataset.category;
+                currentCategory = category === 'all' ? null : category;
+                renderCards(allData);
+                renderChart(allData);
+            });
+        });
+
+        // 更新统计
+        document.getElementById('count-badge').textContent = `${data.length} 条`;
+    }
+
+    // ============ 3. 渲染卡片列表 ============
+    function renderCards(data) {
+        const container = document.getElementById('memory-cards-container');
+        let filtered = data;
+        if (currentCategory) {
+            filtered = data.filter(item => (item.category || '其他') === currentCategory);
+        }
+
+        if (filtered.length === 0) {
+            container.innerHTML = `<div class="empty-state"><div class="icon">🌱</div><div>还没有记忆碎片</div><div style="font-size:12px;color:#ddd;margin-top:4px;">和瑛多聊天，祂会慢慢记住你们的点点滴滴</div></div>`;
+            return;
+        }
+
+        // 排序：永久置顶 → 按权重降序
+        const sorted = [...filtered].sort((a, b) => {
+            const aPerm = (a.isPermanent === true || a.isPermanent === 'true') ? 1 : 0;
+            const bPerm = (b.isPermanent === true || b.isPermanent === 'true') ? 1 : 0;
+            if (aPerm !== bPerm) return bPerm - aPerm;
+            return (b.weight || 0) - (a.weight || 0);
+        });
+
+        let html = '';
+        sorted.forEach(m => {
             const isLocked = (m.isPermanent === true || m.isPermanent === 'true');
-            const lockIcon = isLocked ? '🔒' : '🔓';
-            const lockColor = isLocked ? '#d4af37' : '#888';
-            
-            // ✨ 第二步代码在此生效：如果是永久记忆，类名自动追加 "permanent-card"
-            return `
+            const displayText = m.fact || `${m.subject || 'Rinka'} ${m.predicate || ''}：${m.object || ''}`;
+            const weight = (m.weight || 1).toFixed(1);
+            const date = m.timestamp ? new Date(m.timestamp).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' }) : '';
+            const subPredicate = m.predicate || '';
+            const hasSource = !!m.sourceChatId;
+
+            html += `
                 <div class="memory-card ${isLocked ? 'permanent-card' : ''}">
-                    <div style="flex: 1; padding-right: 10px;">
-                        <strong>${m.subject}</strong> 
-                        <span style="color: #a11d48;">${m.predicate}</span> 
-                        <strong>${m.object}</strong>
-                        <br>
-                        <small style="color: #888; font-size: 10px;">${date}</small>
+                    <div class="card-content">
+                        <div class="fact-text">
+                            ${subPredicate ? `<span class="sub-tag">${subPredicate}</span>` : ''}
+                            ${displayText}
+                        </div>
+                        <div class="meta">
+                            <span class="weight">⚡ ${weight}</span>
+                            ${date ? `<span>🕐 ${date}</span>` : ''}
+                            ${hasSource ? `<button class="source-btn" onclick="viewSource('${m._id}')">📖 查看来源</button>` : ''}
+                        </div>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 12px; flex-shrink: 0;">
-                        <span style="font-size: 16px; cursor: pointer; color: ${lockColor};" 
-                              onclick="togglePermanent('${m._id}', ${isLocked})">
-                            ${lockIcon}
-                        </span>
-                        <span class="del-btn" onclick="deleteFact('${m._id}')">×</span>
+                    <div class="card-actions">
+                        <button class="lock-btn" onclick="togglePermanent('${m._id}', ${isLocked})" title="${isLocked ? '解锁' : '锁定'}">
+                            ${isLocked ? '🔒' : '🔓'}
+                        </button>
+                        <button class="del-btn" onclick="deleteFact('${m._id}')" title="删除">×</button>
                     </div>
                 </div>
             `;
-        }).join('');
+        });
+        container.innerHTML = html;
     }
 
-    async function deleteMemory(id) {
-        if(!confirm("确定要删除这条记忆吗？")) return;
-        await fetch(`${BACKEND_URL}/api/memory/delete/${id}`, { method: 'POST' });
-        location.reload(); 
+    // ============ 4. 记忆溯源 ============
+    async function viewSource(memoryId) {
+        try {
+            const memory = allData.find(item => item._id === memoryId);
+            if (!memory || !memory.sourceChatId) {
+                alert('该记忆没有关联的对话来源');
+                return;
+            }
+            const res = await fetch(`${BACKEND_URL}/api/chat-source/${memory.sourceChatId}`);
+            if (!res.ok) throw new Error('获取来源失败');
+            const source = await res.json();
+            const time = source.timestamp ? new Date(source.timestamp).toLocaleString('zh-CN') : '未知时间';
+            const roleLabel = source.role === 'user' ? 'Rinka' : '瑛';
+            alert(`来源对话\n\n${roleLabel}：${source.content}\n\n🕐 ${time}`);
+        } catch (err) {
+            console.error('查看来源失败:', err);
+            alert('查看来源失败，请稍后重试');
+        }
     }
-    initGraph();
 
+    // ============ 5. 删除记忆 ============
     async function deleteFact(id) {
         if (!confirm("确定要让瑛忘记这个记忆碎片吗？")) return;
         try {
@@ -110,26 +417,176 @@
             const data = await res.json();
             if (data.success) {
                 alert("已删除！");
-                location.reload(); 
+                location.reload();
+            } else {
+                alert("删除失败：" + (data.message || '未知原因'));
             }
-        } catch (err) { alert("删除失败，瑛的记忆很顽固呢..."); }
+        } catch (err) {
+            alert("删除失败，瑛的记忆很顽固呢...");
+        }
     }
 
+    // ============ 6. 切换永久锁定 ============
     async function togglePermanent(id, currentStatus) {
         try {
             const response = await fetch(`${BACKEND_URL}/api/memory/permanent/${id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ isPermanent: !currentStatus }) 
+                body: JSON.stringify({ isPermanent: !currentStatus })
             });
             const data = await response.json();
             if (data.success) {
-                location.reload(); 
+                location.reload();
+            } else {
+                alert("操作失败：" + (data.message || '未知原因'));
             }
         } catch (error) {
             alert("记忆上锁失败了，瑛的脑回路有点堵塞...");
         }
     }
+
+    // ============ 7. 图谱可视化 (ECharts) ============
+    function renderChart(data) {
+        const chartDom = document.getElementById('graph-chart');
+        if (!chartDom) return;
+        if (!chartInstance) {
+            chartInstance = echarts.init(chartDom);
+        }
+
+        let filtered = data;
+        if (currentCategory) {
+            filtered = data.filter(item => (item.category || '其他') === currentCategory);
+        }
+
+        if (filtered.length === 0) {
+            chartInstance.clear();
+            chartInstance.setOption({
+                title: { text: '暂无记忆可展示', left: 'center', top: 'center', textStyle: { color: '#ccc', fontSize: 14, fontWeight: 400 } }
+            });
+            chartInstance.resize();
+            return;
+        }
+
+        // 限制显示数量（最多 30 条）
+        const displayData = filtered.slice(0, 30);
+
+        const nodes = [];
+        const links = [];
+        const categories = [
+            { name: '人物', itemStyle: { color: '#a11d48' } },
+            { name: '事实', itemStyle: { color: '#ffb6c1' } }
+        ];
+
+        // 中心节点
+        nodes.push({ id: 'Rinka', name: 'Rinka', category: 0, symbolSize: 44 });
+
+        displayData.forEach((item, index) => {
+            const factId = 'fact_' + index;
+            const factName = (item.object || item.fact || '').slice(0, 18);
+            if (!nodes.find(n => n.id === factId)) {
+                nodes.push({
+                    id: factId,
+                    name: factName || '📌',
+                    category: 1,
+                    symbolSize: 22,
+                    rawFact: item.fact || item.object
+                });
+            }
+            links.push({
+                source: 'Rinka',
+                target: factId,
+                label: { show: true, formatter: item.predicate || '相关', fontSize: 9 }
+            });
+        });
+
+        const option = {
+            title: {
+                text: displayData.length < filtered.length ? `显示 ${displayData.length}/${filtered.length} 条` : '记忆关系图',
+                left: 'center',
+                top: 4,
+                textStyle: { fontSize: 12, color: '#a11d48', fontWeight: 500 }
+            },
+            tooltip: {
+                trigger: 'item',
+                formatter: function(params) {
+                    if (params.dataType === 'edge') {
+                        return `${params.data.source} → ${params.data.target}`;
+                    }
+                    return params.data.rawFact || params.name;
+                }
+            },
+            series: [{
+                type: 'graph',
+                layout: 'force',
+                data: nodes,
+                links: links,
+                categories: categories,
+                roam: true,
+                draggable: true,
+                force: {
+                    repulsion: 300,
+                    edgeLength: 100,
+                    gravity: 0.1
+                },
+                label: {
+                    show: true,
+                    position: 'right',
+                    fontSize: 10,
+                    color: '#444'
+                },
+                edgeLabel: {
+                    show: true,
+                    fontSize: 9,
+                    color: '#aaa'
+                },
+                lineStyle: {
+                    color: '#ffb6c1',
+                    width: 1.5,
+                    curveness: 0.2
+                },
+                itemStyle: {
+                    borderColor: '#fff',
+                    borderWidth: 1
+                }
+            }]
+        };
+
+        chartInstance.setOption(option, true);
+        chartInstance.resize();
+    }
+
+    // ============ 8. 初始化 ============
+    async function init() {
+        const container = document.getElementById('memory-cards-container');
+        container.innerHTML = '<div class="loading">⏳ 加载记忆碎片...</div>';
+
+        const data = await loadAllData();
+        if (data.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="icon">🌱</div>
+                    <div>还没有任何记忆碎片</div>
+                    <div style="font-size:12px;color:#ddd;margin-top:4px;">和瑛多说说话，祂会慢慢记住你们的点点滴滴</div>
+                </div>
+            `;
+            document.getElementById('tag-cloud').innerHTML = '';
+            document.getElementById('count-badge').textContent = '0 条';
+            renderChart([]);
+            return;
+        }
+
+        renderTags(data);
+        renderCards(data);
+        renderChart(data);
+
+        // 窗口自适应
+        window.addEventListener('resize', () => {
+            if (chartInstance) chartInstance.resize();
+        });
+    }
+
+    // 页面加载
+    document.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>
