@@ -476,6 +476,7 @@
         return;
     }
 
+    // ✅ 只保留这一份 displayData
     const displayData = filtered.slice(0, 30);
 
     const nodes = [];
@@ -485,7 +486,7 @@
         { name: '事实', itemStyle: { color: '#ffb6c1' } }
     ];
 
-    // 👇 中心节点改为 瑛
+    // 👇 中心节点是 瑛
     nodes.push({ id: '瑛', name: '瑛', category: 0, symbolSize: 48 });
 
     displayData.forEach((item, index) => {
@@ -502,10 +503,6 @@
             });
         }
 
-        // 👇 根据 subject 决定边的方向
-        // 如果 subject 是 "瑛"，边从 "瑛" 指向事实
-        // 如果 subject 是 "Rinka"，边也从 "瑛" 指向事实（瑛记住的关于 Rinka 的事）
-        // 统一从 瑛 指向事实，但 label 显示谁与谁的关系
         let edgeLabel = item.predicate || '相关';
         if (item.subject === 'Rinka') {
             edgeLabel = `关于 Rinka：${edgeLabel}`;
@@ -520,94 +517,61 @@
         });
     });
 
-
-        // 限制显示数量（最多 30 条）
-        const displayData = filtered.slice(0, 30);
-
-        const nodes = [];
-        const links = [];
-        const categories = [
-            { name: '人物', itemStyle: { color: '#a11d48' } },
-            { name: '事实', itemStyle: { color: '#ffb6c1' } }
-        ];
-
-        // 中心节点
-        nodes.push({ id: 'Rinka', name: 'Rinka', category: 0, symbolSize: 44 });
-
-        displayData.forEach((item, index) => {
-            const factId = 'fact_' + index;
-            const factName = (item.object || item.fact || '').slice(0, 18);
-            if (!nodes.find(n => n.id === factId)) {
-                nodes.push({
-                    id: factId,
-                    name: factName || '📌',
-                    category: 1,
-                    symbolSize: 22,
-                    rawFact: item.fact || item.object
-                });
+    const option = {
+        title: {
+            text: displayData.length < filtered.length ? `🧠 显示 ${displayData.length}/${filtered.length} 条` : '🧠 瑛的记忆图谱',
+            left: 'center',
+            top: 4,
+            textStyle: { fontSize: 12, color: '#a11d48', fontWeight: 500 }
+        },
+        tooltip: {
+            trigger: 'item',
+            formatter: function(params) {
+                if (params.dataType === 'edge') {
+                    return `${params.data.source} → ${params.data.target}`;
+                }
+                return params.data.rawFact || params.name;
             }
-            links.push({
-                source: 'Rinka',
-                target: factId,
-                label: { show: true, formatter: item.predicate || '相关', fontSize: 9 }
-            });
-        });
-
-        const option = {
-            title: {
-                text: displayData.length < filtered.length ? `显示 ${displayData.length}/${filtered.length} 条` : '记忆关系图',
-                left: 'center',
-                top: 4,
-                textStyle: { fontSize: 12, color: '#a11d48', fontWeight: 500 }
+        },
+        series: [{
+            type: 'graph',
+            layout: 'force',
+            data: nodes,
+            links: links,
+            categories: categories,
+            roam: true,
+            draggable: true,
+            force: {
+                repulsion: 300,
+                edgeLength: 100,
+                gravity: 0.1
             },
-            tooltip: {
-                trigger: 'item',
-                formatter: function(params) {
-                    if (params.dataType === 'edge') {
-                        return `${params.data.source} → ${params.data.target}`;
-                    }
-                    return params.data.rawFact || params.name;
-                }
+            label: {
+                show: true,
+                position: 'right',
+                fontSize: 10,
+                color: '#444'
             },
-            series: [{
-                type: 'graph',
-                layout: 'force',
-                data: nodes,
-                links: links,
-                categories: categories,
-                roam: true,
-                draggable: true,
-                force: {
-                    repulsion: 300,
-                    edgeLength: 100,
-                    gravity: 0.1
-                },
-                label: {
-                    show: true,
-                    position: 'right',
-                    fontSize: 10,
-                    color: '#444'
-                },
-                edgeLabel: {
-                    show: true,
-                    fontSize: 9,
-                    color: '#aaa'
-                },
-                lineStyle: {
-                    color: '#ffb6c1',
-                    width: 1.5,
-                    curveness: 0.2
-                },
-                itemStyle: {
-                    borderColor: '#fff',
-                    borderWidth: 1
-                }
-            }]
-        };
+            edgeLabel: {
+                show: true,
+                fontSize: 9,
+                color: '#aaa'
+            },
+            lineStyle: {
+                color: '#ffb6c1',
+                width: 1.5,
+                curveness: 0.2
+            },
+            itemStyle: {
+                borderColor: '#fff',
+                borderWidth: 1
+            }
+        }]
+    };
 
-        chartInstance.setOption(option, true);
-        chartInstance.resize();
-    }
+    chartInstance.setOption(option, true);
+    chartInstance.resize();
+}
 
     // ============ 8. 初始化 ============
     async function init() {
