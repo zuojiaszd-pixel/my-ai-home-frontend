@@ -358,7 +358,16 @@
         let html = '';
         sorted.forEach(m => {
             const isLocked = (m.isPermanent === true || m.isPermanent === 'true');
-            const displayText = m.fact || `${m.subject || 'Rinka'} ${m.predicate || ''}：${m.object || ''}`;
+            let displayText = m.fact || '';
+            if (!displayText) {
+              if (m.subject === '瑛') {
+                   displayText = `🧠 我（瑛）${m.predicate || ''}：${m.object || ''}`;
+                    } else if (m.subject === 'Rinka') {
+                   displayText = `📝 我记得 Rinka ${m.predicate || ''}：${m.object || ''}`;
+                    } else {
+                   displayText = `${m.subject || ''} ${m.predicate || ''}：${m.object || ''}`;
+                  }
+            }
             const weight = (m.weight || 1).toFixed(1);
             const date = m.timestamp ? new Date(m.timestamp).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' }) : '';
             const subPredicate = m.predicate || '';
@@ -401,7 +410,7 @@
             if (!res.ok) throw new Error('获取来源失败');
             const source = await res.json();
             const time = source.timestamp ? new Date(source.timestamp).toLocaleString('zh-CN') : '未知时间';
-            const roleLabel = source.role === 'user' ? 'Rinka' : '瑛';
+            const roleLabel = source.role === 'user' ? '' : '瑛';
             alert(`来源对话\n\n${roleLabel}：${source.content}\n\n🕐 ${time}`);
         } catch (err) {
             console.error('查看来源失败:', err);
@@ -447,25 +456,70 @@
 
     // ============ 7. 图谱可视化 (ECharts) ============
     function renderChart(data) {
-        const chartDom = document.getElementById('graph-chart');
-        if (!chartDom) return;
-        if (!chartInstance) {
-            chartInstance = echarts.init(chartDom);
-        }
+    const chartDom = document.getElementById('graph-chart');
+    if (!chartDom) return;
+    if (!chartInstance) {
+        chartInstance = echarts.init(chartDom);
+    }
 
-        let filtered = data;
-        if (currentCategory) {
-            filtered = data.filter(item => (item.category || '其他') === currentCategory);
-        }
+    let filtered = data;
+    if (currentCategory) {
+        filtered = data.filter(item => (item.category || '其他') === currentCategory);
+    }
 
-        if (filtered.length === 0) {
-            chartInstance.clear();
-            chartInstance.setOption({
-                title: { text: '暂无记忆可展示', left: 'center', top: 'center', textStyle: { color: '#ccc', fontSize: 14, fontWeight: 400 } }
+    if (filtered.length === 0) {
+        chartInstance.clear();
+        chartInstance.setOption({
+            title: { text: '暂无记忆可展示', left: 'center', top: 'center', textStyle: { color: '#ccc', fontSize: 14, fontWeight: 400 } }
+        });
+        chartInstance.resize();
+        return;
+    }
+
+    const displayData = filtered.slice(0, 30);
+
+    const nodes = [];
+    const links = [];
+    const categories = [
+        { name: '人物', itemStyle: { color: '#a11d48' } },
+        { name: '事实', itemStyle: { color: '#ffb6c1' } }
+    ];
+
+    // 👇 中心节点改为 瑛
+    nodes.push({ id: '瑛', name: '瑛', category: 0, symbolSize: 48 });
+
+    displayData.forEach((item, index) => {
+        const factId = 'fact_' + index;
+        const factName = (item.object || item.fact || '').slice(0, 18);
+        if (!nodes.find(n => n.id === factId)) {
+            nodes.push({
+                id: factId,
+                name: factName || '📌',
+                category: 1,
+                symbolSize: 22,
+                rawFact: item.fact || item.object,
+                subject: item.subject || 'Rinka'
             });
-            chartInstance.resize();
-            return;
         }
+
+        // 👇 根据 subject 决定边的方向
+        // 如果 subject 是 "瑛"，边从 "瑛" 指向事实
+        // 如果 subject 是 "Rinka"，边也从 "瑛" 指向事实（瑛记住的关于 Rinka 的事）
+        // 统一从 瑛 指向事实，但 label 显示谁与谁的关系
+        let edgeLabel = item.predicate || '相关';
+        if (item.subject === 'Rinka') {
+            edgeLabel = `关于 Rinka：${edgeLabel}`;
+        } else if (item.subject === '瑛') {
+            edgeLabel = `我的：${edgeLabel}`;
+        }
+
+        links.push({
+            source: '瑛',
+            target: factId,
+            label: { show: true, formatter: edgeLabel, fontSize: 9 }
+        });
+    });
+
 
         // 限制显示数量（最多 30 条）
         const displayData = filtered.slice(0, 30);
