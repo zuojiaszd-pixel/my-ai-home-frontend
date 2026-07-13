@@ -612,8 +612,13 @@ async function executeSendAction(contentText) {
 
     // 添加用户消息
     const userHtml = `<div class="msg-row user-row"><img class="avatar" src="${uAv}"><div class="message user-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div></div>`;
+    const isDuplicate = localMsgList.some(item => item.html === userHtml);
+if (!isDuplicate) {
     appendMsgCache(userHtml);
-    renderAllLocal();
+} else {
+    console.warn("⏭️ 用户消息已存在，跳过添加");
+}
+renderAllLocal();
 
     // AI占位
     const aiHtmlPlaceholder = `<div class="msg-row ai-row" style="margin-top: 10px;"><img src="${aAv}" class="avatar"><div class="message ai-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text" id="streaming-ai-text">⏳ 思考中...</div></div></div>`;
