@@ -322,13 +322,13 @@ function safeSendTrigger(callSendFunc) {
 }
    
 function appendMsgCache(htmlStr) {
-    console.log("📦 appendMsgCache 被调用，当前长度:", localMsgList.length);
-    console.log("📦 调用堆栈:", new Error().stack);
-    // 检查是否重复添加
-    const lastItem = localMsgList[localMsgList.length - 1];
-    if (lastItem && lastItem.html === htmlStr) {
-        console.warn("⚠️ 检测到重复添加相同内容，可能有问题！");
+    // 检查是否已有相同内容
+    const isDuplicate = localMsgList.some(item => item.html === htmlStr);
+    if (isDuplicate) {
+        console.warn("⏭️ 检测到重复消息，跳过添加");
+        return;
     }
+    console.log("📦 appendMsgCache 被调用，当前长度:", localMsgList.length);
     localMsgList.push({ html: htmlStr });
     if (localMsgList.length > MAX_LOCAL_SHOW) localMsgList.shift();
 }
