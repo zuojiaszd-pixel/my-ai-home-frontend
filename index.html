@@ -609,7 +609,9 @@
 
         <div class="input-area">
             <button class="btn-icon" id="emoji-trigger">🎀</button>
-            <input type="text" id="user-input" placeholder="和瑛聊聊天吧...">
+            <button class="btn-icon" id="file-upload-trigger" title="上传文件">📎</button>
+            <input type="file" id="file-input" style="display:none">
+            <input type="text" id="user-input" placeholder="Reply to Claude">
             <button class="send-btn" id="sendBtn">发送</button>
             <div id="emoji-pop-panel" class="emoji-pop-panel">
                 <!-- 表情包（保持不变） -->
@@ -1109,6 +1111,48 @@ document.addEventListener('click', () => {
     if(e) e.style.display = "none";
 });
 
+const fileTrigger = document.getElementById('file-upload-trigger');
+const fileInput = document.getElementById('file-input');
+
+fileTrigger.addEventListener('click', function() {
+    fileInput.click();
+});
+
+fileInput.addEventListener('change', async function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    // 显示上传状态
+    const sendBtn = document.getElementById('sendBtn');
+    sendBtn.textContent = '上传中...';
+    sendBtn.disabled = true;
+
+    try {
+        const res = await fetch(`${BACKEND_URL}/upload`, {
+            method: 'POST',
+            body: formData
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            // 把文件链接作为消息发送
+            document.getElementById('user-input').value = `📎 ${data.data.originalName}\n${data.data.url}`;
+            sendMessage();
+        } else {
+            alert('上传失败: ' + data.error);
+        }
+    } catch (err) {
+        alert('上传失败: ' + err.message);
+    } finally {
+        sendBtn.textContent = '发送';
+        sendBtn.disabled = false;
+        fileInput.value = '';
+    }
+});
+    
 // 模型下拉关闭（已在 DOMContentLoaded 中处理）
 </script>
 </body>
