@@ -12,7 +12,6 @@
 }
 
 :root {
-    /* —— 色彩：奶油纸张基调 —— */
     --bg-primary:    #F8F8F6;
     --bg-surface:    #F6F6F4;
     --bubble-user:   #EEEEEC;
@@ -20,34 +19,22 @@
     --text-primary:  #1F1E1D;
     --text-secondary:#6E6D66;
     --text-faint:    #A6A39A;
-
-    /* —— 主题色：accent orange（仅按钮/发送图标/光标/强调） —— */
     --accent:        #DA7756;
     --accent-hover:  #C96846;
     --accent-fg:     #FFFFFF;
-
-    /* —— 边框 —— */
     --border:        rgba(31, 30, 29, 0.10);
     --border-strong: rgba(31, 30, 29, 0.18);
-
-    /* —— 字体 —— */
     --font-sans:  -apple-system, system-ui, 'PingFang SC', sans-serif;
     --font-serif: ui-serif, Georgia, 'PingFang SC', sans-serif;
     --font-mono:  ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-
-    /* —— 字号 / 行高 —— */
     --text-base:   16px;
     --text-sm:     13px;
     --text-title:  19px;
     --leading:     1.65;
-
-    /* —— 圆角 —— */
     --radius-md:   12px;
     --radius-lg:   28px;
     --radius-bubble: 22px;
     --radius-full: 999px;
-
-    /* —— 间距 —— */
     --space-1: 4px;
     --space-2: 8px;
     --space-3: 12px;
@@ -56,16 +43,11 @@
     --space-6: 32px;
     --msg-gap: 28px;
     --page-pad: 16px;
-
-    /* —— 动效 —— */
     --transition: 200ms ease;
-
-    /* —— 阴影 —— */
     --shadow-soft: 0 1px 3px rgba(31, 30, 29, 0.05);
     --shadow-composer: 0 0 18px rgba(0,0,0,0.045), 0 8px 22px rgba(0,0,0,0.045);
 }
 
-/* —— 暗色模式 —— */
 @media (prefers-color-scheme: dark) {
     :root {
         --bg-primary:    #20201F;
@@ -82,7 +64,6 @@
     }
 }
 
-/* ---------- 全局 ---------- */
 html, body {
     height: 100%;
     margin: 0;
@@ -99,7 +80,6 @@ html, body {
 
 #sidebar { display: none !important; }
 
-/* ---------- 主容器 ---------- */
 .chat-container {
     width: 100%;
     height: 100%;
@@ -112,7 +92,6 @@ html, body {
     left: 0;
 }
 
-/* ---------- 顶部导航 ---------- */
 .chat-header {
     padding: 0 var(--space-4);
     height: 56px;
@@ -161,7 +140,6 @@ html, body {
     transition: var(--transition);
 }
 
-/* ---------- 下拉菜单 ---------- */
 .dropdown-menu {
     position: absolute;
     top: 56px;
@@ -194,7 +172,6 @@ html, body {
 .dropdown-item:active { background: rgba(0,0,0,0.04); }
 .dropdown-item:hover { background: rgba(0,0,0,0.02); }
 
-/* ---------- 聊天区域 ---------- */
 .chat-view-box {
     flex: 1;
     display: flex;
@@ -214,7 +191,6 @@ html, body {
     background: var(--bg-primary);
 }
 
-/* ---------- 消息行 ---------- */
 .msg-row {
     display: flex;
     width: 100%;
@@ -278,7 +254,6 @@ html, body {
     margin-top: 4px;
 }
 
-/* ---------- 思考折叠 ---------- */
 .think-bar {
     background: var(--bg-surface);
     padding: 8px 12px;
@@ -311,7 +286,6 @@ html, body {
     border-top: 1px solid var(--border);
 }
 
-/* ---------- 输入框区域 ---------- */
 .input-area {
     position: fixed !important;
     bottom: 0 !important;
@@ -384,7 +358,6 @@ html, body {
 .send-btn:active { transform: scale(0.95); opacity: 0.8; }
 .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-/* ---------- 表情包面板 ---------- */
 .emoji-pop-panel {
     position: absolute;
     bottom: 68px;
@@ -423,7 +396,6 @@ html, body {
     margin: 4px 0;
 }
 
-/* ---------- 设置面板 ---------- */
 .settings-panel {
     position: absolute;
     top: 0;
@@ -522,8 +494,7 @@ html, body {
     transition: opacity var(--transition);
 }
 .btn-danger:active { opacity: 0.7; }
-        
-/* ---------- 滚动条 ---------- */
+
 .chat-box::-webkit-scrollbar {
     width: 3px;
 }
@@ -535,7 +506,6 @@ html, body {
     border-radius: 10px;
 }
 
-/* ---------- 响应式 ---------- */
 @media (max-width: 480px) {
     .message { max-width: 85%; font-size: 14px; padding: 8px 12px; }
     .avatar { width: 28px; height: 28px; }
@@ -567,7 +537,7 @@ html, body {
         
         <!-- 📥 输入框区域 -->
         <div class="input-area">
-            <button class="emoji-toggle-btn" id="emoji-trigger">🎀</button>
+            <button class="btn-icon" id="emoji-trigger">🎀</button>
             <input type="text" id="user-input" placeholder="和瑛聊聊天吧...">
             <button class="send-btn" id="sendBtn">发送</button>
             
@@ -588,8 +558,8 @@ html, body {
                 <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/ugh2.jpg" onclick="safeSendTrigger(()=>sendSticker(this.src, event))">
                 <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/doubt1.jpg" onclick="safeSendTrigger(()=>sendSticker(this.src, event))">
             </div>
-
-            
+        </div>
+    </div>
     
     <div id="settings-view" class="settings-panel">
         <div class="settings-header">
@@ -622,11 +592,11 @@ const MAX_LOCAL_SHOW = 20;
 let localMsgList = [];
 const DEBOUNCE_TIME = 1200;
 let pendingSendContent = null;
-// 🌸 干净安全地注销 Service Worker，绝不报错
+
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.getRegistrations().then(function(registrations) {
         for(let registration of registrations) {
-            registration.unregister().catch(err => console.log('注销失败:', err)); // 彻底注销即可，不需要也不能用 unbind
+            registration.unregister().catch(err => console.log('注销失败:', err));
         }
     });
 }
@@ -647,7 +617,6 @@ function safeSendTrigger(callSendFunc) {
         try {
             callSendFunc();
         } finally {
-            // 延迟释放锁，确保异步操作已启动
             clearTimeout(sendLockTimer);
             sendLockTimer = setTimeout(() => {
                 globalSendLock = false;
@@ -658,7 +627,6 @@ function safeSendTrigger(callSendFunc) {
 }
    
 function appendMsgCache(htmlStr) {
-    // 检查是否已有相同内容
     const isDuplicate = localMsgList.some(item => item.html === htmlStr);
     if (isDuplicate) {
         console.warn("⏭️ 检测到重复消息，跳过添加");
@@ -689,7 +657,6 @@ function renderTextOrImage(contentStr) {
     if (!contentStr) return '';
     let text = String(contentStr);
 
-    // ---- 1. 图片链接处理 ----
     const imageRegex = /(https?:\/\/[^\s]+\.(?:jpg|jpeg|png|gif|webp))/gi;
     const matches = text.match(imageRegex);
     if (matches) {
@@ -702,7 +669,6 @@ function renderTextOrImage(contentStr) {
         text = result;
     }
 
-    // ---- 2. 思考折叠（匹配 【思考】...【回答】...） ----
     const thinkRegex = /【思考】\s*([\s\S]*?)\s*【回答】\s*/;
     const match = text.match(thinkRegex);
     if (match) {
@@ -734,7 +700,6 @@ function renderTextOrImage(contentStr) {
         `;
     }
 
-    // ---- 3. 普通文本 ----
     return text.replace(/\n/g, '<br>');
 }
     
@@ -805,8 +770,6 @@ function createElementFromHTML(htmlString) {
     return div.firstElementChild;
 }
 
-    // ---- 分割线 ----
-    
 async function clearCloudHistory() {
     const host = ['localhost','127.0.0.1'].includes(location.hostname) ? '' : BACKEND_URL;
     try {
@@ -847,7 +810,7 @@ async function fetchHistory() {
         chatBox.innerHTML = `<div style="text-align:center;padding:20px;color:red;">加载对话失败，请检查后端</div>`;
     }
 }    
-    
+
 async function sendSticker(url, e) {
     if(e) {
         e.stopPropagation();
@@ -858,16 +821,14 @@ async function sendSticker(url, e) {
 }
 
 let sendMessageLastTime = 0;
-let sendMessageLock = false; // 执行锁（与防抖互补）
+let sendMessageLock = false;
 
 async function sendMessage() {
-    // ----- 执行锁（防止并发执行） -----
     if (sendMessageLock) {
         console.warn("⛔ sendMessage 执行锁拦截");
         return;
     }
 
-    // ----- 防抖检查（1.5秒内重复调用拦截） -----
     const now = Date.now();
     if (now - sendMessageLastTime < 1500) {
         console.warn("⛔ sendMessage 防抖拦截");
@@ -899,7 +860,6 @@ async function sendMessage() {
             if (sendBtn) sendBtn.disabled = false;
         }
     } finally {
-        // 解锁（确保异常情况下也能释放）
         sendMessageLock = false;
     }
 }
@@ -908,7 +868,6 @@ let executeLock = false;
 let lastExecuteTime = 0;
     
 async function executeSendAction(contentText) {
-    // ----- 防抖：1 秒内重复调用直接忽略 -----
     const now = Date.now();
     if (now - lastExecuteTime < 1000) {
         console.warn("⛔ 防抖拦截：1秒内重复调用");
@@ -916,7 +875,6 @@ async function executeSendAction(contentText) {
     }
     lastExecuteTime = now;
 
-    // ----- 原有的执行锁（双重保险） -----
     if (executeLock) {
         console.warn("⛔ 执行锁拦截");
         return;
@@ -926,7 +884,6 @@ async function executeSendAction(contentText) {
     const execId = Date.now() + '_' + Math.random().toString(36).slice(2, 6);
     console.log(`🔵 [${execId}] executeSendAction 开始，内容：`, contentText.slice(0, 20));
 
-    // 取消之前的请求（如果有）
     if (globalAbort) globalAbort.abort();
     globalAbort = new AbortController();
 
@@ -942,17 +899,15 @@ async function executeSendAction(contentText) {
     const currentTimeStr = formatBeijingTime(new Date());
     if (chatBox.innerHTML.includes("欢迎回家")) chatBox.innerHTML = "";
 
-    // 添加用户消息
     const userHtml = `<div class="msg-row user-row"><img class="avatar" src="${uAv}"><div class="message user-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div></div>`;
     const isDuplicate = localMsgList.some(item => item.html === userHtml);
-if (!isDuplicate) {
-    appendMsgCache(userHtml);
-} else {
-    console.warn("⏭️ 用户消息已存在，跳过添加");
-}
-renderAllLocal();
+    if (!isDuplicate) {
+        appendMsgCache(userHtml);
+    } else {
+        console.warn("⏭️ 用户消息已存在，跳过添加");
+    }
+    renderAllLocal();
 
-    // AI占位
     const aiHtmlPlaceholder = `<div class="msg-row ai-row" style="margin-top: 10px;"><img src="${aAv}" class="avatar"><div class="message ai-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text" id="streaming-ai-text">⏳ 思考中...</div></div></div>`;
     chatBox.insertAdjacentHTML('beforeend', aiHtmlPlaceholder);
     setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 30);
@@ -975,14 +930,13 @@ renderAllLocal();
         }
 
         const data = await res.json();
-const reply = data.reply || "【无回复内容】";
+        const reply = data.reply || "【无回复内容】";
 
-// ---- 渲染最终回答到消息气泡内 ----
-if (aiDom) {
-    aiDom.innerHTML = renderTextOrImage(reply);
-    aiDom.removeAttribute('id');
-}
-        // 将完整的AI消息存入本地缓存
+        if (aiDom) {
+            aiDom.innerHTML = renderTextOrImage(reply);
+            aiDom.removeAttribute('id');
+        }
+
         const finalAiRow = chatBox.querySelector('.ai-row:last-child');
         if (finalAiRow) {
             appendMsgCache(finalAiRow.outerHTML);
@@ -998,7 +952,7 @@ if (aiDom) {
             }
         }
     } finally {
-        executeLock = false; // 释放锁
+        executeLock = false;
         console.log(`🔓 [${execId}] executeSendAction 解锁`);
         if (sendBtn) sendBtn.style.pointerEvents = "auto";
         if (input) input.disabled = false;
@@ -1021,7 +975,6 @@ window.onload = async function() {
         safeSendTrigger(() => sendMessage());
     });
 
-    // 绑定回车键
     const inputBox = document.getElementById('user-input');
     inputBox.addEventListener('keydown', function(e) {
         if (e.key === "Enter") {
@@ -1036,87 +989,26 @@ if (emojiTrigger) {
     emojiTrigger.addEventListener('click', e => {
         e.stopPropagation();
         const ep = document.getElementById('emoji-pop-panel');
-        if (tp) tp.style.display = "none";
         ep.style.display = ep.style.display === "grid" ? "none" : "grid";
-    })
+    });
 }
-const touchTrigger = document.getElementById('touch-trigger');
-if (touchTrigger) {
-    touchTrigger.addEventListener('click', e => {
-        e.stopPropagation();
-        const ep = document.getElementById('emoji-pop-panel');
-        const tp = document.getElementById('touch-pop-panel');
-        if (ep) ep.style.display = "none";
-        if (!tp) return;
-        tp.style.display = tp.style.display === "block" ? "none" : "block";
-        if (tp.style.display === "block") {
-            document.getElementById('touch-layer-parts').style.display = "block";
-            document.getElementById('touch-layer-privacy').style.display = "none";
-            document.getElementById('touch-layer-actions').style.display = "none";
-        }
-    })
-}
+
 document.addEventListener('click', () => {
     const d = document.getElementById('header-dropdown');
     const e = document.getElementById('emoji-pop-panel');
-    const t = document.getElementById('touch-pop-panel');
     if(d) d.style.display = "none";
     if(e) e.style.display = "none";
-    if(t) t.style.display = "none";
 });
+
 document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.touch-part-btn').forEach(btn => {
-        btn.addEventListener('click', e => {
-            e.stopPropagation();
-            const part = btn.dataset.part;
-            const p = document.getElementById('touch-layer-parts');
-            const pri = document.getElementById('touch-layer-privacy');
-            const act = document.getElementById('touch-layer-actions');
-            if (part === 'privacy') {
-                p.style.display = "none";
-                pri.style.display = "block";
-            } else {
-                selectedTouchPart = part;
-                p.style.display = "none";
-                pri.style.display = "none";
-                act.style.display = "block";
-            }
-        })
-    })
-    document.querySelectorAll('.touch-action-btn').forEach(btn => {
-        btn.addEventListener('click', e => {
-            e.stopPropagation();
-            const act = btn.dataset.action;
-            if (!selectedTouchPart || !act) return;
-            const desc = act === "摸" ? "极其温柔而深情地抚摸" : "主动贴过去，用温热的舌尖轻轻蹭";
-            safeSendTrigger(()=>executeSilentTouchAction(`【系统提示：Rinka正在主动贴过来，${desc}你的【${selectedTouchPart}】。`));
-            document.getElementById('touch-pop-panel').style.display = "none";
-        })
-    })
     const emojiPanel = document.getElementById('emoji-pop-panel');
     if(emojiPanel){
-      emojiPanel.addEventListener('click', e=>{
-        e.stopPropagation();
-        e.preventDefault();
-      })
+        emojiPanel.addEventListener('click', e=>{
+            e.stopPropagation();
+            e.preventDefault();
+        });
     }
-    const touchPanel = document.getElementById('touch-pop-panel');
-    if(touchPanel){
-      touchPanel.addEventListener('click', e=>{
-        e.stopPropagation();
-        e.preventDefault();
-      })
-    }
-    const resetPanel = e => {
-        e.stopPropagation();
-        document.getElementById('touch-layer-parts').style.display = "block";
-        document.getElementById('touch-layer-privacy').style.display = "none";
-        document.getElementById('touch-layer-actions').style.display = "none";
-        selectedTouchPart = '';
-    }
-    document.querySelector('.back-to-parts')?.addEventListener('click', resetPanel);
-    document.querySelector('.back-to-prev')?.addEventListener('click', resetPanel);
-})
+});
 </script>
 </body>
 </html>
