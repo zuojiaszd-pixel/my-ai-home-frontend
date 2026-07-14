@@ -722,10 +722,10 @@ function safeSendTrigger(callSendFunc) {
         globalSendLock = true;
         console.log("🔒 safeSendTrigger 加锁成功");
         callSendFunc();
-        // 锁由 sendMessage 释放，不由 safeSendTrigger 释放
+        // 注意：锁由 sendMessage 的 finally 释放，这里不释放
     }
 }
-   
+    
 let isAppending = false;
 let lastAddedContent = '';
 
@@ -999,6 +999,8 @@ async function sendMessage() {
         }
     } finally {
         sendMessageLock = false;
+        globalSendLock = false; // 👈 释放 safeSendTrigger 的锁
+        console.log("🔓 所有锁已释放");
     }
 }
     
