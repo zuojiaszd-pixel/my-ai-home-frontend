@@ -738,22 +738,25 @@ function safeSendTrigger(callSendFunc) {
 let isAppending = false;
 
 function appendMsgCache(htmlStr) {
-    // 如果正在执行，直接返回
-    if (isAppending) {
-        console.warn("⛔ appendMsgCache 递归调用，已拦截");
+    // 提取文本内容（去掉时间戳等动态元素）
+    const textMatch = htmlStr.match(/<div class="msg-text">([\s\S]*?)<\/div>/);
+    const content = textMatch ? textMatch[1].trim() : htmlStr;
+    
+    // 检查是否已有相同内容
+    const isDuplicate = localMsgList.some(item => {
+        const existingText = item.html.match(/<div class="msg-text">([\s\S]*?)<\/div>/);
+        return existingText && existingText[1].trim() === content;
+    });
+    
+    if (isDuplicate) {
+        console.warn("⏭️ 检测到重复消息（内容相同），跳过添加");
         return;
     }
-    isAppending = true;
-
-    try {
-        const isDuplicate = localMsgList.some(item => item.html === htmlStr);
-        if (isDuplicate) {
-            console.warn("⏭️ 检测到重复消息，跳过添加");
-            return;
-        }
-        console.log("📦 appendMsgCache 被调用，当前长度:", localMsgList.length);
-        localMsgList.push({ html: htmlStr });
-        if (localMsgList.length > MAX_LOCAL_SHOW) localMsgList.shift();
+    
+    console.log("📦 appendMsgCache 被调用，当前长度:", localMsgList.length);
+    localMsgList.push({ html: htmlStr });
+    if (localMsgList.length > MAX_LOCAL_SHOW) localMsgList.shift();
+}
     } finally {
         // 无论成功还是失败，都要释放锁
         isAppending = false;
