@@ -735,15 +735,26 @@ function safeSendTrigger(callSendFunc) {
     }
 }
    
+let isAppending = false;
+
 function appendMsgCache(htmlStr) {
+    if (isAppending) {
+        console.warn("⛔ appendMsgCache 递归调用，已拦截");
+        return;
+    }
+    isAppending = true;
+
     const isDuplicate = localMsgList.some(item => item.html === htmlStr);
     if (isDuplicate) {
         console.warn("⏭️ 检测到重复消息，跳过添加");
+        isAppending = false;
         return;
     }
     console.log("📦 appendMsgCache 被调用，当前长度:", localMsgList.length);
     localMsgList.push({ html: htmlStr });
     if (localMsgList.length > MAX_LOCAL_SHOW) localMsgList.shift();
+
+    isAppending = false;
 }
     
 function renderAllLocal() {
@@ -891,7 +902,15 @@ async function clearCloudHistory() {
     }
 }
        
+let isFetching = false;
+
 async function fetchHistory() {
+    if (isFetching) {
+        console.warn("⏭️ 正在加载历史，跳过本次请求");
+        return;
+    }
+    isFetching = true;
+    
     const chatBox = document.getElementById('chat-box');
     if (!chatBox) return;
     const host = ['localhost','127.0.0.1'].includes(location.hostname) ? '' : BACKEND_URL;
