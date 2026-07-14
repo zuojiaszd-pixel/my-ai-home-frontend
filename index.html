@@ -712,26 +712,17 @@ if ('serviceWorker' in navigator) {
     
 // ---------- 全局锁 ----------
 let globalSendLock = false;
-let sendLockTimer = null;
 
 function safeSendTrigger(callSendFunc) {
-    console.log("🔔 safeSendTrigger 被调用，当前锁状态:", globalSendLock);
     if (globalSendLock) {
-        console.warn("⛔ 拦截重复调用");
+        console.warn("⛔ safeSendTrigger 拦截重复调用");
         return;
     }
     if (typeof callSendFunc === 'function') {
         globalSendLock = true;
-        console.log("🔒 加锁成功");
-        try {
-            callSendFunc();
-        } finally {
-            clearTimeout(sendLockTimer);
-            sendLockTimer = setTimeout(() => {
-                globalSendLock = false;
-                console.log("🔓 锁已释放");
-            }, 500);
-        }
+        console.log("🔒 safeSendTrigger 加锁成功");
+        callSendFunc();
+        // 锁由 sendMessage 释放，不由 safeSendTrigger 释放
     }
 }
    
