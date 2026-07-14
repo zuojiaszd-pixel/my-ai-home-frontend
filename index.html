@@ -1093,10 +1093,12 @@ async function executeSendAction(contentText) {
                 aiDom.innerHTML = `<span style="color:#ff6b6b;">⚠️ 请求失败，请重试</span>`;
             }
         }
-    } finally {
-        executeLock = false;
-        console.log(`🔓 [${execId}] executeSendAction 解锁`);
-    }
+    finally {
+    executeLock = false;
+    globalSendLock = false;
+    if (sendBtn) sendBtn.style.pointerEvents = "auto";  // 👈 恢复按钮点击
+    if (input) input.disabled = false;                  // 👈 恢复输入框
+    console.log(`🔓 [${execId}] executeSendAction 解锁`);
 }
 
 window.onload = async function() {
