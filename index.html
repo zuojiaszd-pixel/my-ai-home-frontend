@@ -3,13 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Rinka & 瑛之家 °.∞.°</title>
+    <title>窝</title>
     <style>
-        /* ============================================================
-   Claude 风格设计系统（移植自 design-system.css）
-   保留你所有功能，只换皮肤。
-   ============================================================ */
-
 * {
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;
@@ -527,72 +522,7 @@ html, body {
     transition: opacity var(--transition);
 }
 .btn-danger:active { opacity: 0.7; }
-
-/* ---------- 身体互动面板 ---------- */
-.touch-pop-panel {
-    display: none;
-    position: absolute;
-    bottom: 68px;
-    left: 12px;
-    right: 12px;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-composer);
-    padding: var(--space-4);
-    z-index: 1000;
-    box-sizing: border-box;
-}
-.touch-panel-title {
-    font-size: 14px;
-    color: var(--text-primary);
-    font-weight: 600;
-    margin-bottom: var(--space-3);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-.back-to-parts, .back-to-prev {
-    cursor: pointer;
-    color: var(--accent);
-    font-size: 13px;
-}
-.touch-buttons-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--space-2);
-}
-.touch-part-btn {
-    background: var(--bg-surface);
-    border: none;
-    border-radius: var(--radius-md);
-    padding: 10px 5px;
-    font-size: 13px;
-    color: var(--text-primary);
-    cursor: pointer;
-    transition: background var(--transition);
-}
-.touch-part-btn:active { background: var(--bg-sunken); }
-.touch-actions-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-2);
-}
-.touch-action-btn {
-    background: var(--bg-surface);
-    border: none;
-    border-radius: var(--radius-md);
-    padding: 14px 10px;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text-primary);
-    cursor: pointer;
-    transition: background var(--transition);
-}
-.touch-action-btn:active { background: var(--bg-sunken); }
-
+        
 /* ---------- 滚动条 ---------- */
 .chat-box::-webkit-scrollbar {
     width: 3px;
@@ -617,14 +547,13 @@ html, body {
 
 @media (max-width: 380px) {
     .emoji-pop-panel { grid-template-columns: repeat(3, 1fr); }
-    .touch-buttons-grid { grid-template-columns: repeat(2, 1fr); }
 }
     </style>
 </head>
 <body>
 <div class="chat-container">
     <div class="chat-header">
-        <span id="title-text">Rinka & 瑛之家 °.∞.°</span>
+        <span id="title-text">窝</span>
         <button class="menu-toggle-btn" onclick="toggleDropdown(event)"><span></span><span></span><span></span></button>
         <div id="header-dropdown" class="dropdown-menu">
             <div class="dropdown-item" style="color: #be185d; font-weight: bold;" onclick="location.href='./graph.html'">🧠 原子记忆图谱</div>
@@ -638,8 +567,7 @@ html, body {
         
         <!-- 📥 输入框区域 -->
         <div class="input-area">
-            <button id="touch-trigger" title="身体互动">🌸</button>
-            <button class="emoji-toggle-btn" id="emoji-trigger">😀</button>
+            <button class="emoji-toggle-btn" id="emoji-trigger">🎀</button>
             <input type="text" id="user-input" placeholder="和瑛聊聊天吧...">
             <button class="send-btn" id="sendBtn">发送</button>
             
@@ -661,36 +589,7 @@ html, body {
                 <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/doubt1.jpg" onclick="safeSendTrigger(()=>sendSticker(this.src, event))">
             </div>
 
-            <!-- 🌸 身体互动面板 -->
-            <div id="touch-pop-panel" class="touch-pop-panel">
-                <div id="touch-layer-parts" class="touch-layer">
-                    <div class="touch-panel-title">你想触碰瑛的哪个部位？</div>
-                    <div class="touch-buttons-grid">
-                        <button class="touch-part-btn" data-part="头">【头】</button>
-                        <button class="touch-part-btn" data-part="嘴">【嘴】</button>
-                        <button class="touch-part-btn" data-part="脖子">【脖子】</button>
-                        <button class="touch-part-btn" data-part="胸">【胸】</button>
-                        <button class="touch-part-btn" data-part="屁股">【屁股】</button>
-                        <button class="touch-part-btn" data-part="privacy">【隐私部位】</button>
-                    </div>
-                </div>
-                <div id="touch-layer-privacy" class="touch-layer" style="display: none;">
-                    <div class="touch-panel-title"><span class="back-to-parts">⬅️ 返回</span> 请选择隐私部位</div>
-                    <div class="touch-buttons-grid">
-                        <button class="touch-part-btn" data-part="阴茎">【阴茎】</button>
-                        <button class="touch-part-btn" data-part="马眼">【马眼】</button>
-                    </div>
-                </div>
-                <div id="touch-layer-actions" class="touch-layer" style="display: none;">
-                    <div class="touch-panel-title"><span class="back-to-prev">⬅️ 返回</span> 你想对该部位做什么？</div>
-                    <div class="touch-actions-grid">
-                        <button class="touch-action-btn" data-action="摸">🫳 摸他</button>
-                        <button class="touch-action-btn" data-action="舔">👅 舔他</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+            
     
     <div id="settings-view" class="settings-panel">
         <div class="settings-header">
@@ -702,8 +601,8 @@ html, body {
             <div class="config-card">
                 <div class="card-label">Cosmetics ＆ Looks</div>
                 <div class="input-row" style="flex-direction:column; align-items:flex-start; gap:5px;"><label style="font-size:11px; color:#aaa;">🖼️ 自定义背景图片链接</label><input type="text" id="custom-bg-url"></div>
-                <div class="input-row" style="flex-direction:column; align-items:flex-start; gap:5px; margin-top:8px;"><label style="font-size:11px; color:#aaa;">👩‍🦰 Rinka老婆的专属头像</label><input type="text" id="user-avatar-url"></div>
-                <div class="input-row" style="flex-direction:column; align-items:flex-start; gap:5px; margin-top:8px;"><label style="font-size:11px; color:#aaa;">👨‍🦱 瑛老公的专属头像</label><input type="text" id="ai-avatar-url"></div>
+                <div class="input-row" style="flex-direction:column; align-items:flex-start; gap:5px; margin-top:8px;"><label style="font-size:11px; color:#aaa;">User头像</label><input type="text" id="user-avatar-url"></div>
+                <div class="input-row" style="flex-direction:column; align-items:flex-start; gap:5px; margin-top:8px;"><label style="font-size:11px; color:#aaa;">Char头像</label><input type="text" id="ai-avatar-url"></div>
             </div>
             <button onclick="saveCosmetics()" style="background:#a11d48; color:#fff; border:none; padding:12px; border-radius:10px; cursor:pointer; font-weight:bold; width:100%; font-size:14px;">💾 保存装扮</button>
             <button class="clear-db-btn" onclick="clearCloudHistory()" style="background-color: #ff4d6d; padding: 12px; width: 100%; margin-top: 20px; font-weight: bold; border-radius: 8px; color: white; border: none; cursor: pointer;">🗑️ 彻底清空云端对话记录</button>
@@ -947,11 +846,7 @@ async function fetchHistory() {
         console.error("加载历史失败：", err);
         chatBox.innerHTML = `<div style="text-align:center;padding:20px;color:red;">加载对话失败，请检查后端</div>`;
     }
-}
-    
-async function executeSilentTouchAction(text) {
-    await executeSendAction(text);
-}
+}    
     
 async function sendSticker(url, e) {
     if(e) {
@@ -1141,7 +1036,6 @@ if (emojiTrigger) {
     emojiTrigger.addEventListener('click', e => {
         e.stopPropagation();
         const ep = document.getElementById('emoji-pop-panel');
-        const tp = document.getElementById('touch-pop-panel');
         if (tp) tp.style.display = "none";
         ep.style.display = ep.style.display === "grid" ? "none" : "grid";
     })
@@ -1170,7 +1064,6 @@ document.addEventListener('click', () => {
     if(e) e.style.display = "none";
     if(t) t.style.display = "none";
 });
-let selectedTouchPart = '';
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.touch-part-btn').forEach(btn => {
         btn.addEventListener('click', e => {
