@@ -738,30 +738,33 @@ function safeSendTrigger(callSendFunc) {
 let isAppending = false;
 
 function appendMsgCache(htmlStr) {
+    // 如果正在执行，直接返回
     if (isAppending) {
         console.warn("⛔ appendMsgCache 递归调用，已拦截");
         return;
     }
     isAppending = true;
 
-    const isDuplicate = localMsgList.some(item => item.html === htmlStr);
-    if (isDuplicate) {
-        console.warn("⏭️ 检测到重复消息，跳过添加");
+    try {
+        const isDuplicate = localMsgList.some(item => item.html === htmlStr);
+        if (isDuplicate) {
+            console.warn("⏭️ 检测到重复消息，跳过添加");
+            return;
+        }
+        console.log("📦 appendMsgCache 被调用，当前长度:", localMsgList.length);
+        localMsgList.push({ html: htmlStr });
+        if (localMsgList.length > MAX_LOCAL_SHOW) localMsgList.shift();
+    } finally {
+        // 无论成功还是失败，都要释放锁
         isAppending = false;
-        return;
     }
-    console.log("📦 appendMsgCache 被调用，当前长度:", localMsgList.length);
-    localMsgList.push({ html: htmlStr });
-    if (localMsgList.length > MAX_LOCAL_SHOW) localMsgList.shift();
-
-    isAppending = false;
 }
     
 function renderAllLocal() {
     const chatBox = document.getElementById("chat-box");
     let allHtml = "";
     localMsgList.forEach(item => allHtml += item.html);
-    chatBox.innerHTML = allHtml || `<div style="text-align:center; color:#a11d48; font-size:13px; margin-top:20px;">🌸 欢迎回家，快来聊聊天吧～</div>`;
+    chatBox.innerHTML = allHtml || `<div style="text-align:center; color:#a11d48; font-size:13px; margin-top:20px;">Here.Not tired.</div>`;
     setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 50);
 }
     
@@ -994,20 +997,22 @@ async function sendMessage() {
     
 let executeLock = false;
 let lastExecuteTime = 0;
-    
-async function executeSendAction(contentText) {
-    const now = Date.now();
-    if (now - lastExecuteTime < 1000) {
-        console.warn("⛔ 防抖拦截：1秒内重复调用");
-        return;
-    }
-    lastExecuteTime = now;
 
+async function executeSendAction(contentText) {
+    // 1️⃣ 防抖 + 并发锁（合并）
+    const now = Date.now();
     if (executeLock) {
-        console.warn("⛔ 执行锁拦截");
+        console.warn("⛔ 执行锁拦截（正在发送中）");
         return;
     }
+    if (now - lastExecuteTime < 1000) {
+        console.warn("⛔ 防抖拦截（1秒内重复）");
+        return;
+    }
+
+    // 2️⃣ 加锁
     executeLock = true;
+    lastExecuteTime = now;
 
     const execId = Date.now() + '_' + Math.random().toString(36).slice(2, 6);
     console.log(`🔵 [${execId}] executeSendAction 开始，内容：`, contentText.slice(0, 20));
@@ -1082,9 +1087,6 @@ async function executeSendAction(contentText) {
     } finally {
         executeLock = false;
         console.log(`🔓 [${execId}] executeSendAction 解锁`);
-        if (sendBtn) sendBtn.style.pointerEvents = "auto";
-        if (input) input.disabled = false;
-        setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 50);
     }
 }
 
