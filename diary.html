@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>📖 Diary</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, system-ui, 'PingFang SC', sans-serif;
+            background: #F8F8F6;
+            min-height: 100vh;
+            padding: 16px;
+        }
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .header h1 { font-size: 20px; color: #1F1E1D; }
+        .back-btn { color: #DA7756; text-decoration: none; font-size: 14px; }
+        .upload-area {
+            border: 2px dashed #ddd;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            color: #999;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .upload-area:active { background: #f0f0f0; }
+        .upload-area input { display: none; }
+        .diary-list { margin-top: 20px; }
+        .diary-item {
+            background: #fff;
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            border-left: 3px solid #DA7756;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+        }
+        .diary-item .date { font-size: 12px; color: #999; }
+        .diary-item .content { font-size: 14px; color: #333; margin-top: 4px; }
+        .diary-item .tags { font-size: 11px; color: #DA7756; margin-top: 4px; }
+        .empty { text-align: center; color: #aaa; padding: 40px 0; }
+        .status { font-size: 13px; color: #4CAF50; margin-top: 10px; }
+        .status.error { color: #f44336; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>📖 Diary</h1>
+        <a href=" " class="back-btn">← 回小屋</a >
+    </div>
+
+    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+        📤 点击上传 MD 文件
+        <input type="file" id="fileInput" accept=".md,.txt" onchange="uploadDiary()">
+        <div id="uploadStatus"></div>
+    </div>
+
+    <div class="diary-list" id="diaryList">
+        <div class="empty">加载中...</div>
+    </div>
+</div>
+
+<script>
+const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
+
+async function uploadDiary() {
+    const input = document.getElementById('fileInput');
+    const file = input.files[0];
+    if (!file) return;
+
+    const status = document.getElementById('uploadStatus');
+    status.textContent = '⏳ 上传中...';
+    status.className = 'status';
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+        const res = await fetch(`${BACKEND_URL}/diary/upload`, {
+            method: 'POST',
+            body: formData
+        });
+        const data = await res.json();
+        if (data.success) {
+            status.textContent = '✅ ' + data.message;
+            status.className = 'status';
+            loadDiaries();
+        } else {
+            status.textContent = '❌ ' + data.error;
+            status.className = 'status error';
+        }
+    } catch (err) {
+        status.textContent = '❌ 上传失败: ' + err.message;
+        status.className = 'status error';
+    }
+    input.value = '';
+}
+
+async function loadDiaries() {
+    const container = document.getElementById('diaryList');
+    try {
+        const res = await fetch(`${BACKEND_URL}/diary/latest`);
+        const data = await res.json();
+        if (!data.exists) {
+            container.innerHTML = `<div class="empty">📭 还没有日记，上传一篇吧</div>`;
+            return;
+        }
+        const d = data.data;
+        container.innerHTML = `
+            <div class="diary-item">
+                <div class="date">📅 ${d.date}</div>
+                <div class="content">${d.content.slice(0, 200)}${d.content.length > 200 ? '...' : ''}</div>
+                <div class="tags">🏷️ ${d.tags.join(' · ')}</div>
+            </div>
+        `;
+    } catch (err) {
+        container.innerHTML = `<div class="empty">❌ 加载失败</div>`;
+    }
+}
+
+loadDiaries();
+</script>
+</body>
+</html>
