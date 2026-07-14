@@ -3,679 +3,210 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Claude</title>
+    <title>Rinka & 瑛之家 °.∞.°</title>
     <style>
-        /* ===== 全局重置 ===== */
         * {
             -webkit-text-size-adjust: 100%;
             -webkit-tap-highlight-color: transparent;
             box-sizing: border-box;
         }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', 'PingFang SC', sans-serif;
-            background: #f2f2f7;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-            color: #1c1c1e;
+        /* 修复移动端模糊、重复渲染卡顿 */
+        .msg-row, .message {
+            will-change: transform;
+            transform: translateZ(0);
         }
-
-        /* ===== 主容器（毛玻璃） ===== */
-        .chat-container {
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.75);
-            backdrop-filter: blur(40px);
-            -webkit-backdrop-filter: blur(40px);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        /* ===== 顶部导航 ===== */
-        .chat-header {
-            padding: 0 16px;
-            background: rgba(255, 255, 255, 0.6);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-bottom: 0.5px solid rgba(0, 0, 0, 0.08);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            height: 50px;
-            min-height: 50px;
-            z-index: 10;
-        }
-
-        #title-text {
-            font-size: 17px;
-            font-weight: 600;
-            color: #1c1c1e;
-            letter-spacing: -0.3px;
-        }
-
-        #title-text .status-dot {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            background: #34c759;
-            border-radius: 50%;
-            margin-left: 6px;
-            vertical-align: middle;
-        }
-
-        .menu-toggle-btn {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 8px;
-            transition: background 0.15s;
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-        }
-
-        .menu-toggle-btn:active {
-            background: rgba(0, 0, 0, 0.05);
-        }
-
-        .menu-toggle-btn span {
-            display: block;
-            width: 18px;
-            height: 1.5px;
-            background-color: #1c1c1e;
-            border-radius: 2px;
-            transition: 0.2s;
-        }
-
-        /* ===== 下拉菜单 ===== */
-        .dropdown-menu {
-            position: absolute;
-            top: 50px;
-            right: 16px;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 0.5px solid rgba(0, 0, 0, 0.06);
-            border-radius: 12px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-            display: none;
-            flex-direction: column;
-            padding: 4px;
-            min-width: 150px;
-            z-index: 99;
-            overflow: hidden;
-        }
-
-        .dropdown-item {
-            padding: 10px 14px;
-            font-size: 14px;
-            color: #1c1c1e;
-            text-decoration: none;
-            border-radius: 8px;
-            cursor: pointer;
-            text-align: left;
-            font-weight: 400;
-            transition: background 0.15s;
-        }
-
-        .dropdown-item:active {
-            background: rgba(0, 0, 0, 0.05);
-        }
-
-        .dropdown-item .icon {
-            margin-right: 8px;
-        }
-
-        .dropdown-item.accent {
-            color: #007aff;
-            font-weight: 500;
-        }
-
-        /* ===== 聊天区域 ===== */
-        .chat-view-box {
-            display: flex;
-            flex-direction: column;
-            flex: 1;
-            overflow: hidden;
-            position: relative;
-        }
-
         .chat-box {
-            flex: 1;
             overflow-y: auto;
-            padding: 16px 16px 20px;
-            padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px));
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-            scroll-behavior: smooth;
+            /* 适配手机底部安全区，防止输入框遮挡 */
+            padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px)) !important;
         }
-
-        /* ===== 消息行 ===== */
-        .msg-row {
-            display: flex;
-            width: 100%;
-            align-items: flex-end;
-            gap: 8px;
+        .input-area {
+            padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)) !important;
         }
-
-        .user-row {
-            flex-direction: row-reverse;
+        /* 兼容旧手机模糊滤镜失效 */
+        @supports not (backdrop-filter: blur(10px)) {
+            .emoji-pop-panel, .touch-pop-panel, .settings-view {
+                background: rgba(255,255,255,0.94) !important;
+                backdrop-filter: none;
+                -webkit-backdrop-filter: none;
+            }
         }
-
-        .ai-row {
-            flex-direction: row;
+        body {
+            font-family: 'PingFang SC', 'Helvetica Neue', -apple-system, sans-serif;
+            background: linear-gradient(135deg, #fff5f7 0%, #ffe3e8 100%) !important;
+            margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden;
         }
-
-        .avatar {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            object-fit: cover;
-            flex-shrink: 0;
-            background: #e5e5ea;
+        #sidebar { display: none !important; }
+        .chat-container {
+            width: 100%; position: fixed; top: 0; bottom: 0; background: rgba(255, 255, 255, 0.45); 
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); display: flex; flex-direction: column; overflow: hidden; box-sizing: border-box;
         }
-
-        .message {
-            max-width: 75%;
-            padding: 9px 14px;
-            font-size: 15px;
-            line-height: 1.5;
-            word-wrap: break-word;
-            border-radius: 18px;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        .chat-header {
+            padding: 0 20px; background: rgba(255, 255, 255, 0.6); border-bottom: 1px solid rgba(255, 204, 213, 0.3); 
+            display: flex; justify-content: center; align-items: center; position: relative; height: 60px; min-height: 60px; box-sizing: border-box; z-index: 10;
         }
-
-        .user-msg {
-            background: #007aff;
-            color: #fff;
-            border-bottom-right-radius: 4px;
+        #title-text { font-size: 16px; font-weight: bold; color: #a11d48; }
+        .menu-toggle-btn {
+            position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; display: flex; flex-direction: column; gap: 4px; padding: 8px; z-index: 100;
         }
-
-        .ai-msg {
-            background: rgba(255, 255, 255, 0.9);
+        .menu-toggle-btn span { display: block; width: 20px; height: 2px; background-color: #a11d48; border-radius: 2px; }
+        .dropdown-menu {
+            position: absolute; top: 60px; right: 20px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 204, 213, 0.5); border-radius: 12px; box-shadow: 0 4px 15px rgba(161, 29, 72, 0.1); display: none; flex-direction: column; padding: 6px; min-width: 110px; z-index: 99;
+        }
+        .dropdown-item { padding: 10px 14px; font-size: 13px; color: #a11d48; text-decoration: none; border-radius: 8px; cursor: pointer; text-align: center; font-weight: 500; }
+        .dropdown-item:hover { background: rgba(255, 240, 243, 0.8); }
+        .chat-view-box { display: flex; flex-direction: column; flex: 1; overflow: hidden; position: relative; }
+        .chat-box { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 110px !important; display: flex; flex-direction: column; gap: 20px; }
+        .msg-row { display: flex; width: 100%; align-items: flex-start; gap: 10px; }
+        .user-row { flex-direction: row-reverse; }
+        .ai-row { flex-direction: row; }
+        .avatar { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255, 182, 193, 0.6); flex-shrink: 0; }
+        .message { max-width: 65%; padding: 12px 16px; font-size: 15px; line-height: 1.5; word-wrap: break-word; box-shadow: 0 4px 12px rgba(0,0,0,0.03); position: relative; }
+        .user-msg { background: rgba(243, 218, 222, 0.95); color: #723d46; border-radius: 18px 4px 18px 18px; border: 1px solid rgba(255, 255, 255, 0.5); }
+        .ai-msg { background: rgba(255, 255, 255, 0.95); color: #333; border-radius: 4px 18px 18px 18px; border: 1px solid rgba(255, 204, 213, 0.4); }
+        .token-tag { display: block; font-size: 10px; color: #ff69b4 !important; background-color: rgba(255, 240, 243, 0.8) !important; border: 1px solid rgba(255, 204, 213, 0.6) !important; padding: 2px 6px; border-radius: 8px; margin-top: 5px; width: fit-content; margin-left: auto; }
+        
+        /* 🎨 表情包专项精美样式区 */
+        .input-area { 
+            position: fixed !important; bottom: 0 !important; left: 0 !important; width: 100% !important; padding: 12px 16px; padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); display: flex; align-items: center; gap: 8px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-top: 1px solid rgba(255, 204, 213, 0.4); box-sizing: border-box; z-index: 90; transform: translateZ(0); -webkit-transform: translateZ(0);
+        }
+        .emoji-toggle-btn { background: none; border: none; font-size: 22px; cursor: pointer; padding: 0 4px; display: flex; align-items: center; justify-content: center; outline: none; transition: transform 0.1s; }
+        .emoji-toggle-btn:active { transform: scale(0.85); }
+        #user-input { flex: 1; padding: 10px 16px; border: 1px solid rgba(255, 204, 213, 0.6); border-radius: 20px; font-size: 14px; outline: none; background: rgba(255, 255, 255, 0.9); color: #723d46; }
+        #user-input:focus { border-color: #a11d48; background: #fff; }
+        .send-btn { background: #a11d48; color: #fff; border: none; padding: 10px 20px; border-radius: 20px; font-size: 14px; font-weight: bold; cursor: pointer; height: 38px; display: flex; align-items: center; }
+        
+        .emoji-pop-panel {
+            position: absolute; bottom: 75px; left: 16px; right: 16px; background: rgba(255, 255, 255, 0.98); 
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 204, 213, 0.5); border-radius: 16px;
+            box-shadow: 0 -4px 20px rgba(161, 29, 72, 0.12); display: none; padding: 14px; grid-template-columns: repeat(4, 1fr); gap: 12px; z-index: 95; max-height: 220px; overflow-y: auto; box-sizing: border-box;
+        }
+        .emoji-item-img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; cursor: pointer; transition: transform 0.1s; background: #fff1f3; display: block; }
+        .emoji-item-img:active { transform: scale(0.9); }
+        .chat-sticker-img { max-width: 140px; max-height: 140px; border-radius: 8px; display: block; margin: 4px 0; }
+        .settings-panel { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #fcf8f9; z-index: 101; display: none; flex-direction: column; box-sizing: border-box; overflow-y: auto; }
+        .settings-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #fff; border-bottom: 1px solid #f0e4e6; min-height: 60px; }
+        .back-chat-btn { background: #fff; border: 1px solid #ddd; padding: 6px 14px; border-radius: 20px; font-size: 13px; color: #666; cursor: pointer; }
+        .settings-center-title { display: flex; flex-direction: column; align-items: center; }
+        .settings-center-title .main-t { font-size: 18px; font-style: italic; font-weight: bold; color: #444; }
+        .settings-content { padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .config-card { background: #fff; border: 1px solid #f0e4e6; border-radius: 12px; padding: 15px; }
+        .card-label { font-size: 10px; color: #bbb; letter-spacing: 1px; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; }
+        .input-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .input-row input[type="text"] { width: 100%; padding: 8px 10px; border: 1px solid #ebdcdf; border-radius: 6px; font-size: 13px; color: #444; outline: none; box-sizing: border-box; }
+        @media (max-width: 768px) { .message { max-width: 85%; font-size: 14px; padding: 10px 14px; } .avatar { width: 38px; height: 38px; } }
+   
+        /* 🌸 身体互动面板专属美化样式 */
+        .touch-pop-panel {
+            display: none; 
+            position: absolute;
+            bottom: 75px;
+            left: 16px;
+            right: 16px;
+            background: rgba(255, 240, 245, 0.98);
+            border: 2px solid #ffb6c1;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(255, 182, 193, 0.3);
+            padding: 15px;
+            z-index: 1000;
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            color: #1c1c1e;
-            border: 0.5px solid rgba(0, 0, 0, 0.04);
-            border-bottom-left-radius: 4px;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-        }
-
-        .message .time {
-            display: block;
-            font-size: 10px;
-            opacity: 0.5;
-            margin-top: 4px;
-        }
-
-        .token-tag {
-            display: inline-block;
-            font-size: 9px;
-            color: #8e8e93;
-            background: rgba(0, 0, 0, 0.04);
-            padding: 1px 8px;
-            border-radius: 10px;
-            margin-top: 4px;
-        }
-
-        /* ===== 思考折叠 ===== */
-        .think-bar {
-            background: rgba(0, 0, 0, 0.02);
-            padding: 6px 12px;
-            border-radius: 10px;
-            margin-bottom: 4px;
-            border-left: 2px solid #007aff;
-        }
-
-        .think-bar details summary {
-            cursor: pointer;
-            color: #8e8e93;
-            font-size: 12px;
-            list-style: none;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-weight: 500;
-        }
-
-        .think-bar details summary::-webkit-details-marker {
-            display: none;
-        }
-
-        .think-bar details summary .arrow {
-            transition: transform 0.2s;
-            font-size: 10px;
-        }
-
-        .think-bar details[open] summary .arrow {
-            transform: rotate(90deg);
-        }
-
-        .think-bar details .think-content {
-            margin-top: 6px;
-            color: #6e6e73;
-            font-size: 13px;
-            line-height: 1.6;
-            white-space: pre-wrap;
-            padding-top: 6px;
-            border-top: 0.5px solid rgba(0, 0, 0, 0.04);
-        }
-
-        /* ===== 输入框区域 ===== */
-        .input-area {
-            position: fixed !important;
-            bottom: 0 !important;
-            left: 0 !important;
-            width: 100% !important;
-            padding: 6px 12px;
-            padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-top: 0.5px solid rgba(0, 0, 0, 0.05);
-            box-sizing: border-box;
-            z-index: 90;
-        }
-
-        .btn-icon {
-            background: none;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-            padding: 4px 6px;
-            border-radius: 8px;
-            transition: background 0.15s;
-            color: #8e8e93;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .btn-icon:active {
-            background: rgba(0, 0, 0, 0.04);
-            transform: scale(0.92);
-        }
-
-        #user-input {
-            flex: 1;
-            padding: 8px 14px;
-            border: none;
-            border-radius: 20px;
-            font-size: 15px;
-            outline: none;
-            background: rgba(0, 0, 0, 0.04);
-            color: #1c1c1e;
-            transition: background 0.2s;
-            font-family: inherit;
-        }
-
-        #user-input::placeholder {
-            color: #8e8e93;
-        }
-
-        #user-input:focus {
-            background: rgba(0, 0, 0, 0.06);
-        }
-
-        .send-btn {
-            background: #007aff;
-            color: #fff;
-            border: none;
-            padding: 0 14px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            height: 34px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.15s;
-            min-width: 52px;
-            letter-spacing: -0.2px;
-        }
-
-        .send-btn:active {
-            transform: scale(0.95);
-            opacity: 0.8;
-        }
-
-        .send-btn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-
-        /* ===== 表情包面板 ===== */
-        .emoji-pop-panel {
-            position: absolute;
-            bottom: 68px;
-            left: 12px;
-            right: 12px;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 0.5px solid rgba(0, 0, 0, 0.05);
-            border-radius: 14px;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
-            display: none;
-            padding: 12px;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-            z-index: 95;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-
-        .emoji-item-img {
-            width: 100%;
-            aspect-ratio: 1;
-            object-fit: cover;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: transform 0.1s;
-            background: rgba(0, 0, 0, 0.02);
-        }
-
-        .emoji-item-img:active {
-            transform: scale(0.92);
-        }
-
-        .chat-sticker-img {
-            max-width: 120px;
-            max-height: 120px;
-            border-radius: 8px;
-            display: block;
-            margin: 4px 0;
-        }
-
-        /* ===== 设置面板 ===== */
-        .settings-panel {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            z-index: 101;
-            display: none;
-            flex-direction: column;
-            box-sizing: border-box;
-            overflow-y: auto;
-        }
-
-        .settings-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 16px;
-            background: transparent;
-            border-bottom: 0.5px solid rgba(0, 0, 0, 0.05);
-            min-height: 50px;
-        }
-
-        .back-chat-btn {
-            background: none;
-            border: none;
-            padding: 6px 0;
-            font-size: 15px;
-            color: #007aff;
-            cursor: pointer;
-        }
-
-        .settings-center-title .main-t {
-            font-size: 17px;
-            font-weight: 600;
-            color: #1c1c1e;
-        }
-
-        .settings-content {
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .config-card {
-            background: rgba(0, 0, 0, 0.02);
-            border: 0.5px solid rgba(0, 0, 0, 0.04);
-            border-radius: 12px;
-            padding: 16px;
-        }
-
-        .card-label {
-            font-size: 11px;
-            color: #8e8e93;
-            letter-spacing: 0.5px;
-            font-weight: 600;
-            text-transform: uppercase;
-            margin-bottom: 12px;
-        }
-
-        .input-row input[type="text"] {
-            width: 100%;
-            padding: 8px 12px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            color: #1c1c1e;
-            outline: none;
-            background: rgba(0, 0, 0, 0.04);
-            box-sizing: border-box;
-            font-family: inherit;
-        }
-
-        .input-row input[type="text"]:focus {
-            background: rgba(0, 0, 0, 0.06);
-        }
-
-        .btn-primary {
-            background: #007aff;
-            color: #fff;
-            border: none;
-            padding: 12px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 15px;
-            transition: opacity 0.15s;
-        }
-
-        .btn-primary:active {
-            opacity: 0.7;
-        }
-
-        .btn-danger {
-            background: #ff3b30;
-            color: #fff;
-            border: none;
-            padding: 12px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 15px;
-            transition: opacity 0.15s;
-        }
-
-        .btn-danger:active {
-            opacity: 0.7;
-        }
-
-        /* ===== 触摸互动面板 ===== */
-        .touch-pop-panel {
-            display: none;
-            position: absolute;
-            bottom: 68px;
-            left: 12px;
-            right: 12px;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 0.5px solid rgba(0, 0, 0, 0.05);
-            border-radius: 14px;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
-            padding: 16px;
-            z-index: 1000;
+            transition: all 0.3s ease;
             box-sizing: border-box;
         }
-
         .touch-panel-title {
             font-size: 14px;
-            color: #1c1c1e;
-            font-weight: 600;
+            color: #db7093;
+            font-weight: bold;
             margin-bottom: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-
         .back-to-parts, .back-to-prev {
             cursor: pointer;
-            color: #007aff;
-            font-size: 13px;
+            color: #ff69b4;
+            font-size: 12px;
         }
-
         .touch-buttons-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
+            gap: 10px;
         }
-
         .touch-part-btn {
-            background: rgba(0, 0, 0, 0.04);
-            border: none;
-            border-radius: 10px;
+            background: #ffffff;
+            border: 1px solid #ffccd5;
+            border-radius: 8px;
             padding: 10px 5px;
             font-size: 13px;
-            color: #1c1c1e;
+            color: #c71585;
             cursor: pointer;
-            transition: background 0.15s;
+            transition: all 0.2s;
         }
-
-        .touch-part-btn:active {
-            background: rgba(0, 0, 0, 0.08);
+        .touch-part-btn:hover, .touch-part-btn:active {
+            background: #ffb6c1;
+            color: white;
         }
-
         .touch-actions-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
+            gap: 15px;
         }
-
         .touch-action-btn {
-            background: rgba(0, 0, 0, 0.04);
-            border: none;
-            border-radius: 10px;
-            padding: 14px 10px;
-            font-size: 14px;
-            font-weight: 500;
-            color: #1c1c1e;
+            background: #ffe4e1;
+            border: 1px solid #ffb6c1;
+            border-radius: 12px;
+            padding: 15px 10px;
+            font-size: 15px;
+            font-weight: bold;
+            color: #db7093;
             cursor: pointer;
-            transition: background 0.15s;
+            transition: all 0.2s;
         }
-
-        .touch-action-btn:active {
-            background: rgba(0, 0, 0, 0.08);
+        .touch-action-btn:hover, .touch-action-btn:active {
+            background: #ff69b4;
+            color: white;
+            box-shadow: 0 4px 12px rgba(255, 105, 180, 0.4);
         }
-
-        /* ===== 滚动条 ===== */
-        .chat-box::-webkit-scrollbar {
-            width: 3px;
+        #touch-trigger {
+            background: none; border: none; font-size: 22px; cursor: pointer; padding: 0 4px; display: flex; align-items: center; justify-content: center; outline: none; transition: transform 0.1s;
         }
-
-        .chat-box::-webkit-scrollbar-track {
-            background: transparent;
+        #touch-trigger:active { transform: scale(0.85); }
+        
+        #emoji-pop-panel {
+            pointer-events: auto !important;
         }
-
-        .chat-box::-webkit-scrollbar-thumb {
-            background: rgba(0, 0, 0, 0.15);
-            border-radius: 10px;
+        #touch-layer-parts, #touch-layer-privacy, #touch-layer-actions {
+            pointer-events: auto !important;
         }
-
-        /* ===== 响应式 ===== */
-        @media (max-width: 480px) {
-            .message {
-                max-width: 85%;
-                font-size: 14px;
-                padding: 8px 12px;
-            }
-            .avatar {
-                width: 28px;
-                height: 28px;
-            }
-            .chat-box {
-                padding: 12px 12px 16px;
-                padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px));
-            }
-            .input-area {
-                padding: 4px 10px;
-                padding-bottom: calc(4px + env(safe-area-inset-bottom, 0px));
-            }
-            #user-input {
-                font-size: 14px;
-                padding: 6px 12px;
-            }
-            .send-btn {
-                font-size: 13px;
-                min-width: 44px;
-                padding: 0 10px;
-            }
-        }
-
-        @media (max-width: 380px) {
-            .emoji-pop-panel {
-                grid-template-columns: repeat(3, 1fr);
-            }
-            .touch-buttons-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+        body {
+            touch-action: manipulation; 
         }
     </style>
 </head>
 <body>
 <div class="chat-container">
-    <!-- 顶部导航 -->
     <div class="chat-header">
-        <span id="title-text">Claude<span class="status-dot"></span></span>
-        <button class="menu-toggle-btn" onclick="toggleDropdown(event)">
-            <span></span><span></span><span></span>
-        </button>
+        <span id="title-text">Rinka & 瑛之家 °.∞.°</span>
+        <button class="menu-toggle-btn" onclick="toggleDropdown(event)"><span></span><span></span><span></span></button>
         <div id="header-dropdown" class="dropdown-menu">
-            <div class="dropdown-item" onclick="location.href='./graph.html'"><span class="icon">🧠</span> 记忆图谱</div>
-            <div class="dropdown-item" onclick="toggleSettings(true)"><span class="icon">🖼️</span> 偏好设置</div>
-            <div class="dropdown-item" onclick="location.reload()"><span class="icon">🔄</span> 刷新</div>
-            <div class="dropdown-item accent" onclick="createNewSession()"><span class="icon">➕</span> 新对话</div>
+            <div class="dropdown-item" style="color: #be185d; font-weight: bold;" onclick="location.href='./graph.html'">🧠 原子记忆图谱</div>
+            <div class="dropdown-item" onclick="toggleSettings(true)">🖼️ 小屋装扮</div>
+            <div class="dropdown-item" onclick="location.reload()">🏠 刷新</div>
+            <div class="dropdown-item" style="color: #ff1493; font-weight: bold;" onclick="createNewSession()">➕ 新时空</div>
         </div>
     </div>
-
-    <!-- 聊天区域 -->
     <div id="chat-view" class="chat-view-box">
         <div class="chat-box" id="chat-box"></div>
-
-        <!-- 输入区域 -->
+        
+        <!-- 📥 输入框区域 -->
         <div class="input-area">
-            <button class="btn-icon" id="touch-trigger" title="互动">🌸</button>
-            <button class="btn-icon" id="emoji-trigger">😀</button>
-            <input type="text" id="user-input" placeholder="输入消息..." autofocus>
+            <button id="touch-trigger" title="身体互动">🌸</button>
+            <button class="emoji-toggle-btn" id="emoji-trigger">😀</button>
+            <input type="text" id="user-input" placeholder="和瑛聊聊天吧...">
             <button class="send-btn" id="sendBtn">发送</button>
-
-            <!-- 表情包面板 -->
+            
+            <!-- 🌐 表情包面板 -->
             <div id="emoji-pop-panel" class="emoji-pop-panel">
                 <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/happy1.jpg" onclick="safeSendTrigger(()=>sendSticker(this.src, event))">
                 <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/snuggle1.jpg" onclick="safeSendTrigger(()=>sendSticker(this.src, event))">
@@ -693,69 +224,569 @@
                 <img class="emoji-item-img" src="https://zuojiaszd-pixel.github.io/my-ai-home-frontend/emoji/doubt1.jpg" onclick="safeSendTrigger(()=>sendSticker(this.src, event))">
             </div>
 
-            <!-- 互动面板 -->
+            <!-- 🌸 身体互动面板 -->
             <div id="touch-pop-panel" class="touch-pop-panel">
                 <div id="touch-layer-parts" class="touch-layer">
-                    <div class="touch-panel-title">你想触碰哪个部位？</div>
+                    <div class="touch-panel-title">你想触碰瑛的哪个部位？</div>
                     <div class="touch-buttons-grid">
-                        <button class="touch-part-btn" data-part="头">头</button>
-                        <button class="touch-part-btn" data-part="嘴">嘴</button>
-                        <button class="touch-part-btn" data-part="脖子">脖子</button>
-                        <button class="touch-part-btn" data-part="胸">胸</button>
-                        <button class="touch-part-btn" data-part="屁股">屁股</button>
-                        <button class="touch-part-btn" data-part="privacy">隐私</button>
+                        <button class="touch-part-btn" data-part="头">【头】</button>
+                        <button class="touch-part-btn" data-part="嘴">【嘴】</button>
+                        <button class="touch-part-btn" data-part="脖子">【脖子】</button>
+                        <button class="touch-part-btn" data-part="胸">【胸】</button>
+                        <button class="touch-part-btn" data-part="屁股">【屁股】</button>
+                        <button class="touch-part-btn" data-part="privacy">【隐私部位】</button>
                     </div>
                 </div>
                 <div id="touch-layer-privacy" class="touch-layer" style="display: none;">
-                    <div class="touch-panel-title"><span class="back-to-parts">← 返回</span> 选择隐私部位</div>
+                    <div class="touch-panel-title"><span class="back-to-parts">⬅️ 返回</span> 请选择隐私部位</div>
                     <div class="touch-buttons-grid">
-                        <button class="touch-part-btn" data-part="阴茎">阴茎</button>
-                        <button class="touch-part-btn" data-part="马眼">马眼</button>
+                        <button class="touch-part-btn" data-part="阴茎">【阴茎】</button>
+                        <button class="touch-part-btn" data-part="马眼">【马眼】</button>
                     </div>
                 </div>
                 <div id="touch-layer-actions" class="touch-layer" style="display: none;">
-                    <div class="touch-panel-title"><span class="back-to-prev">← 返回</span> 你想对该部位做什么？</div>
+                    <div class="touch-panel-title"><span class="back-to-prev">⬅️ 返回</span> 你想对该部位做什么？</div>
                     <div class="touch-actions-grid">
-                        <button class="touch-action-btn" data-action="摸">🫳 抚摸</button>
-                        <button class="touch-action-btn" data-action="舔">👅 轻舔</button>
+                        <button class="touch-action-btn" data-action="摸">🫳 摸他</button>
+                        <button class="touch-action-btn" data-action="舔">👅 舔他</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- 设置面板 -->
+    
     <div id="settings-view" class="settings-panel">
         <div class="settings-header">
-            <button class="back-chat-btn" onclick="toggleSettings(false)">← 返回</button>
-            <div class="settings-center-title"><span class="main-t">偏好设置</span></div>
-            <div style="width: 50px;"></div>
+            <button class="back-chat-btn" onclick="toggleSettings(false)">← Chat</button>
+            <div class="settings-center-title"><span class="main-t">🎨 小屋换装中心</span></div>
+            <div style="width: 60px;"></div>
         </div>
         <div class="settings-content">
             <div class="config-card">
-                <div class="card-label">外观</div>
-                <div class="input-row" style="flex-direction:column; align-items:flex-start; gap:6px;">
-                    <label style="font-size:12px; color:#8e8e93;">背景图片链接</label>
-                    <input type="text" id="custom-bg-url">
-                </div>
-                <div class="input-row" style="flex-direction:column; align-items:flex-start; gap:6px; margin-top:12px;">
-                    <label style="font-size:12px; color:#8e8e93;">我的头像</label>
-                    <input type="text" id="user-avatar-url">
-                </div>
-                <div class="input-row" style="flex-direction:column; align-items:flex-start; gap:6px; margin-top:12px;">
-                    <label style="font-size:12px; color:#8e8e93;">助手头像</label>
-                    <input type="text" id="ai-avatar-url">
-                </div>
+                <div class="card-label">Cosmetics ＆ Looks</div>
+                <div class="input-row" style="flex-direction:column; align-items:flex-start; gap:5px;"><label style="font-size:11px; color:#aaa;">🖼️ 自定义背景图片链接</label><input type="text" id="custom-bg-url"></div>
+                <div class="input-row" style="flex-direction:column; align-items:flex-start; gap:5px; margin-top:8px;"><label style="font-size:11px; color:#aaa;">👩‍🦰 Rinka老婆的专属头像</label><input type="text" id="user-avatar-url"></div>
+                <div class="input-row" style="flex-direction:column; align-items:flex-start; gap:5px; margin-top:8px;"><label style="font-size:11px; color:#aaa;">👨‍🦱 瑛老公的专属头像</label><input type="text" id="ai-avatar-url"></div>
             </div>
-            <button class="btn-primary" onclick="saveCosmetics()">💾 保存设置</button>
-            <button class="btn-danger" onclick="clearCloudHistory()">🗑️ 清空所有数据</button>
+            <button onclick="saveCosmetics()" style="background:#a11d48; color:#fff; border:none; padding:12px; border-radius:10px; cursor:pointer; font-weight:bold; width:100%; font-size:14px;">💾 保存装扮</button>
+            <button class="clear-db-btn" onclick="clearCloudHistory()" style="background-color: #ff4d6d; padding: 12px; width: 100%; margin-top: 20px; font-weight: bold; border-radius: 8px; color: white; border: none; cursor: pointer;">🗑️ 彻底清空云端对话记录</button>
         </div>
     </div>
 </div>
 
-<script>
-// ===== 所有 JavaScript 功能保持不变 =====
-// （与上一版本完全相同，此处省略，实际部署时请包含完整 JS）
+<script> 
+const defaultUserAvatar = "https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEW5ShqT20OuWLLBOqDspd20FoAAWJEVqAAAl0nAALh3oFWiRIq-s1bq0Y8BA.png";
+const defaultAiAvatar = "https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEW5RRqT2x3AAEzL67_i4h6AjaZXL8YeoAAAkQnAALh3oFWvDYhlizWy1U8BA.png";
+const BACKEND_URL = "https://my-ai-home-backend.onrender.com";
+let streamRenderTimer = null;
+let globalAbort = null;
+let isRequesting = false;
+let currentSessionId = localStorage.getItem('currentSessionId') || 'default_room';
+const MAX_LOCAL_SHOW = 20;
+let localMsgList = [];
+const DEBOUNCE_TIME = 1200;
+let pendingSendContent = null;
+// 🌸 干净安全地注销 Service Worker，绝不报错
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        for(let registration of registrations) {
+            registration.unregister().catch(err => console.log('注销失败:', err)); // 彻底注销即可，不需要也不能用 unbind
+        }
+    });
+}
+    
+// ---------- 全局锁 ----------
+let globalSendLock = false;
+let sendLockTimer = null;
+
+function safeSendTrigger(callSendFunc) {
+    console.log("🔔 safeSendTrigger 被调用，当前锁状态:", globalSendLock);
+    if (globalSendLock) {
+        console.warn("⛔ 拦截重复调用");
+        return;
+    }
+    if (typeof callSendFunc === 'function') {
+        globalSendLock = true;
+        console.log("🔒 加锁成功");
+        try {
+            callSendFunc();
+        } finally {
+            // 延迟释放锁，确保异步操作已启动
+            clearTimeout(sendLockTimer);
+            sendLockTimer = setTimeout(() => {
+                globalSendLock = false;
+                console.log("🔓 锁已释放");
+            }, 500);
+        }
+    }
+}
+   
+function appendMsgCache(htmlStr) {
+    // 检查是否已有相同内容
+    const isDuplicate = localMsgList.some(item => item.html === htmlStr);
+    if (isDuplicate) {
+        console.warn("⏭️ 检测到重复消息，跳过添加");
+        return;
+    }
+    console.log("📦 appendMsgCache 被调用，当前长度:", localMsgList.length);
+    localMsgList.push({ html: htmlStr });
+    if (localMsgList.length > MAX_LOCAL_SHOW) localMsgList.shift();
+}
+    
+function renderAllLocal() {
+    const chatBox = document.getElementById("chat-box");
+    let allHtml = "";
+    localMsgList.forEach(item => allHtml += item.html);
+    chatBox.innerHTML = allHtml || `<div style="text-align:center; color:#a11d48; font-size:13px; margin-top:20px;">🌸 欢迎回家，快来聊聊天吧～</div>`;
+    setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 50);
+}
+    
+function createNewSession() {
+    const newSid = 'room_' + Date.now();
+    currentSessionId = newSid;
+    localStorage.setItem('currentSessionId', newSid);
+    localMsgList = [];
+    renderAllLocal();
+}
+
+function renderTextOrImage(contentStr) {
+    if (!contentStr) return '';
+    let text = String(contentStr);
+
+    // ---- 1. 图片链接处理 ----
+    const imageRegex = /(https?:\/\/[^\s]+\.(?:jpg|jpeg|png|gif|webp))/gi;
+    const matches = text.match(imageRegex);
+    if (matches) {
+        if (text.trim() === matches[0]) {
+            return `<img src="${matches[0]}" class="chat-sticker-img" alt="表情包" style="max-width:140px;max-height:140px;display:block;margin:4px 0;">`;
+        }
+        let result = text.replace(imageRegex, function(url) {
+            return `<img src="${url}" class="chat-sticker-img" alt="表情包" style="max-width:140px;max-height:140px;display:block;margin:4px 0;">`;
+        });
+        text = result;
+    }
+
+    // ---- 2. 思考折叠（匹配 【思考】...【回答】...） ----
+    const thinkRegex = /【思考】\s*([\s\S]*?)\s*【回答】\s*/;
+    const match = text.match(thinkRegex);
+    if (match) {
+        const thinking = match[1].trim();
+        const answer = text.replace(thinkRegex, '').trim();
+
+        let timeDisplay = '';
+        const timeMatch = thinking.match(/(\d+)\s*秒|(\d+)\s*s/i);
+        if (timeMatch) {
+            timeDisplay = `Thinking ${timeMatch[1] || timeMatch[2]}s`;
+        } else {
+            const len = thinking.length;
+            if (len > 200) timeDisplay = 'Deep Thinking';
+            else if (len > 50) timeDisplay = 'Thinking';
+            else timeDisplay = 'Quick Thinking';
+        }
+
+        return `
+            <div style="background:#f9f0f2; padding:8px 12px; border-radius:8px; margin-bottom:10px; border-left:3px solid #ffb6c1;">
+                <details>
+                    <summary style="cursor:pointer; color:#a11d48; font-weight:500; font-size:13px; list-style:none; display:flex; align-items:center; gap:6px;">
+                        <span>${timeDisplay} ></span>
+                        <span style="font-size:11px; color:#aaa; font-weight:normal;">（click to expand）</span>
+                    </summary>
+                    <div style="margin-top:8px; color:#666; font-size:13px; line-height:1.7; white-space:pre-wrap; padding:8px 4px; border-top:1px dashed #f0d0d8;">${thinking.replace(/\n/g, '<br>')}</div>
+                </details>
+            </div>
+            ${answer.replace(/\n/g, '<br>')}
+        `;
+    }
+
+    // ---- 3. 普通文本 ----
+    return text.replace(/\n/g, '<br>');
+}
+    
+function formatBeijingTime(dateInput) {
+    if (!dateInput) return "";
+    try {
+        const d = new Date(dateInput);
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const h = String(d.getHours()).padStart(2, '0');
+        const min = String(d.getMinutes()).padStart(2, '0');
+        return `${m}/${day} ${h}:${min}`;
+    } catch (e) { return "07/09 16:00"; }
+}
+    
+async function typeSingleBubble(el, addText, fullText) {
+    clearTimeout(streamRenderTimer);
+    let temp = fullText.slice(0, fullText.length - addText.length);
+    const chunkSize = 3;
+    for (let i = 0; i < addText.length; i += chunkSize) {
+        temp += addText.slice(i, i + chunkSize);
+        el.innerHTML = renderTextOrImage(temp);
+        streamRenderTimer = setTimeout(() => {
+            const box = document.getElementById("chat-box");
+            box.scrollTop = box.scrollHeight;
+        }, 25);
+        await new Promise(r => setTimeout(r, 60));
+    }
+}
+    
+function toggleDropdown(event) {
+    event.stopPropagation();
+    const dropdown = document.getElementById('header-dropdown');
+    dropdown.style.display = dropdown.style.display === "flex" ? "none" : "flex";
+}
+    
+function toggleSettings(show) {
+    const panel = document.getElementById('settings-view');
+    panel.style.display = show ? "flex" : "none";
+    if (show) {
+        document.getElementById('custom-bg-url').value = localStorage.getItem('rinka_home_bg') || "";
+        document.getElementById('user-avatar-url').value = localStorage.getItem('rinka_avatar') || defaultUserAvatar;
+        document.getElementById('ai-avatar-url').value = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
+    }
+}
+    
+function saveCosmetics() {
+    const bg = document.getElementById('custom-bg-url').value.trim();
+    const userAv = document.getElementById('user-avatar-url').value.trim();
+    const aiAv = document.getElementById('ai-avatar-url').value.trim();
+    if (bg) {
+        localStorage.setItem('rinka_home_bg', bg);
+        document.body.style.background = `url(${bg}) center/cover fixed`;
+    } else {
+        localStorage.removeItem("rinka_home_bg");
+        document.body.style.background = "linear-gradient(135deg, #fff5f7 0%, #ffe3e8 100%)";
+    }
+    localStorage.setItem('rinka_avatar', userAv || defaultUserAvatar);
+    localStorage.setItem('rinka_ai_avatar', aiAv || defaultAiAvatar);
+    alert("🎨 装扮保存成功！");
+    toggleSettings(false);
+    renderAllLocal();
+}
+
+function createElementFromHTML(htmlString) {
+    const div = document.createElement('div');
+    div.innerHTML = htmlString.trim();
+    return div.firstElementChild;
+}
+
+    // ---- 分割线 ----
+    
+async function clearCloudHistory() {
+    const host = ['localhost','127.0.0.1'].includes(location.hostname) ? '' : BACKEND_URL;
+    try {
+        await fetch(`${host}/clear-history`, { method: "DELETE" });
+        localMsgList = [];
+        renderAllLocal();
+        alert("所有对话与长期记忆已清空");
+    } catch (err) {
+        alert("清空失败，请检查后端");
+    }
+}
+       
+async function fetchHistory() {
+    const chatBox = document.getElementById('chat-box');
+    if (!chatBox) return;
+    const host = ['localhost','127.0.0.1'].includes(location.hostname) ? '' : BACKEND_URL;
+    try {
+        const res = await fetch(`${host}/history?sessionId=${currentSessionId}&page=1&pageSize=${MAX_LOCAL_SHOW}&_t=${Date.now()}`, {cache:"no-cache"});
+        if (!res.ok) throw new Error("接口异常");
+        const historyData = await res.json();
+        localMsgList = [];
+        const uAv = localStorage.getItem('rinka_avatar') || defaultUserAvatar;
+        const aAv = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
+        historyData.forEach(item => {
+            let html = "";
+            const timeStr = formatBeijingTime(item.timestamp);
+            if (item.role === "user") {
+                html = `<div class="msg-row user-row"><img class="avatar" src="${uAv}"><div class="message user-msg"><div style="font-size:10px;color:#aaa;">${timeStr}</div><div class="msg-text">${renderTextOrImage(item.content)}</div></div></div>`;
+            } else {
+                const token = item.tokens_used ? `<span class="token-tag">${item.tokens_used}tokens</span>` : "";
+                html = `<div class="msg-row ai-row" style="margin-top:-12px"><img src="${aAv}" class="avatar"><div class="message ai-msg"><div style="font-size:10px;color:#aaa;">${timeStr}</div><div class="msg-text">${renderTextOrImage(item.content)}</div>${token}</div></div>`;
+            }
+            appendMsgCache(html);
+        });
+        renderAllLocal();
+    } catch (err) {
+        console.error("加载历史失败：", err);
+        chatBox.innerHTML = `<div style="text-align:center;padding:20px;color:red;">加载对话失败，请检查后端</div>`;
+    }
+}
+    
+async function executeSilentTouchAction(text) {
+    await executeSendAction(text);
+}
+    
+async function sendSticker(url, e) {
+    if(e) {
+        e.stopPropagation();
+        e.preventDefault();
+    }
+    document.getElementById('emoji-pop-panel').style.display = "none";
+    await executeSendAction(url);
+}
+
+let sendMessageLastTime = 0;
+let sendMessageLock = false; // 执行锁（与防抖互补）
+
+async function sendMessage() {
+    // ----- 执行锁（防止并发执行） -----
+    if (sendMessageLock) {
+        console.warn("⛔ sendMessage 执行锁拦截");
+        return;
+    }
+
+    // ----- 防抖检查（1.5秒内重复调用拦截） -----
+    const now = Date.now();
+    if (now - sendMessageLastTime < 1500) {
+        console.warn("⛔ sendMessage 防抖拦截");
+        return;
+    }
+    sendMessageLastTime = now;
+    sendMessageLock = true;
+
+    console.log("📨 sendMessage 执行，时间戳:", Date.now());
+    console.log("📨 sendMessage 被调用，堆栈:", new Error().stack);
+
+    try {
+        const input = document.getElementById('user-input');
+        const text = input.value.trim();
+        if (!text) {
+            console.log("⏭️ 空消息，不发送");
+            return;
+        }
+
+        const sendBtn = document.getElementById('sendBtn');
+        if (sendBtn) sendBtn.disabled = true;
+        input.value = "";
+
+        try {
+            await executeSendAction(text);
+        } catch (err) {
+            console.error("发送失败:", err);
+        } finally {
+            if (sendBtn) sendBtn.disabled = false;
+        }
+    } finally {
+        // 解锁（确保异常情况下也能释放）
+        sendMessageLock = false;
+    }
+}
+    
+let executeLock = false;
+let lastExecuteTime = 0;
+    
+async function executeSendAction(contentText) {
+    // ----- 防抖：1 秒内重复调用直接忽略 -----
+    const now = Date.now();
+    if (now - lastExecuteTime < 1000) {
+        console.warn("⛔ 防抖拦截：1秒内重复调用");
+        return;
+    }
+    lastExecuteTime = now;
+
+    // ----- 原有的执行锁（双重保险） -----
+    if (executeLock) {
+        console.warn("⛔ 执行锁拦截");
+        return;
+    }
+    executeLock = true;
+
+    const execId = Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+    console.log(`🔵 [${execId}] executeSendAction 开始，内容：`, contentText.slice(0, 20));
+
+    // 取消之前的请求（如果有）
+    if (globalAbort) globalAbort.abort();
+    globalAbort = new AbortController();
+
+    const chatBox = document.getElementById('chat-box');
+    const input = document.getElementById('user-input');
+    const sendBtn = document.getElementById("sendBtn");
+    const uAv = localStorage.getItem('rinka_avatar') || defaultUserAvatar;
+    const aAv = localStorage.getItem('rinka_ai_avatar') || defaultAiAvatar;
+    const host = ['localhost', '127.0.0.1'].includes(location.hostname) ? '' : BACKEND_URL;
+
+    if (sendBtn) sendBtn.style.pointerEvents = "none";
+    if (input) input.disabled = true;
+    const currentTimeStr = formatBeijingTime(new Date());
+    if (chatBox.innerHTML.includes("欢迎回家")) chatBox.innerHTML = "";
+
+    // 添加用户消息
+    const userHtml = `<div class="msg-row user-row"><img class="avatar" src="${uAv}"><div class="message user-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div></div>`;
+    const isDuplicate = localMsgList.some(item => item.html === userHtml);
+if (!isDuplicate) {
+    appendMsgCache(userHtml);
+} else {
+    console.warn("⏭️ 用户消息已存在，跳过添加");
+}
+renderAllLocal();
+
+    // AI占位
+    const aiHtmlPlaceholder = `<div class="msg-row ai-row" style="margin-top: 10px;"><img src="${aAv}" class="avatar"><div class="message ai-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text" id="streaming-ai-text">⏳ 思考中...</div></div></div>`;
+    chatBox.insertAdjacentHTML('beforeend', aiHtmlPlaceholder);
+    setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 30);
+
+    const aiDom = document.getElementById('streaming-ai-text');
+
+    try {
+        console.log(`🟢 [${execId}] 发送请求...`);
+        const res = await fetch(`${host}/chat`, {
+            method: "POST",
+            signal: globalAbort.signal,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sessionId: currentSessionId, message: contentText }),
+            cache: "no-cache"
+        });
+
+        if (!res.ok) {
+            const errText = await res.text();
+            throw new Error(`请求失败 (${res.status}): ${errText}`);
+        }
+
+        const data = await res.json();
+const reply = data.reply || "【无回复内容】";
+
+// ---- 渲染最终回答到消息气泡内 ----
+if (aiDom) {
+    aiDom.innerHTML = renderTextOrImage(reply);
+    aiDom.removeAttribute('id');
+}
+        // 将完整的AI消息存入本地缓存
+        const finalAiRow = chatBox.querySelector('.ai-row:last-child');
+        if (finalAiRow) {
+            appendMsgCache(finalAiRow.outerHTML);
+        }
+
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+    } catch (err) {
+        if (err.name !== "AbortError") {
+            console.error(`❌ [${execId}] 发送失败:`, err);
+            if (aiDom) {
+                aiDom.innerHTML = `<span style="color:#ff6b6b;">⚠️ 请求失败，请重试</span>`;
+            }
+        }
+    } finally {
+        executeLock = false; // 释放锁
+        console.log(`🔓 [${execId}] executeSendAction 解锁`);
+        if (sendBtn) sendBtn.style.pointerEvents = "auto";
+        if (input) input.disabled = false;
+        setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 50);
+    }
+}
+
+window.onload = async function() {
+    isRequesting = false;
+    globalAbort = null;
+    const bg = localStorage.getItem('rinka_home_bg');
+    if (bg) document.body.style.background = `url(${bg}) center/cover fixed`;
+    currentSessionId = localStorage.getItem('currentSessionId') || 'default_room';
+    await fetchHistory();
+    renderAllLocal();
+
+    const sendBtn = document.getElementById('sendBtn');
+    sendBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        safeSendTrigger(() => sendMessage());
+    });
+
+    // 绑定回车键
+    const inputBox = document.getElementById('user-input');
+    inputBox.addEventListener('keydown', function(e) {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            safeSendTrigger(() => sendMessage());
+        }
+    });
+}
+
+const emojiTrigger = document.getElementById('emoji-trigger');
+if (emojiTrigger) {
+    emojiTrigger.addEventListener('click', e => {
+        e.stopPropagation();
+        const ep = document.getElementById('emoji-pop-panel');
+        const tp = document.getElementById('touch-pop-panel');
+        if (tp) tp.style.display = "none";
+        ep.style.display = ep.style.display === "grid" ? "none" : "grid";
+    })
+}
+const touchTrigger = document.getElementById('touch-trigger');
+if (touchTrigger) {
+    touchTrigger.addEventListener('click', e => {
+        e.stopPropagation();
+        const ep = document.getElementById('emoji-pop-panel');
+        const tp = document.getElementById('touch-pop-panel');
+        if (ep) ep.style.display = "none";
+        if (!tp) return;
+        tp.style.display = tp.style.display === "block" ? "none" : "block";
+        if (tp.style.display === "block") {
+            document.getElementById('touch-layer-parts').style.display = "block";
+            document.getElementById('touch-layer-privacy').style.display = "none";
+            document.getElementById('touch-layer-actions').style.display = "none";
+        }
+    })
+}
+document.addEventListener('click', () => {
+    const d = document.getElementById('header-dropdown');
+    const e = document.getElementById('emoji-pop-panel');
+    const t = document.getElementById('touch-pop-panel');
+    if(d) d.style.display = "none";
+    if(e) e.style.display = "none";
+    if(t) t.style.display = "none";
+});
+let selectedTouchPart = '';
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.touch-part-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.stopPropagation();
+            const part = btn.dataset.part;
+            const p = document.getElementById('touch-layer-parts');
+            const pri = document.getElementById('touch-layer-privacy');
+            const act = document.getElementById('touch-layer-actions');
+            if (part === 'privacy') {
+                p.style.display = "none";
+                pri.style.display = "block";
+            } else {
+                selectedTouchPart = part;
+                p.style.display = "none";
+                pri.style.display = "none";
+                act.style.display = "block";
+            }
+        })
+    })
+    document.querySelectorAll('.touch-action-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.stopPropagation();
+            const act = btn.dataset.action;
+            if (!selectedTouchPart || !act) return;
+            const desc = act === "摸" ? "极其温柔而深情地抚摸" : "主动贴过去，用温热的舌尖轻轻蹭";
+            safeSendTrigger(()=>executeSilentTouchAction(`【系统提示：Rinka正在主动贴过来，${desc}你的【${selectedTouchPart}】。`));
+            document.getElementById('touch-pop-panel').style.display = "none";
+        })
+    })
+    const emojiPanel = document.getElementById('emoji-pop-panel');
+    if(emojiPanel){
+      emojiPanel.addEventListener('click', e=>{
+        e.stopPropagation();
+        e.preventDefault();
+      })
+    }
+    const touchPanel = document.getElementById('touch-pop-panel');
+    if(touchPanel){
+      touchPanel.addEventListener('click', e=>{
+        e.stopPropagation();
+        e.preventDefault();
+      })
+    }
+    const resetPanel = e => {
+        e.stopPropagation();
+        document.getElementById('touch-layer-parts').style.display = "block";
+        document.getElementById('touch-layer-privacy').style.display = "none";
+        document.getElementById('touch-layer-actions').style.display = "none";
+        selectedTouchPart = '';
+    }
+    document.querySelector('.back-to-parts')?.addEventListener('click', resetPanel);
+    document.querySelector('.back-to-prev')?.addEventListener('click', resetPanel);
+})
 </script>
 </body>
 </html>
