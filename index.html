@@ -1008,7 +1008,7 @@ let executeLock = false;
 let lastExecuteTime = 0;
 
 async function executeSendAction(contentText) {
-    // 1️⃣ 防抖 + 并发锁（合并）
+    // 1️⃣ 防抖 + 并发锁
     const now = Date.now();
     if (executeLock) {
         console.warn("⛔ 执行锁拦截（正在发送中）");
@@ -1018,8 +1018,6 @@ async function executeSendAction(contentText) {
         console.warn("⛔ 防抖拦截（1秒内重复）");
         return;
     }
-
-    // 2️⃣ 加锁
     executeLock = true;
     lastExecuteTime = now;
 
@@ -1041,16 +1039,20 @@ async function executeSendAction(contentText) {
     const currentTimeStr = formatBeijingTime(new Date());
     if (chatBox.innerHTML.includes("欢迎回家")) chatBox.innerHTML = "";
 
-    const userHtml = `<div class="msg-row user-row"><img class="avatar" src="${uAv}"><div class="message user-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div></div>`;
-    const isDuplicate = localMsgList.some(item => item.html === userHtml);
-    if (!isDuplicate) {
-        appendMsgCache(userHtml);
+    // ---- 添加用户消息（直接操作 localMsgList，避免 appendMsgCache 的复杂逻辑） ----
+    const userHtml = `<div class="msg-row user-row">< img class="avatar" src="${uAv}"><div class="message user-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div></div>`;
+    // 检查是否已存在（用内容去重）
+    const existingUser = localMsgList.some(item => item.html && item.html.includes(contentText));
+    if (!existingUser) {
+        localMsgList.push({ html: userHtml });
+        if (localMsgList.length > MAX_LOCAL_SHOW) localMsgList.shift();
     } else {
         console.warn("⏭️ 用户消息已存在，跳过添加");
     }
     renderAllLocal();
 
-    const aiHtmlPlaceholder = `<div class="msg-row ai-row" style="margin-top: 10px;"><img src="${aAv}" class="avatar"><div class="message ai-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text" id="streaming-ai-text">⏳ 思考中...</div></div></div>`;
+    // ---- AI 占位 ----
+    const aiHtmlPlaceholder = `<div class="msg-row ai-row" style="margin-top: 10px;">< img src="${aAv}" class="avatar"><div class="message ai-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text" id="streaming-ai-text">⏳ 思考中...</div></div></div>`;
     chatBox.insertAdjacentHTML('beforeend', aiHtmlPlaceholder);
     setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 30);
 
@@ -1079,9 +1081,18 @@ async function executeSendAction(contentText) {
             aiDom.removeAttribute('id');
         }
 
+        // ---- 添加 AI 回复（直接操作 localMsgList） ----
         const finalAiRow = chatBox.querySelector('.ai-row:last-child');
         if (finalAiRow) {
-            appendMsgCache(finalAiRow.outerHTML);
+            const aiHtml = finalAiRow.outerHTML;
+            // 检查是否已存在（用内容去重）
+            const existingAi = localMsgList.some(item => item.html && item.html.includes(reply));
+            if (!existingAi) {
+                localMsgList.push({ html: aiHtml });
+                if (localMsgList.length > MAX_LOCAL_SHOW) localMsgList.shift();
+            } else {
+                console.warn("⏭️ AI 回复已存在，跳过添加");
+            }
         }
 
         chatBox.scrollTop = chatBox.scrollHeight;
@@ -1092,13 +1103,15 @@ async function executeSendAction(contentText) {
             if (aiDom) {
                 aiDom.innerHTML = `<span style="color:#ff6b6b;">⚠️ 请求失败，请重试</span>`;
             }
-        }  
- } finally {
-    executeLock = false;
-    globalSendLock = false;
-    if (sendBtn) sendBtn.style.pointerEvents = "auto";  // 👈 恢复按钮点击
-    if (input) input.disabled = false;                  // 👈 恢复输入框
-    console.log(`🔓 [${execId}] executeSendAction 解锁`);
+        }
+    } finally {
+        executeLock = false;
+        globalSendLock = false;
+        if (sendBtn) sendBtn.style.pointerEvents = "auto";
+        if (input) input.disabled = false;
+        console.log(`🔓 [${execId}] executeSendAction 解锁`);
+        // 最后再渲染一次，确保页面与 localMsgList 同步
+        renderAllLocal();
     }
 }
 
