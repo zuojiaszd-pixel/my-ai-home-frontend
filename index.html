@@ -1040,7 +1040,7 @@ async function executeSendAction(contentText) {
     if (chatBox.innerHTML.includes("欢迎回家")) chatBox.innerHTML = "";
 
     // ---- 添加用户消息（直接操作 localMsgList，避免 appendMsgCache 的复杂逻辑） ----
-    const userHtml = `<div class="msg-row user-row">< img class="avatar" src="${uAv}"><div class="message user-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div></div>`;
+    const userHtml = `<div class="msg-row user-row"><img class="avatar" src="${uAv}"><div class="message user-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text">${renderTextOrImage(contentText)}</div></div></div>`;
     // 检查是否已存在（用内容去重）
     const existingUser = localMsgList.some(item => item.html && item.html.includes(contentText));
     if (!existingUser) {
@@ -1052,7 +1052,7 @@ async function executeSendAction(contentText) {
     renderAllLocal();
 
     // ---- AI 占位 ----
-    const aiHtmlPlaceholder = `<div class="msg-row ai-row" style="margin-top: 10px;">< img src="${aAv}" class="avatar"><div class="message ai-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text" id="streaming-ai-text">⏳ 思考中...</div></div></div>`;
+    const aiHtmlPlaceholder = `<div class="msg-row ai-row" style="margin-top: 10px;"><img src="${aAv}" class="avatar"><div class="message ai-msg"><div style="font-size:10px;color:#aaa;">${currentTimeStr}</div><div class="msg-text" id="streaming-ai-text">⏳ 思考中...</div></div></div>`;
     chatBox.insertAdjacentHTML('beforeend', aiHtmlPlaceholder);
     setTimeout(() => chatBox.scrollTop = chatBox.scrollHeight, 30);
 
